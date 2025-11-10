@@ -21,7 +21,8 @@ from azure.identity.aio import (AzureDeveloperCliCredential,
                                 get_bearer_token_provider)
 
 
-from magentic_implementation import MagenticWorkflow
+#from magentic_implementation import MagenticWorkflow
+from magentic_implementation_search import MagenticWorkflow
 
 load_dotenv()
 POD = socket.gethostname()

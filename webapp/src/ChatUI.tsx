@@ -444,7 +444,7 @@ function appendToAssistantStream(text: string) {
                                 </div>
 
                                 {/* Run log (everything else) */}
-                                <div className="border-t border-white/10 pt-2">
+                                <div className="mt-3">
                                   <button
                                     type="button"
                                     onClick={() => toggleRunLog(msg.id)}
@@ -464,11 +464,15 @@ function appendToAssistantStream(text: string) {
                                     className="mt-2"
                                     hidden={!!msg.isRunLogCollapsed}
                                   >
-                                    <pre className="whitespace-pre-wrap break-words font-mono text-[13px] leading-snug opacity-90">
-                                      {msg.parts.stream || ""}
-                                    </pre>
+                                    {/* DISTINCT BACKGROUND FOR RUN LOG */}
+                                    <div className="rounded-xl bg-slate-900/45 ring-1 ring-white/10 p-3">
+                                      <pre className="whitespace-pre-wrap break-words font-mono text-[13px] leading-snug text-white/90">
+                                        {msg.parts.stream || ""}
+                                      </pre>
+                                    </div>
                                   </div>
                                 </div>
+
                               </div>
                             ) : (
                               // ===== Legacy single-content bubble (unchanged) =====
