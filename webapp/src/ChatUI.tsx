@@ -4,12 +4,20 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { API } from "./api";
 import { SafeHTML, sanitizeHtml, isHtml, hasTable } from "@/components/ui/safehtml";
+import { ChevronDown } from "lucide-react";
 
 interface Message {
+  id: string; // NEW: stable key
   role: "user" | "assistant";
   content: string;
-  isTypingPlaceholder?: boolean; // no longer needed, but kept for compatibility
+  parts?: {
+    final: string;   // only MagenticFinalResultEvent
+    stream: string;  // everything else
+  };
+  isTypingPlaceholder?: boolean;
+  isRunLogCollapsed?: boolean; // NEW: collapsible state per message
 }
+
 
 function TypingBubble() {
   return (
@@ -25,9 +33,10 @@ function TypingBubble() {
 }
 
 export default function ChatUI() {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: "assistant", content: "Hi! How can I help you today?" },
+  const [messages, setMessages] = useState<Message[]>(() => [
+    { id: crypto.randomUUID(), role: "assistant", content: "Hi! How can I help you today?" },
   ]);
+
   const [isTyping, setIsTyping] = useState(false);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [input, setInput] = useState("");
@@ -84,6 +93,49 @@ async function readNdjsonStream(
     try { onEvent(JSON.parse(leftover)); } catch {}
   }
 }
+
+function appendToAssistantFinal(text: string) {
+  setMessages(prev => {
+    const idx = (assistantIndexRef.current ?? prev.length - 1);
+    const msg = prev[idx];
+    if (!msg || msg.role !== "assistant") return prev;
+
+    const parts = msg.parts ?? { final: "", stream: "" };
+    const nextFinal = (parts.final ?? "") + text;
+
+    const next = [...prev];
+    next[idx] = {
+      ...msg,
+      isTypingPlaceholder: false,
+      parts: { ...parts, final: nextFinal },
+      // keep content as a simple concat for legacy render paths
+      content: `${nextFinal}${parts.stream ?? ""}`,
+    };
+    return next;
+  });
+}
+
+function appendToAssistantStream(text: string) {
+  if (!text) return;
+  setMessages(prev => {
+    const idx = (assistantIndexRef.current ?? prev.length - 1);
+    const msg = prev[idx];
+    if (!msg || msg.role !== "assistant") return prev;
+
+    const parts = msg.parts ?? { final: "", stream: "" };
+    const nextStream = (parts.stream ?? "") + text;
+
+    const next = [...prev];
+    next[idx] = {
+      ...msg,
+      isTypingPlaceholder: false,
+      parts: { ...parts, stream: nextStream },
+      content: `${parts.final ?? ""}${nextStream}`,
+    };
+    return next;
+  });
+}
+
   
   // smooth scroll to bottom on updates
   const scrollToBottom = () => {
@@ -146,7 +198,7 @@ async function readNdjsonStream(
           .map((d: any) => d.text);
         const text = texts.join(" ").trim() || "(message)";
         const prefix = level === "error" ? "❌ " : level === "warn" ? "⚠️ " : "";
-        setMessages((prev) => [...prev, { role: "assistant", content: `${prefix}${text}` }]);
+        setMessages((prev) => [...prev, { id: crypto.randomUUID(), role: "assistant", content: `${prefix}${text}` },]);
       } catch {}
     });
 
@@ -154,11 +206,19 @@ async function readNdjsonStream(
     return () => es.close();
   }, [user_id]);
 
+  function toggleRunLog(id: string) {
+    setMessages(prev =>
+      prev.map(m =>
+        m.id === id ? { ...m, isRunLogCollapsed: !m.isRunLogCollapsed } : m
+      )
+    );
+  }
+  
   // send handler
   const handleSend = async () => {
   if (!input.trim() || isTyping) return;
 
-  const userMsg: Message = { role: "user", content: input };
+  //const userMsg: Message = { id: crypto.randomUUID(), role: "user", content: input };
   const text = input; // snapshot before clearing
   setInput("");
   setIsTyping(true);
@@ -170,10 +230,19 @@ async function readNdjsonStream(
     assistantIndexRef.current = idx;
     return [
       ...prev,
-      userMsg,
-      { role: "assistant", content: "", isTypingPlaceholder: true },
+      { id: crypto.randomUUID(), role: "user", content: text },
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "",
+        isTypingPlaceholder: true,
+        isRunLogCollapsed: false,   // <-- default expanded
+        parts: { final: "", stream: "" },
+      },
     ];
   });
+
+  
 
   // new request controller
   controllerRef.current?.abort();
@@ -197,46 +266,29 @@ async function readNdjsonStream(
     // optionally show "started"
     setProgressPct(p => (p === null ? 1 : Math.max(p, 1)));
 
-    await readNdjsonStream(res.body, (evt) => {
-      switch (evt?.type) {
-        case "start": {
-          // you can update progress or UI here if desired
-          setProgressPct(p => (p === null ? 3 : Math.max(p, 3)));
-          break;
-        }
-        case "content": {
-          const delta = typeof evt.delta === "string" ? evt.delta : "";
-          if (delta) appendToAssistant(delta);
-          // nudge progress a bit so it looks alive
-          setProgressPct(p => (p == null ? 5 : Math.min(p + 1, 90)));
-          break;
-        }
-        case "progress": {
-          // if your backend ever sends it in NDJSON too
-          const raw = evt.progress ?? evt.params?.progress;
-          const pct =
-            typeof raw === "number"
-              ? Math.round(raw * 100)
-              : Number.isFinite(Number(raw))
-              ? Math.round(Number(raw) * 100)
-              : null;
-          if (pct !== null) setProgressPct(pct);
-          break;
-        }
-        case "done": {
-          setProgressPct(null);
-          setIsTyping(false);
-          break;
-        }
-        case "error": {
-          appendToAssistant(`\n⚠️ ${evt.message ?? "Unknown error"}`);
-          break;
-        }
-        default: {
-          // ignore unknown event types
-        }
+    await readNdjsonStream(res.body, (obj) => {
+      // New backend shape: {"response_message": {...}} plus a trailing {"response_message": {"type":"done", ...}}
+      const payload = obj?.response_message ?? obj;
+      const t = payload?.type as string | undefined;
+      const delta = typeof payload?.delta === "string" ? payload.delta : "";
+
+      if (!t) return;
+
+      if (t === "MagenticFinalResultEvent") {
+        appendToAssistantFinal(delta);
+      } else if (t === "done") {
+        setIsTyping(false);
+        setProgressPct(null);
+        return;
+      } else {
+        // Everything else goes into the Run log
+        appendToAssistantStream(delta);
       }
+
+      // keep the bar feeling alive
+      setProgressPct((p) => (p == null ? 5 : Math.min(p + 1, 95)));
     });
+
 
     // If the stream ended without an explicit "done"
     setIsTyping(false);
@@ -323,7 +375,7 @@ async function readNdjsonStream(
                   }
                   return (
                     <div
-                        key={idx}
+                        key={msg.id}
                         className="flex w-full min-w-0 items-start gap-2 overflow-x-hidden" // ⬅️ important
                       >
                       {/* Left avatar slot (48px). Show only for assistant; keep spacer for user. */}
@@ -353,34 +405,106 @@ async function readNdjsonStream(
                           >
 
 
-                            {tableMode ? (
-                              // TABLES: scroll horizontally inside the bubble only
-                              <div
-                                className="w-full max-w-full overflow-x-auto overscroll-x-contain pb-1"
-                                style={{ WebkitOverflowScrolling: "touch", scrollbarGutter: "stable" }}
-                                role="region"
-                                aria-label="Table content"
-                              >
-                                {/* Make the actual <table> wider than the bubble so a scrollbar appears,
-                                  but keep that width trapped by THIS wrapper. */}
-                                <div
-                                  className="
-                                    inline-block w-max align-top
-                                    [&_table]:w-max [&_table]:max-w-none [&_table]:min-w-[36rem]   /* force intrinsic width */
-                                    [&_thead_th]:text-left [&_thead_th]:font-semibold [&_thead_th]:px-3 [&_thead_th]:py-2
-                                    [&_tbody_td]:px-3 [&_tbody_td]:py-2 [&_tbody_td]:align-top
-                                    [&_td]:whitespace-nowrap
-                                    [&_code]:break-all [&_a]:break-all
-                                  "
-                                >
-                                  <SafeHTML html={clean} />
+                            {msg.parts ? (
+                              // ===== Split Assistant Bubble =====
+                              <div className="w-full space-y-3">
+                                {/* Answer (MagenticFinalResultEvent only) */}
+                                <div>
+                                  <div className="text-[11px] uppercase tracking-wide text-white/60 mb-1">Answer</div>
+                                  {(() => {
+                                    const finalRaw = msg.parts!.final ?? "";
+                                    const finalClean = sanitizeHtml(finalRaw);
+                                    const finalHasTable = isHtml(finalClean) && hasTable(finalClean);
+
+                                    if (!finalRaw.trim()) {
+                                      return <div className="opacity-70">…</div>;
+                                    }
+
+                                    return finalHasTable ? (
+                                      <div
+                                        className="w-full max-w-full overflow-x-auto overscroll-x-contain pb-1"
+                                        style={{ WebkitOverflowScrolling: "touch", scrollbarGutter: "stable" }}
+                                        role="region"
+                                        aria-label="Answer table"
+                                      >
+                                        <div
+                                          className="
+                                            inline-block w-max align-top
+                                            [&_table]:w-max [&_table]:max-w-none [&_table]:min-w-[36rem]
+                                            [&_thead_th]:text-left [&_thead_th]:font-semibold [&_thead_th]:px-3 [&_thead_th]:py-2
+                                            [&_tbody_td]:px-3 [&_tbody_td]:py-2 [&_tbody_td]:align-top
+                                            [&_td]:whitespace-nowrap
+                                            [&_code]:break-all [&_a]:break-all
+                                          "
+                                        >
+                                          <SafeHTML html={finalClean} />
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <div className="text-[15px] md:text-base leading-relaxed whitespace-pre-wrap break-words max-w-[70ch]">
+                                        {isHtml(finalClean) ? <SafeHTML html={finalClean} /> : <span>{finalRaw}</span>}
+                                      </div>
+                                    );
+                                  })()}
+                                </div>
+
+                                {/* Run log (everything else) */}
+                                <div className="border-t border-white/10 pt-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => toggleRunLog(msg.id)}
+                                    className="group inline-flex items-center gap-2 text-left text-[12px] font-medium text-white/80 hover:text-white transition-colors"
+                                    aria-expanded={!msg.isRunLogCollapsed}
+                                    aria-controls={`runlog-${msg.id}`}
+                                  >
+                                    <ChevronDown
+                                      className={`h-4 w-4 transition-transform ${msg.isRunLogCollapsed ? "-rotate-90" : "rotate-0"}`}
+                                      aria-hidden="true"
+                                    />
+                                    <span className="uppercase tracking-wide">Run log</span>
+                                  </button>
+
+                                  <div
+                                    id={`runlog-${msg.id}`}
+                                    className="mt-2"
+                                    hidden={!!msg.isRunLogCollapsed}
+                                  >
+                                    <pre className="whitespace-pre-wrap break-words font-mono text-[13px] leading-snug opacity-90">
+                                      {msg.parts.stream || ""}
+                                    </pre>
+                                  </div>
                                 </div>
                               </div>
                             ) : (
-                              <div className="text-[15px] md:text-base leading-relaxed whitespace-pre-wrap break-words max-w-[70ch]">
-                                {isHtml(clean) ? <SafeHTML html={clean} /> : <span>{msg.content}</span>}
-                              </div>
+                              // ===== Legacy single-content bubble (unchanged) =====
+                              tableMode ? (
+                                <div
+                                  className="w-full max-w-full overflow-x-auto overscroll-x-contain pb-1"
+                                  style={{ WebkitOverflowScrolling: "touch", scrollbarGutter: "stable" }}
+                                  role="region"
+                                  aria-label="Table content"
+                                >
+                                  <div
+                                    className="
+                                      inline-block w-max align-top
+                                      [&_table]:w-max [&_table]:max-w-none [&_table]:min-w-[36rem]
+                                      [&_thead_th]:text-left [&_thead_th]:font-semibold [&_thead_th]:px-3 [&_thead_th]:py-2
+                                      [&_tbody_td]:px-3 [&_tbody_td]:py-2 [&_tbody_td]:align-top
+                                      [&_td]:whitespace-nowrap
+                                      [&_code]:break-all [&_a]:break-all
+                                    "
+                                  >
+                                    <SafeHTML html={clean} />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="text-[15px] md:text-base leading-relaxed whitespace-pre-wrap break-words max-w-[70ch]">
+                                  {isHtml(clean) ? <SafeHTML html={clean} /> : <span>{msg.content}</span>}
+                                </div>
+                              )
                             )}
+
+
 
 
                           </div>

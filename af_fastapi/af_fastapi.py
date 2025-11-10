@@ -20,6 +20,9 @@ from azure.identity.aio import (AzureDeveloperCliCredential,
                                 AzureCliCredential,
                                 get_bearer_token_provider)
 
+
+from magentic_implementation import run_magentic_workflow
+
 load_dotenv()
 POD = socket.gethostname()
 REV = os.getenv("CONTAINER_APP_REVISION", "v0.1")
@@ -583,6 +586,24 @@ def _ndjson(obj: dict) -> bytes:
 
 @app.post("/conversation/{user_id}")
 async def start_conversation(user_id: str, convo: ConversationIn, request: Request):
+    if not user_id:
+        return Response(content="user_id is required", status_code=400)
+
+    session_id = user_id  # keep your existing per-user session key
+
+    return StreamingResponse(
+        run_magentic_workflow(convo.user_query),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+
+
+
+
+#@app.post("/conversation/{user_id}")
+async def start_conversation1(user_id: str, convo: ConversationIn, request: Request):
     if not user_id:
         return Response(content="user_id is required", status_code=400)
 
