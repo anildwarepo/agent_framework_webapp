@@ -316,19 +316,14 @@ function appendToAssistantStream(text: string) {
   return (
     <div
       className="
-        min-h-dvh w-full text-slate-100
-        bg-slate-950
-        [background:radial-gradient(1000px_600px_at_20%_-20%,rgba(99,102,241,0.18),transparent),radial-gradient(1000px_600px_at_80%_120%,rgba(16,185,129,0.18),transparent)]
+        h-full min-h-0 w-full text-slate-100
         grid grid-rows-[auto_1fr_auto]
       "
     >
       {/* Header */}
       <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/60 backdrop-blur supports-[backdrop-filter]:bg-slate-900/60">
-        <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-xl bg-gradient-to-br from-fuchsia-500 to-indigo-500 shadow ring-1 ring-white/20" />
-            <span className="font-semibold tracking-tight">MCP Server Reference App Demo</span>
-          </div>
+        <div className="px-4 py-3 flex items-center justify-between">
+        
           <div className="text-xs text-slate-400">
             User ID: <span className="font-mono text-slate-200">{user_id}</span>
           </div>
@@ -348,13 +343,13 @@ function appendToAssistantStream(text: string) {
       </header>
 
       {/* Chat Panel */}
-      <main className="max-w-5xl mx-auto w-full px-4 py-6">
-        <Card className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/[0.06] shadow-2xl">
+      <main className="w-full px-0 py-0">
+        <Card className="relative overflow-hidden rounded-none border border-white/10 bg-white/[0.06] shadow-2xl">
           <CardContent className="p-0">
             <ScrollArea className="h-[calc(100dvh-260px)] overflow-x-hidden">
 
               <div
-                className="p-6 space-y-6"
+                className="p-1 space-y-1"
                 ref={(el) => {
                   if (!el) return;
                   setTimeout(() => {
@@ -397,7 +392,7 @@ function appendToAssistantStream(text: string) {
                               "relative isolate rounded-2xl px-4 py-3 shadow-lg ring-1 text-left",
                               "inline-flex items-start min-w-0",       // ⬅️ can shrink
                               "overflow-hidden",                       // ⬅️ bubble is the clip boundary
-                              isUser ? "max-w-[85vw] md:max-w-[58%]" : "max-w-[90vw] md:max-w-[68%]",
+                              isUser ? "max-w-[85vw] md:max-w-[88%]" : "max-w-[90vw] md:max-w-[88%]",
                               isUser
                                 ? "bg-gradient-to-br from-slate-600 to-slate-700 text-white ring-white/5"
                                 : "bg-gradient-to-br from-indigo-600 to-slate-700 text-white ring-white/5",
@@ -407,7 +402,7 @@ function appendToAssistantStream(text: string) {
 
                             {msg.parts ? (
                               // ===== Split Assistant Bubble =====
-                              <div className="w-full space-y-3">
+                              <div className="w-full space-y-0">
                                 {/* Answer (MagenticFinalResultEvent only) */}
                                 <div>
                                   <div className="text-[11px] uppercase tracking-wide text-white/60 mb-1">Answer</div>
@@ -537,7 +532,7 @@ function appendToAssistantStream(text: string) {
 
       {/* Composer */}
       <footer className="border-t border-white/10 bg-slate-900/50 backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 mb-6 md:mb-10 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
-        <div className="max-w-5xl mx-auto px-4 py-4">
+        <div className="px-4 py-4">
           <div className="rounded-2xl border border-white/10 bg-white/5 p-2 shadow-xl flex items-end gap-2">
             <textarea
               ref={taRef}

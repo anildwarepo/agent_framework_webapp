@@ -21,7 +21,7 @@ from azure.identity.aio import (AzureDeveloperCliCredential,
                                 get_bearer_token_provider)
 
 
-from magentic_implementation import run_magentic_workflow
+from magentic_implementation import MagenticWorkflow
 
 load_dotenv()
 POD = socket.gethostname()
@@ -591,11 +591,18 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
 
     session_id = user_id  # keep your existing per-user session key
 
+    magentic_workflow = MagenticWorkflow()
+
     return StreamingResponse(
-        run_magentic_workflow(convo.user_query),
+        magentic_workflow.run_magentic_workflow(convo.user_query),
         media_type="application/x-ndjson",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+    #return StreamingResponse(
+    #    run_magentic_workflow(convo.user_query),
+    #    media_type="application/x-ndjson",
+    #    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    #)
 
 
 

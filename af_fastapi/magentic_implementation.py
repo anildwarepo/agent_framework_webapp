@@ -1,4 +1,5 @@
 # magentic_implementation.py
+import asyncio
 from agent_framework import (
     ChatAgent,
     HostedCodeInterpreterTool,
@@ -14,8 +15,14 @@ from azure.identity.aio import AzureCliCredential
 import json
 from enum import Enum
 from dataclasses import dataclass, asdict, is_dataclass
+from agent_framework import ChatMessageStore
+from typing import Optional
+import time
 
 credential = AzureCliCredential()  # OK to create globally
+
+def create_message_store():
+    return ChatMessageStore()
 
 def _json_default(o):
     # Make dataclasses, Enums, and bytes JSON-serializable
@@ -39,77 +46,111 @@ class ResponseMessage:
     message: str | None = None
     result: str | None = None
 
-async def run_magentic_workflow(question: str):
-    # make these locals, not module globals
-    last_stream_agent_id: str | None = None
-    stream_line_open = False
-    output: str | None = None
-
-    # 🔑 fetch token on the running loop
-    token = await credential.get_token("https://cognitiveservices.azure.com/.default")
-
-    # build agents/manager with the fresh token
-    researcher_agent = ChatAgent(
-        name="ResearcherAgent",
-        description="Specialist in research and information gathering",
-        instructions="You are a Researcher. You find information without additional computation or quantitative analysis.",
-        chat_client=AzureOpenAIChatClient(ad_token=token.token),
-    )
-    coder_agent = ChatAgent(
-        name="CoderAgent",
-        description="A helpful assistant that writes and executes code to process and analyze data.",
-        instructions="You solve questions using code. Please provide detailed analysis and computation process.",
-        chat_client=AzureOpenAIResponsesClient(ad_token=token.token),
-        tools=HostedCodeInterpreterTool(),
-    )
-    workflow = (
-        MagenticBuilder()
-        .participants(researcher=researcher_agent, coder=coder_agent)
-        .with_standard_manager(
-            chat_client=AzureOpenAIChatClient(ad_token=token.token),
-            max_round_count=10,
-            max_stall_count=3,
-            max_reset_count=2,
-        )
-        .build()
-    )
-
-    try:
-        async for event in workflow.run_stream(question):
-            if isinstance(event, MagenticOrchestratorMessageEvent):
-                resp = ResponseMessage(type="MagenticOrchestratorMessageEvent", delta=f"\n[ORCH:{event.kind}]\n\n{getattr(event.message, 'text', '')}\n{'-' * 26}")
-                yield _ndjson({"response_message": resp})
-            elif isinstance(event, MagenticAgentDeltaEvent):
-                if last_stream_agent_id != event.agent_id or not stream_line_open:
-                    if stream_line_open:
-                        resp = ResponseMessage(type="MagenticAgentDeltaEvent", delta=" (incomplete)\n")
-                        yield _ndjson({"response_message": resp})
-                        #yield _ndjson({"type": "content", "delta": "\n"})
-                    last_stream_agent_id = event.agent_id
-                    stream_line_open = True
-                    yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentDeltaEvent", delta=f"\n[STREAM:{event.agent_id}]: ")})
-                if event.text:
-                    yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentDeltaEvent", delta=event.text)})
-            elif isinstance(event, MagenticAgentMessageEvent):
-                if stream_line_open:
-                    stream_line_open = False
-                    yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentMessageEvent", delta=" (final)\n")})
-                msg = event.message
-                if msg is not None:
-                    response_text = (msg.text or "").replace("\n", " ")
-                    yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentMessageEvent", delta=f"\n[AGENT:{event.agent_id}] {msg.role.value}\n\n{response_text}\n{'-' * 26}")})
-            elif isinstance(event, MagenticFinalResultEvent):
-                if event.message is not None:
-                    yield _ndjson({"response_message": ResponseMessage(type="MagenticFinalResultEvent", delta=event.message.text)})
-
-            elif isinstance(event, WorkflowOutputEvent):
-                output = str(event.data) if event.data is not None else None
-                
-                yield _ndjson({"response_message": ResponseMessage(type="WorkflowOutputEvent", delta=f"Workflow output event: {output}")})
-        if stream_line_open:
-            stream_line_open = False
 
 
-        yield _ndjson({"response_message": ResponseMessage(type="done", result=output)})
-    except Exception as e:
-        yield _ndjson({"type": "error", "message": f"Workflow execution failed: {e}"})
+class MagenticWorkflow():
+    def __init__(self):
+        # stream state
+        self._last_stream_agent_id: Optional[str] = None
+        self._stream_line_open: bool = False
+        self._output: Optional[str] = None
+
+        # lazily populated runtime state
+        self._access_token = None          # azure.core.credentials.AccessToken | None
+        self._researcher_agent = None      # ChatAgent | None
+        self._coder_agent = None           # ChatAgent | None
+        self._workflow = None              # Built workflow
+        self._create_message_store = create_message_store
+
+        
+    
+    async def _get_fresh_token(self):
+        """Fetch or refresh an access token (buffers 60s before expiry)."""
+        now = int(time.time())
+        if self._access_token is None or (getattr(self._access_token, "expires_on", 0) - 60) <= now:
+            self._access_token = await credential.get_token("https://cognitiveservices.azure.com/.default")
+        return self._access_token
+    
+    async def _ensure_clients(self):
+        """Create agents and the workflow exactly once (or after token refresh if you choose)."""
+        token = await self._get_fresh_token()
+
+        if self._researcher_agent is None or self._coder_agent is None or self._workflow is None:
+            self._researcher_agent = ChatAgent(
+                name="ResearcherAgent",
+                description="Specialist in research and information gathering",
+                instructions="You are a Researcher. You find information without additional computation or quantitative analysis.",
+                chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                chat_message_store_factory=self._create_message_store,
+            )
+            self._coder_agent = ChatAgent(
+                name="CoderAgent",
+                description="A helpful assistant that writes and executes code to process and analyze data.",
+                instructions="You solve questions using code. Please provide detailed analysis and computation process.",
+                chat_client=AzureOpenAIResponsesClient(ad_token=token.token),
+                tools=[HostedCodeInterpreterTool()],  # must be a sequence
+                chat_message_store_factory=self._create_message_store,
+            )
+            self._workflow = (
+                MagenticBuilder()
+                .participants(researcher=self._researcher_agent, coder=self._coder_agent)
+                .with_standard_manager(
+                    chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                    max_round_count=10,
+                    max_stall_count=3,
+                    max_reset_count=2,
+                )
+                .build()
+            )
+
+    async def run_magentic_workflow(self, question: str):
+        await self._ensure_clients()
+
+        # local stream state per run
+        self._last_stream_agent_id = None
+        self._stream_line_open = False
+        self._output = None
+
+        try:
+            async for event in self._workflow.run_stream(question):
+                if isinstance(event, MagenticOrchestratorMessageEvent):
+                    resp = ResponseMessage(type="MagenticOrchestratorMessageEvent", delta=f"\n[ORCH:{event.kind}]\n\n{getattr(event.message, 'text', '')}\n{'-' * 26}")
+                    yield _ndjson({"response_message": resp})
+                elif isinstance(event, MagenticAgentDeltaEvent):
+                    if self._last_stream_agent_id != event.agent_id or not self._stream_line_open:
+                        if self._stream_line_open:
+                            resp = ResponseMessage(type="MagenticAgentDeltaEvent", delta=" (incomplete)\n")
+                            yield _ndjson({"response_message": resp})
+                            #yield _ndjson({"type": "content", "delta": "\n"})
+                        self._last_stream_agent_id = event.agent_id
+                        self._stream_line_open = True
+                        yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentDeltaEvent", delta=f"\n[STREAM:{event.agent_id}]: ")})
+                    if event.text:
+                        yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentDeltaEvent", delta=event.text)})
+                elif isinstance(event, MagenticAgentMessageEvent):
+                    if self._stream_line_open:
+                        self._stream_line_open = False
+                        yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentMessageEvent", delta=" (final)\n")})
+                    msg = event.message
+                    if msg is not None:
+                        response_text = (msg.text or "").replace("\n", " ")
+                        yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentMessageEvent", delta=f"\n[AGENT:{event.agent_id}] {msg.role.value}\n\n{response_text}\n{'-' * 26}")})
+                elif isinstance(event, MagenticFinalResultEvent):
+                    if event.message is not None:
+                        yield _ndjson({"response_message": ResponseMessage(type="MagenticFinalResultEvent", delta=event.message.text)})
+
+                elif isinstance(event, WorkflowOutputEvent):
+                    output = str(event.data.text) if event.data is not None else None
+                    
+                    yield _ndjson({"response_message": ResponseMessage(type="WorkflowOutputEvent", delta=f"Workflow output event: {output}")})
+            if self._stream_line_open:
+                self._stream_line_open = False
+
+
+            yield _ndjson({"response_message": ResponseMessage(type="done", result=output)})
+        except Exception as e:
+            yield _ndjson({"type": "error", "message": f"Workflow execution failed: {e}"})
+
+
+
+
