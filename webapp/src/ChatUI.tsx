@@ -6,6 +6,7 @@ import { API } from "./api";
 import { SafeHTML, sanitizeHtml, isHtml, hasTable } from "@/components/ui/safehtml";
 import { ChevronDown } from "lucide-react";
 
+
 interface Message {
   id: string; // NEW: stable key
   role: "user" | "assistant";
@@ -37,6 +38,11 @@ export default function ChatUI() {
     { id: crypto.randomUUID(), role: "assistant", content: "Hi! How can I help you today?" },
   ]);
 
+  const MODE_OPTIONS = [
+    { value: "magentic", label: "Magentic" },
+    { value: "handoff",    label: "Handoff" },
+  ];
+  const [mode, setMode] = useState<string>(MODE_OPTIONS[0].value);
   const [isTyping, setIsTyping] = useState(false);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [input, setInput] = useState("");
@@ -250,7 +256,8 @@ function appendToAssistantStream(text: string) {
   controllerRef.current = ctrl;
 
   try {
-    const res = await fetch(API.startConversation(user_id), {
+    const modeForApi = (mode || MODE_OPTIONS[0].value).toLowerCase();
+    const res = await fetch(API.startConversation(user_id, modeForApi), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -274,7 +281,7 @@ function appendToAssistantStream(text: string) {
 
       if (!t) return;
 
-      if (t === "MagenticFinalResultEvent") {
+      if (t === "WorkflowFinalResultEvent") {
         appendToAssistantFinal(delta);
       } else if (t === "done") {
         setIsTyping(false);
@@ -327,6 +334,22 @@ function appendToAssistantStream(text: string) {
           <div className="text-xs text-slate-400">
             User ID: <span className="font-mono text-slate-200">{user_id}</span>
           </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 hidden sm:inline">Orchestration</span>
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value)}
+              className="select-dark w-44 rounded-md px-3 py-2 text-sm outline-none
+                        focus:ring-2 focus:ring-indigo-500/60"
+              aria-label="Orchestration"
+            >
+              {MODE_OPTIONS.map(opt => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         {progressPct !== null && (
           <div className="h-1 bg-slate-800">
@@ -358,9 +381,8 @@ function appendToAssistantStream(text: string) {
                   }, 0);
                 }}
               >
-                {messages.map((msg, idx) => {
+                {messages.map((msg) => {
                   const isUser = msg.role === "user";
-                  const sideGap = isUser ? "mr-12" : "ml-12";
                   const clean = sanitizeHtml(msg.content);
                   const tableMode = isHtml(clean) && hasTable(clean);
                   const isEmptyAssistantPlaceholder = !isUser && msg.isTypingPlaceholder && !msg.content.trim();

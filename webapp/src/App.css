@@ -40,3 +40,16 @@
 .read-the-docs {
   color: #888;
 }
+
+.select-dark {
+  background-color: #0f172a;   /* slate-900 */
+  color: #e2e8f0;              /* slate-200 */
+  border: 1px solid rgba(255,255,255,0.1);
+  color-scheme: dark;          /* tells the UA to render controls in dark mode */
+}
+
+/* Helps many browsers render the dropdown list with a dark bg */
+.select-dark option {
+  background-color: #0f172a;   /* slate-900 */
+  color: #e2e8f0;              /* slate-200 */
+}

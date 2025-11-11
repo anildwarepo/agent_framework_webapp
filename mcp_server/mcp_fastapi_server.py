@@ -8,8 +8,6 @@ from typing import Annotated, Optional
 from fastapi import FastAPI, Request, BackgroundTasks, Response, Path
 from fastapi.responses import StreamingResponse, JSONResponse
 from contextlib import asynccontextmanager
-from dapr.ext.fastapi import DaprActor  
-from dapr.actor import ActorProxy, ActorId
 import json
 from dotenv import load_dotenv
 from datetime import timedelta
@@ -42,14 +40,14 @@ FORECAST_URL = "https://api.open-meteo.com/v1/forecast"
 async def lifespan(app: FastAPI):
     
     try:
-        global pg_helper 
-        pg_helper = await PGAgeHelper.create(DSN, GRAPH)
+        #global pg_helper 
+        #pg_helper = await PGAgeHelper.create(DSN, GRAPH)
         yield
     finally:
         pass
 
 app = FastAPI(lifespan=lifespan)
-actor = DaprActor(app)
+
 
 
 # ───────────────── tools (unchanged API) ─────────────────────────────────────

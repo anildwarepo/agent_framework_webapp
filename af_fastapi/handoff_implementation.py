@@ -1,16 +1,23 @@
 # magentic_implementation.py
 import asyncio
 from agent_framework import (
+    AgentRunUpdateEvent,
     ChatAgent,
     ChatMessage,
+    ExecutorCompletedEvent,
+    ExecutorInvokedEvent,
     HostedCodeInterpreterTool,
     MagenticAgentDeltaEvent,
     MagenticAgentMessageEvent,
-    MagenticBuilder,
+    HandoffBuilder,
     MagenticFinalResultEvent,
     MagenticOrchestratorMessageEvent,
+    RequestInfoEvent,
     WorkflowOutputEvent,
-    MCPStreamableHTTPTool
+    MCPStreamableHTTPTool,
+    WorkflowRunState,
+    WorkflowStartedEvent,
+    WorkflowStatusEvent
 )
 from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient
 from azure.identity.aio import AzureCliCredential
@@ -52,7 +59,7 @@ class ResponseMessage:
 
 
 
-class MagenticWorkflow():
+class HandoffWorkflow():
     def __init__(self):
         # stream state
         self._last_stream_agent_id: Optional[str] = None
@@ -80,6 +87,7 @@ class MagenticWorkflow():
         """Create agents and the workflow exactly once (or after token refresh if you choose)."""
         logger.info("Ensuring clients are created or refreshed")
         token = await self._get_fresh_token()
+        
         weather_mcp_server = MCPStreamableHTTPTool(
             name="weather mcp server",
             url="http://localhost:3001/mcp",
@@ -92,10 +100,27 @@ class MagenticWorkflow():
         ) 
 
         if self._weather_agent is None or self._search_agent is None or self._workflow is None:
+            
+            self._triage_agent = ChatAgent(
+                name="triage agent",
+                description="Triage agent that can answer questions route appropriately to weather or search agents.",
+                instructions="You are a helpful Triage agent that can answer questions route appropriately to weather or search agents."
+                "- If the question is about weather, call handoff_to_weather_agent" 
+                "- If the question is about backup related, call handoff_to_search_agent."
+                "- Handle only one handoff based on the user's previous questions."
+                "Be consise and friendly in your responses.",
+                chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                #chat_message_store_factory=self._create_message_store,
+                tools=weather_mcp_server
+            )
+            
             self._weather_agent = ChatAgent(
                 name="weather agent",
                 description="Weather agent that can answer questions about the weather using a weather tool.",
-                instructions="You are a helpful weather agent. Use the weather tool to answer questions about the weather. Answer questions about weather and nothing else",
+                instructions="You are a helpful weather agent. Use the weather tool to answer questions about the weather. Answer questions about weather and nothing else."
+                "If the question is about backup related call handoff_to_search_agent."
+                "- Handle only one handoff based on the user's previous questions."
+                "Be consise and friendly in your responses.",
                 chat_client=AzureOpenAIChatClient(ad_token=token.token),
                 #chat_message_store_factory=self._create_message_store,
                 tools=weather_mcp_server
@@ -105,41 +130,26 @@ class MagenticWorkflow():
                 name="search agent",
                 description="Search agent that can answer questions using a search tool.",
                 instructions="You are an AI agent. Always use the tools provided to answer the questions. If you cannot " \
-            "answer using the tools, respond with 'I don't know.'" \
-            "Alway provide citations[part_id, chapter_id, part_title] for your answers from the tools.",
+                            "answer using the tools, respond with 'I don't know.'" \
+                            "Alway provide citations[part_id, chapter_id, part_title] for your answers from the tools." \
+                            "If the question is about weather call handoff_to_weather_agent"
+                            "- Handle only one handoff based on the user's previous questions."
+                            "Be consise and friendly in your responses.",
                 chat_client=AzureOpenAIChatClient(ad_token=token.token),
                 #chat_message_store_factory=self._create_message_store,
                 tools=search_mcp_server
             )
 
-            self._reviewer_agent = ChatAgent(
-                name="reviewer agent",
-                description="Reviewer agent that reviews the answers provided by other agents.",
-                instructions="""You are a helpful reviewer agent. Review the answers provided by other agents for correctness and completeness. " \
-                If the tool return incorrect or incomplete information, ask the relevant agent to call the tool with correct parameters and answer the question accurately. 
-                Always present the final answer with citations[part_id, chapter_id, part_title] from the tools used by other agents.
-                """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token),
-                #chat_message_store_factory=self._create_message_store,
-
-            )
-
             logger.info("Building workflow with agents")
             self._workflow = (
-                MagenticBuilder()
-                .participants(weather=self._weather_agent, search=self._search_agent, reviewer=self._reviewer_agent)
-                .with_standard_manager(
-                    instructions="Manage the workflow between weather, search, and reviewer agents to answer the user's question accurately using the tools provided." \
-                    
-                    "Provide the final answer with citations[part_id, chapter_id, part_title] only if used from the tools used by other agents.",
-                    task_ledger_full_prompt="When using the search tool always send the original user query as the query parameter."
-                    "Do not modify the user query in any way.",
-                    
-                    chat_client=AzureOpenAIChatClient(ad_token=token.token),
-                    max_round_count=3,
-                    max_stall_count=3,
-                    max_reset_count=2,
+                HandoffBuilder(
+                    participants=[self._triage_agent, self._weather_agent, self._search_agent]
                 )
+                .set_coordinator(self._triage_agent)
+                .add_handoff(self._triage_agent, [self._weather_agent, self._search_agent])
+                .add_handoff(self._weather_agent, [self._search_agent])
+                .add_handoff(self._search_agent, [self._weather_agent])
+                .with_termination_condition(lambda conv: sum(1 for msg in conv if msg.role.value == "user") > 4)
                 .build()
             )
             logger.info("Workflow built successfully")
@@ -150,46 +160,30 @@ class MagenticWorkflow():
         # local stream state per run
         self._last_stream_agent_id = None
         self._stream_line_open = False
-        self._output = None
+        self._output = ''
 
         
         try:
             async for event in self._workflow.run_stream(chat_history):
-                if isinstance(event, MagenticOrchestratorMessageEvent):
-                    resp = ResponseMessage(type="MagenticOrchestratorMessageEvent", delta=f"\n[ORCH:{event.kind}]\n\n{getattr(event.message, 'text', '')}\n{'-' * 26}")
+                print(f"Received event: {event}")
+                if isinstance(event, WorkflowStartedEvent):
+                    resp = ResponseMessage(type="WorkflowStartedEvent", delta=f"\n[Workflow:{event.origin}]\n\n{getattr(event.data, 'text', '')}\n{'-' * 26}")
+                    #yield _ndjson({"response_message": resp})
+                elif isinstance(event, WorkflowStatusEvent):
+                    resp = ResponseMessage(type="WorkflowStatusEvent", delta=f"\n[Workflow:{event.state}]\n\n{getattr(event.data, 'text', '')}\n{'-' * 26}\n")
+                    #yield _ndjson({"response_message": resp})
+                elif isinstance(event, ExecutorInvokedEvent):
+                    resp = ResponseMessage(type="ExecutorInvokedEvent", delta=f"\n[Workflow:{event.executor_id}]\n\n{getattr(event.data, 'text', '')}\n{'-' * 26}\n")
                     yield _ndjson({"response_message": resp})
-                elif isinstance(event, MagenticAgentDeltaEvent):
-                    if self._last_stream_agent_id != event.agent_id or not self._stream_line_open:
-                        if self._stream_line_open:
-                            resp = ResponseMessage(type="MagenticAgentDeltaEvent", delta=" (incomplete)\n")
-                            yield _ndjson({"response_message": resp})
-                            #yield _ndjson({"type": "content", "delta": "\n"})
-                        self._last_stream_agent_id = event.agent_id
-                        self._stream_line_open = True
-                        yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentDeltaEvent", delta=f"\n[STREAM:{event.agent_id}]: ")})
-                    if event.text:
-                        yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentDeltaEvent", delta=event.text)})
-                elif isinstance(event, MagenticAgentMessageEvent):
-                    if self._stream_line_open:
-                        self._stream_line_open = False
-                        yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentMessageEvent", delta=" (final)\n")})
-                    msg = event.message
-                    if msg is not None:
-                        response_text = (msg.text or "").replace("\n", " ")
-                        yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentMessageEvent", delta=f"\n[AGENT:{event.agent_id}] {msg.role.value}\n\n{response_text}\n{'-' * 26}")})
-                elif isinstance(event, MagenticFinalResultEvent):
-                    if event.message is not None:
-                        yield _ndjson({"response_message": ResponseMessage(type="WorkflowFinalResultEvent", delta=event.message.text)})
-
-                elif isinstance(event, WorkflowOutputEvent):
-                    output = str(event.data.text) if event.data is not None else None
-                    chat_history.append(ChatMessage(role="assistant", text=output or ""))
-                    yield _ndjson({"response_message": ResponseMessage(type="WorkflowOutputEvent", delta=f"Workflow output event: {output}")})
-            if self._stream_line_open:
-                self._stream_line_open = False
-
-
-            yield _ndjson({"response_message": ResponseMessage(type="done", result=output)})
+                elif isinstance(event, AgentRunUpdateEvent) and event.data.text is not None:
+                    resp = ResponseMessage(type="AgentRunUpdateEvent", delta=event.data.text)
+                    self._output += event.data.text
+                    #yield _ndjson({"response_message": ResponseMessage(type="WorkflowFinalResultEvent", delta=event.data.text)})
+                    yield _ndjson({"response_message": resp})
+                elif isinstance(event, RequestInfoEvent):
+                    print(f"Final output: {self._output}")
+                    yield _ndjson({"response_message": ResponseMessage(type="WorkflowFinalResultEvent", delta=self._output)})
+            
         except Exception as e:
             yield _ndjson({"type": "error", "message": f"Workflow execution failed: {e}"})
 

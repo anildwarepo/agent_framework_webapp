@@ -1,26 +1,19 @@
 [project]
-name = "mcp_server"
+name = "af_mcp_server"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "fastmcp",
+    "azure-search-documents",
+    "azure-identity",
     "fastapi>=0.110",
     "uvicorn[standard]>=0.29",
-    "httpx[http2,socks]>=0.27,<1.0a0",
-    "requests",
-    "sseclient-py",
-    "azure-cosmos",
-    "azure-identity",
-    "python-dotenv",
-    "aiohttp",
-    "dapr-ext-fastapi",
-    "isodate",
-    "aiohttp",
-    "azure-servicebus==7.12.3",
+    "httpx[socks,http2]",
     "psycopg",
-    "psycopg_pool",
+    "psycopg_pool"
 ]
 
 [tool.uv]
-prerelease = "allow"
+prerelease = "disallow"

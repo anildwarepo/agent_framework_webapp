@@ -1,4 +1,11 @@
+"""
+Run:  uvicorn af_fastapi:app --port 8080 --reload
+
+"""
+
+
 import socket
+from agent_framework import ChatMessage
 from fastapi import FastAPI, HTTPException
 from fastapi import FastAPI, Request, BackgroundTasks, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,8 +28,15 @@ from azure.identity.aio import (AzureDeveloperCliCredential,
                                 get_bearer_token_provider)
 
 
-#from magentic_implementation import MagenticWorkflow
+
 from magentic_implementation_search import MagenticWorkflow
+from handoff_implementation import  HandoffWorkflow
+import logging
+import sys, asyncio
+if sys.platform.startswith("win"):
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+logger = logging.getLogger("uvicorn.error")
 
 load_dotenv()
 POD = socket.gethostname()
@@ -293,13 +307,11 @@ Use provided query_using_sql_cypher tool to execute the SQL you generate against
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        global pg_helper
-        pg_helper = await PGAgeHelper.create(DSN, GRAPH)
+        #global pg_helper
+        #pg_helper = await PGAgeHelper.create(DSN, GRAPH)
         yield
     finally:
-        if _pool is not None:
-            _pool.close()
-            _pool = None
+        pass
 
 
 app = FastAPI(title="AGE Node Creator", lifespan=lifespan)
@@ -401,6 +413,7 @@ class SessionManager:
 
     def append(self, session_id: str, user_id: str, role: str, content: str) -> None:
         self.get_history(session_id, user_id).append({"role": role, "content": content})
+
 
 
 # single, long-lived manager you reuse (e.g., module-level or injected)
@@ -590,20 +603,35 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
     if not user_id:
         return Response(content="user_id is required", status_code=400)
 
+    orchestration_mode = request.query_params.get("mode", "handoff")
+    print(f"orchestration_mode={orchestration_mode}")
+
+
     session_id = user_id  # keep your existing per-user session key
+    logger.info(f"received [@app.post(/conversation/{user_id})] session={session_id} pod={POD} rev={REV} user_query={convo.user_query}")
+    
+    history = session_manager.get_history(session_id, user_id)
+    user_message = ChatMessage(role="user", text=convo.user_query)
+    history.append(user_message)
 
-    magentic_workflow = MagenticWorkflow()
+    if orchestration_mode == "magentic":
+        workflow = MagenticWorkflow()
+    else:
+        workflow = HandoffWorkflow()
+    
 
-    return StreamingResponse(
-        magentic_workflow.run_magentic_workflow(convo.user_query),
-        media_type="application/x-ndjson",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
-    )
     #return StreamingResponse(
-    #    run_magentic_workflow(convo.user_query),
+    #    magentic_workflow.run_workflow(history),
     #    media_type="application/x-ndjson",
     #    headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     #)
+
+    return StreamingResponse(
+        workflow.run_workflow(history),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+   
 
 
 

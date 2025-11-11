@@ -29,6 +29,17 @@
             "subProcess": true,
             "justMyCode": false
         },
+        {
+            "name": "fast mcp debug (program)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/af_alta_search_mcp_server.py",
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "subProcess": true,
+            "env": { "PYTHONUNBUFFERED": "1" }
+        },
         
         
     ]
