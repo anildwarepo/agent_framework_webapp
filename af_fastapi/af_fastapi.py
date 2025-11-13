@@ -29,8 +29,9 @@ from azure.identity.aio import (AzureDeveloperCliCredential,
 
 
 
-from magentic_implementation_search import MagenticWorkflow
+from magentic_implementation import MagenticWorkflow
 from handoff_implementation import  HandoffWorkflow
+from graph_implementation import GraphWorkflow
 import logging
 import sys, asyncio
 if sys.platform.startswith("win"):
@@ -616,6 +617,8 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
 
     if orchestration_mode == "magentic":
         workflow = MagenticWorkflow()
+    elif orchestration_mode == "graph":
+        workflow = GraphWorkflow()
     else:
         workflow = HandoffWorkflow()
     
