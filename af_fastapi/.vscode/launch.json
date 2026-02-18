@@ -13,7 +13,7 @@
         },
 
         {
-            "name": "mcp_server_debug",
+            "name": "fastapi_debug",
             "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",

@@ -1770,7 +1770,7 @@ requires-dist = [
     { name = "aiohttp" },
     { name = "azure-ai-projects" },
     { name = "azure-identity" },
-    { name = "azure-search-documents" },
+    { name = "azure-search-documents", specifier = "==11.7.0b1" },
     { name = "dapr-ext-fastapi" },
     { name = "fastapi", specifier = ">=0.110" },
     { name = "fastmcp" },

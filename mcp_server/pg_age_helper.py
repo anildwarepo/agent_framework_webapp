@@ -17,11 +17,13 @@ DSN = dict(
     password=os.getenv("PGPASSWORD", "postgres"),
 )
 
-GRAPH = os.getenv("GRAPH")
+GRAPH = os.getenv("GRAPH_NAME")
 
 if not GRAPH:
     raise ValueError("GRAPH environment variable must be set")
 
+print("Using graph:", GRAPH)
+print("Using DSN:", {k: (v if k != "password" else "****") for k, v in DSN.items()})
 
 class PGAgeHelper:
     def __init__(self, conn: psycopg.AsyncConnection):
@@ -34,14 +36,48 @@ class PGAgeHelper:
         conn = await psycopg.AsyncConnection.connect(**DSN, row_factory=dict_row)
         
         async with conn.cursor() as cur:
+            # Check if AGE extension exists, create it if not
             await cur.execute("SELECT 1 FROM pg_extension WHERE extname='age';")
             if not await cur.fetchone():
-                await conn.close()
-                raise RuntimeError(
-                    "AGE extension is not installed in this database. "
-                    "Run as superuser: CREATE EXTENSION age;"
-                )
+                print("AGE extension not found, creating it...")
+                try:
+                    await cur.execute("CREATE EXTENSION IF NOT EXISTS age CASCADE;")
+                    await conn.commit()
+                    print("AGE extension created successfully")
+                except Exception as e:
+                    print(f"Warning: Could not create AGE extension: {e}")
+                    # Check again after attempting creation
+                    await cur.execute("SELECT 1 FROM pg_extension WHERE extname='age';")
+                    if not await cur.fetchone():
+                        await conn.close()
+                        raise RuntimeError(
+                            "AGE extension is not installed in this database and could not be created. "
+                            "Run as superuser: CREATE EXTENSION age;"
+                        )
+            
+            # Set search path for this session
             await cur.execute('SET search_path = ag_catalog, "$user", public;')
+            
+            # Try to set search path for the database (requires permissions)
+            try:
+                await cur.execute('ALTER DATABASE postgres SET search_path = ag_catalog, "$user", public;')
+                await conn.commit()
+                print("Database search path configured")
+            except Exception as e:
+                print(f"Note: Could not set database-level search path (may require higher privileges): {e}")
+            
+            # Create graph if it doesn't exist
+            try:
+                await cur.execute(f"SELECT 1 FROM ag_catalog.ag_graph WHERE name = '{GRAPH}';")
+                if not await cur.fetchone():
+                    print(f"Graph '{GRAPH}' not found, creating it...")
+                    await cur.execute(f"SELECT ag_catalog.create_graph('{GRAPH}');")
+                    await conn.commit()
+                    print(f"Graph '{GRAPH}' created successfully")
+                else:
+                    print(f"Graph '{GRAPH}' already exists")
+            except Exception as e:
+                print(f"Note: Could not check/create graph: {e}")
 
         return cls(conn)
 
@@ -61,6 +97,8 @@ class PGAgeHelper:
 
         try:
             async with self._conn.cursor() as cur:
+                # Ensure search path includes ag_catalog for AGE functions
+                await cur.execute('SET search_path = ag_catalog, "$user", public;')
                 await cur.execute(query)
                 rows = await cur.fetchall()
                 print("Raw rows:", rows)

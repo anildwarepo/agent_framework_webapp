@@ -39,9 +39,11 @@ export default function ChatUI() {
   ]);
 
   const MODE_OPTIONS = [
-    { value: "magentic", label: "Magentic" },
-    { value: "handoff",    label: "Handoff" },
-    { value: "graph",   label: "Graph Search" },
+    { value: "graph",   label: "Magentic Graph Search" }
+    //{ value: "magentic", label: "Magentic" },
+    //{ value: "singleagent", label: "Single Agent" },
+    //{ value: "handoff",    label: "Handoff" },
+    
   ];
   const [mode, setMode] = useState<string>(MODE_OPTIONS[0].value);
   const [isTyping, setIsTyping] = useState(false);

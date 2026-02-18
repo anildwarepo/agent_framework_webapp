@@ -15,7 +15,7 @@ from agent_framework import (
     MCPStreamableHTTPTool
 )
 from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient
-from azure.identity.aio import AzureCliCredential
+from azure.identity.aio import DefaultAzureCredential
 import json
 from enum import Enum
 from dataclasses import dataclass, asdict, is_dataclass
@@ -23,9 +23,24 @@ from agent_framework import ChatMessageStore
 from typing import Awaitable, Callable, List, Optional
 import time
 import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 logger = logging.getLogger("uvicorn.error")
-credential = AzureCliCredential()  # OK to create globally
+credential = DefaultAzureCredential()  # Works with managed identity in Azure
+MCP_ENDPOINT = os.environ.get("MCP_ENDPOINT")
+AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
+AZURE_DEPLOYMENT_NAME = os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
+
+
+print("Using MCP_ENDPOINT:", MCP_ENDPOINT)
+print("Using AZURE_OPENAI_ENDPOINT:", AZURE_OPENAI_ENDPOINT)
+print("Using AZURE_DEPLOYMENT_NAME:", AZURE_DEPLOYMENT_NAME)
+
+if not MCP_ENDPOINT:
+    raise ValueError("MCP_ENDPOINT environment variable must be set")
 
 def create_message_store():
     return ChatMessageStore()
@@ -118,7 +133,7 @@ class GraphWorkflow():
         token = await self._get_fresh_token()
         graph_age_mcp_server = MCPStreamableHTTPTool(
             name="graph age mcp server",
-            url="http://localhost:3002/mcp",
+            url=MCP_ENDPOINT,
             #headers={"Authorization": "Bearer your-token"},
         ) 
         
@@ -195,7 +210,9 @@ class GraphWorkflow():
 
                 
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, deployment_name="gpt-4.1"),
+                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
+                                                  endpoint=AZURE_OPENAI_ENDPOINT,
+                                                  deployment_name=AZURE_DEPLOYMENT_NAME),
                 #chat_message_store_factory=self._create_message_store,
                 #tools=graph_age_mcp_server
             )
@@ -670,7 +687,9 @@ class GraphWorkflow():
                 Share the results with other agents for further processing.
 
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, deployment_name="gpt-4.1"),
+                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
+                                                  endpoint=AZURE_OPENAI_ENDPOINT,
+                                                  deployment_name=AZURE_DEPLOYMENT_NAME),
                 #chat_message_store_factory=self._create_message_store,
                 tools=graph_age_mcp_server
             )
@@ -683,7 +702,9 @@ class GraphWorkflow():
                 State the query that you received from the graph query generator agent before executing it.
                 Do not modify the generated queries. Send them as-is to the tool.
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, deployment_name="gpt-4.1"),
+                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
+                                                  endpoint=AZURE_OPENAI_ENDPOINT,
+                                                  deployment_name=AZURE_DEPLOYMENT_NAME),
                 middleware=[LoggingChatMiddleware()],
                 #chat_message_store_factory=self._create_message_store,
                 tools=graph_age_mcp_server
@@ -700,7 +721,9 @@ class GraphWorkflow():
                 The response should use the results obtained from the graph query executor agent to answer the user's question.
                 You only need to respond when the query results are available from the _graph_query_validator_agent.
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, deployment_name="gpt-4.1", temperature=0.0),
+                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
+                                                  endpoint=AZURE_OPENAI_ENDPOINT,
+                                                  deployment_name=AZURE_DEPLOYMENT_NAME, temperature=0.0),
                 #chat_message_store_factory=self._create_message_store,
                 
             )
@@ -734,7 +757,9 @@ class GraphWorkflow():
                     Based on the results obtained from the graph query executor agent, provide a concise and accurate answer to the user's question.
                     If no results were found, state that no results were found.
                     """,
-                    chat_client=AzureOpenAIChatClient(ad_token=token.token, deployment_name="gpt-4.1", temperature=0.0),
+                    chat_client=AzureOpenAIChatClient(ad_token=token.token, 
+                                                      endpoint=AZURE_OPENAI_ENDPOINT,
+                                                      deployment_name=AZURE_DEPLOYMENT_NAME, temperature=0.0),
                     max_round_count=3,
                     max_stall_count=3,
                     max_reset_count=2,
@@ -792,7 +817,6 @@ class GraphWorkflow():
         except Exception as e:
             print(f"Workflow execution failed: {e}")
             yield _ndjson({"type": "error", "message": f"Workflow execution failed: {e}"})
-
 
 
 

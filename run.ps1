@@ -12,20 +12,20 @@ uv sync          # install/update deps, creates .venv if needed
 . ".\.venv\Scripts\Activate.ps1"
 
 # ---- MCP Server ----
-Write-Host "Starting Weather MCP server on :3000 ..."
-Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'mcp_server') -ArgumentList @(
-    '-NoExit',
-    '-Command',
-    'python af_weather_mcp_server.py'
-)
+#Write-Host "Starting Weather MCP server on :3000 ..."
+#Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'mcp_server') -ArgumentList @(
+#    '-NoExit',
+#    '-Command',
+#    'python af_weather_mcp_server.py'
+#)
 
 
-Write-Host "Starting Search MCP server on :3001 ..."
-Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'mcp_server') -ArgumentList @(
-    '-NoExit',
-    '-Command',
-    'python af_alta_search_mcp_server.py'
-)
+#Write-Host "Starting Search MCP server on :3001 ..."
+#Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'mcp_server') -ArgumentList @(
+#    '-NoExit',
+#    '-Command',
+#    'python af_alta_search_mcp_server.py'
+#)
 
 Write-Host "Starting AGE MCP server on :3002 ..."
 Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'mcp_server') -ArgumentList @(

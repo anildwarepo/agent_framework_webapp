@@ -12,7 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import contextlib
 import os
-from pg_age_helper import PGAgeHelper
+
 from dotenv import load_dotenv
 from sse_bus import SESSIONS
 from starlette.responses import StreamingResponse
@@ -24,7 +24,7 @@ from mcp_client import MCPClient
 from openai import AzureOpenAI, AsyncAzureOpenAI   
 from azure.identity.aio import (AzureDeveloperCliCredential,
                                 DefaultAzureCredential,
-                                AzureCliCredential,
+                                DefaultAzureCredential,
                                 get_bearer_token_provider)
 
 
@@ -32,10 +32,13 @@ from azure.identity.aio import (AzureDeveloperCliCredential,
 from magentic_implementation import MagenticWorkflow
 from handoff_implementation import  HandoffWorkflow
 from graph_implementation import GraphWorkflow
+from single_agent_implementation import SingleAgent
 import logging
 import sys, asyncio
 if sys.platform.startswith("win"):
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+from pg_age_helper import PGAgeHelper
+
 
 logger = logging.getLogger("uvicorn.error")
 
@@ -55,7 +58,7 @@ MCP_ENDPOINT = os.getenv("MCP_ENDPOINT", "http://localhost:3000/mcp") # Dapr end
 aoai_endpoint    = os.getenv("ENDPOINT_URL",    "https://aihub6750316290.cognitiveservices.azure.com/")
 aoai_deployment  = os.getenv("DEPLOYMENT_NAME", "gpt-4o")
 aoai_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
-aoai_credential =  AzureCliCredential() # login with azd login # DefaultAzureCredential()
+aoai_credential = DefaultAzureCredential()  # Works with managed identity in Azure
 token_provider = get_bearer_token_provider(aoai_credential, "https://cognitiveservices.azure.com/.default")
 aoai_client = AsyncAzureOpenAI(azure_endpoint=aoai_endpoint, azure_ad_token_provider=token_provider,
                                api_version=aoai_api_version)
@@ -619,6 +622,8 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
         workflow = MagenticWorkflow()
     elif orchestration_mode == "graph":
         workflow = GraphWorkflow()
+    elif orchestration_mode == "singleagent":
+        workflow = SingleAgent()
     else:
         workflow = HandoffWorkflow()
     
@@ -641,161 +646,3 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
 
 
 
-#@app.post("/conversation/{user_id}")
-async def start_conversation1(user_id: str, convo: ConversationIn, request: Request):
-    if not user_id:
-        return Response(content="user_id is required", status_code=400)
-
-    session_id = user_id  # keep your existing per-user session key
-
-    async def stream():
-        # connect MCP once per streamed response
-        try:
-            mcp_cli = MCPClient(mcp_endpoint=MCP_ENDPOINT)
-            mcp_cli.set_broadcast_session(session_id)
-            await mcp_cli.connect(session_id=session_id)
-        except Exception as e:
-            yield _ndjson({"type": "error", "message": f"Failed to connect to MCP: {str(e)}"})
-            return
-
-        try:
-            # build tools for the model from MCP discovery (same as your non-stream path)
-            available_tools = [
-                {
-                    "type": "function",
-                    "function": {
-                        "name": t.name,
-                        "description": t.description,
-                        "parameters": t.inputSchema,
-                    },
-                }
-                for t in mcp_cli.mcp_tools.tools
-            ]
-
-            # reconstruct conversation history
-            history = session_manager.get_history(session_id, user_id)
-            system_msg = {"role": "system", "content": system_message}
-            msgs = [system_msg, *history, {"role": "user", "content": convo.user_query}]
-            session_manager.append(session_id, user_id, "user", convo.user_query)
-
-            # let the client know we started
-            yield _ndjson({"type": "start", "session": session_id})
-
-            # up to N tool-call turns; each turn is a streamed model response
-            for _ in range(16):
-                # buffers for this streamed assistant turn
-                text_chunks: list[str] = []
-                tool_calls_buf: dict[int, dict] = {}  # idx -> {id, name, arguments}
-                finish_reason: str | None = None
-
-                # 1) stream assistant
-                stream_resp = await aoai_client.chat.completions.create(
-                    model=aoai_deployment,
-                    messages=msgs,
-                    tools=available_tools,
-                    max_tokens=4000,
-                    stream=True,  # <-- IMPORTANT
-                )
-
-                async for event in stream_resp:
-                    # Azure Chat Completions streaming yields chunks with .choices
-                    if not getattr(event, "choices", None):
-                        continue
-                    choice = event.choices[0]
-                    delta = getattr(choice, "delta", None)
-                    if delta is None:
-                        # some chunks carry only finish_reason
-                        finish_reason = choice.finish_reason or finish_reason
-                        continue
-
-                    # stream assistant content tokens as they arrive
-                    if getattr(delta, "content", None):
-                        text = delta.content
-                        text_chunks.append(text)
-                        yield _ndjson({"type": "content", "delta": text})
-
-                    # assemble streamed tool calls (function name & arguments arrive in pieces)
-                    if getattr(delta, "tool_calls", None):
-                        for tc in delta.tool_calls:
-                            idx = getattr(tc, "index", 0) or 0
-                            buf = tool_calls_buf.setdefault(idx, {"id": None, "name": "", "arguments": ""})
-                            if getattr(tc, "id", None):
-                                buf["id"] = tc.id
-                            fn = getattr(tc, "function", None)
-                            if fn is not None:
-                                if getattr(fn, "name", None):
-                                    buf["name"] += fn.name
-                                if getattr(fn, "arguments", None):
-                                    buf["arguments"] += fn.arguments
-
-                    # keep finish_reason when present
-                    if getattr(choice, "finish_reason", None):
-                        finish_reason = choice.finish_reason
-
-                # persist this assistant turn (text part only) into your history
-                if text_chunks:
-                    session_manager.append(session_id, user_id, "assistant", "".join(text_chunks))
-
-                # if there were tool calls, execute them, stream the results, then continue loop
-                if tool_calls_buf:
-                    # Let client know which tools are being invoked
-                    yield _ndjson({
-                        "type": "tool_calls",
-                        "calls": [
-                            {"index": idx, "id": call.get("id"), "name": call.get("name")}
-                            for idx, call in sorted(tool_calls_buf.items())
-                        ]
-                    })
-
-                    # execute each call and feed result back to the model
-                    for idx, call in sorted(tool_calls_buf.items()):
-                        name = call.get("name") or ""
-                        raw_args = call.get("arguments") or "{}"
-                        call_id = call.get("id") or f"tool_{idx}"
-                        try:
-                            args = json.loads(raw_args)
-                        except json.JSONDecodeError:
-                            # stream a warning and skip call if arguments are malformed
-                            yield _ndjson({"type": "warning", "message": f"Malformed tool args for {name}: {raw_args}"})
-                            args = {}
-
-                        # run the MCP tool
-                        yield _ndjson({"type": "tool_start", "id": call_id, "name": name})
-                        result = await mcp_cli.session.call_tool(name, args)
-                        tool_content = getattr(result, "content", str(result))
-
-                        # stream tool result to client
-                        yield _ndjson({"type": "tool_result", "id": call_id, "content": tool_content})
-
-                        # add assistant tool_call + tool result messages into msgs
-                        msgs.extend([
-                            {
-                                "role": "assistant",
-                                "tool_calls": [
-                                    {
-                                        "id": call_id,
-                                        "type": "function",
-                                        "function": {"name": name, "arguments": json.dumps(args)},
-                                    }
-                                ],
-                            },
-                            {
-                                "role": "tool",
-                                "tool_call_id": call_id,
-                                "content": tool_content,
-                            },
-                        ])
-
-                    # after tools, loop again to get the assistant’s follow-up (streamed)
-                    continue
-
-                # no tool calls -> we’re done after this assistant turn
-                break
-
-            yield _ndjson({"type": "done"})
-        finally:
-            with contextlib.suppress(Exception):
-                await mcp_cli.close()
-
-    # NDJSON (one JSON object per line). If you prefer SSE, set media_type="text/event-stream"
-    return StreamingResponse(stream(), media_type="application/x-ndjson")

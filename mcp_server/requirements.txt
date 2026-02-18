@@ -1,6 +1,7 @@
 fastapi>=0.110
 uvicorn[standard]>=0.29
-httpx[socks,http2]
+httpx[socks,http2]>=0.27,<0.29
+httpx-sse>=0.4.0,<0.5
 requests
 sseclient-py
 azure-cosmos
@@ -15,3 +16,4 @@ psycopg
 psycopg_pool
 fastmcp
 azure-search-documents
+azure-ai-evaluation

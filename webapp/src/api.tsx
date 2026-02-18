@@ -1,6 +1,8 @@
 // src/lib/api.ts
 
-export const BASE_URL = "http://127.0.0.1:8080";
+// In production, use relative URLs (nginx proxies to backend)
+// In development, use localhost
+export const BASE_URL = "http://localhost:8080" // import.meta.env.VITE_API_BASE_URL || "";
 
 export const API = {
   sseEvents: `${BASE_URL}/events`,

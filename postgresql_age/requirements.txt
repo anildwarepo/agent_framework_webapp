@@ -1,0 +1,6 @@
+openai
+azure-identity
+ipykernel
+python-dotenv
+psycopg[binary]>=3.2
+psycopg_pool>=3.2

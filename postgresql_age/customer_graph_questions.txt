@@ -1,0 +1,10 @@
+1.	I’m going on a sales call with customer X” → Provide a consolidated customer insight including:
+o	Current revenue from this customer
+o	Pending cases / open issues
+o	Opportunities for upsell or cross-sell
+o	Summary of recent communications and sentiment
+2.	“Summarize customer X’s journey over the past 12 months” → Highlight contract renewals, support escalations, feature adoption trends, and satisfaction signals.
+3.	“What are the key risks with customer Y?” → Surface SLA breaches, recurring escalations, churn signals, and outstanding escalated tickets.
+4.	“Compare customer A and customer B in terms of revenue, product adoption, and growth potential” → Provide a side-by-side analysis across sales, support, and engagement metrics.
+5.	“Which customers are most likely to benefit from product Z?” → Use signals from historical cases, usage telemetry, and upsell opportunities stored in the Graph.
+6.	“Give me the executive-ready summary for tomorrow’s QBR with customer C” → Auto-assemble slides or briefing notes from contracts, support data, account notes, and communications.

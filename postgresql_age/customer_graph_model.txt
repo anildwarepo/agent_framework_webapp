@@ -1,0 +1,259 @@
+# ----------------------------
+# Domain models
+# ----------------------------
+@dataclass
+class Customer:
+    id: str
+    name: str
+    segment: str
+    owner: str
+    products_adopted: List[str]
+    satisfaction_score: float
+    health: str
+    growth_potential: str
+    current_arr: int
+    current_mrr: int
+    timezone: str
+    notes: str = ""
+
+@dataclass
+class Contract:
+    id: str
+    customer_id: str
+    start_date: str
+    end_date: str
+    amount: int
+    status: str
+    auto_renew: bool
+    renewal_term_months: int
+    last_renewal_date: str | None
+    next_renewal_date: str | None
+
+@dataclass
+class SupportCase:
+    id: str
+    customer_id: str
+    opened_at: str
+    last_updated_at: str
+    status: str
+    priority: str
+    escalation_level: int
+    sla_breached: bool
+    product_area: str
+    subject: str
+    tags: List[str] = field(default_factory=list)
+
+@dataclass
+class Communication:
+    id: str
+    customer_id: str
+    timestamp: str
+    channel: str
+    counterpart: str
+    direction: str
+    sentiment: float
+    summary: str
+
+@dataclass
+class Opportunity:
+    id: str
+    customer_id: str
+    opp_type: str
+    product: str
+    stage: str
+    amount: int
+    opened_at: str
+    expected_close: str
+
+@dataclass
+class TelemetryPoint:
+    customer_id: str
+    month: str
+    dau: int
+    mau: int
+    feature_adoption: Dict[str, float]
+    usage_hours: float
+    incidents: int
+
+@dataclass
+class QBRArtifact:
+    customer_id: str
+    report_period: str
+    highlights: List[str]
+    risks: List[str]
+    asks: List[str]
+    attachments: List[Dict[str, str]]
+
+# ----------------------------
+# Helpers
+# ----------------------------
+PRODUCTS = ["Core", "Analytics", "Automation", "AI Assist", "Integrations", "Product Z"]
+FEATURES = ["Dashboards", "Workflows", "API", "SSO", "Audits", "Alerts", "Copilot", "Z-Optimizer"]
+SEGMENTS = ["Enterprise", "Mid-market", "SMB"]
+OWNERS = ["Alex Green", "Sam Rivera", "Jordan Lee", "Taylor Kim", "Morgan Chen"]
+SUBJECTS = ["API rate limits","SSO integration","Workflow stuck in pending","Analytics export timeout",
+            "Unexpected logout","Alert noise tuning","Copilot hallucination","Billing discrepancy"]
+AREAS = ["API","SSO","Workflows","Analytics","Auth","Alerts","Copilot","Billing"]
+
+
+
+
+
+# Catalogs
+    product_ids = {p: f"prod_{p.lower().replace(' ','_')}" for p in PRODUCTS}
+    feature_ids = {f: f"feat_{f.lower().replace(' ','_').replace('-','_')}" for f in FEATURES}
+    for p, pid in product_ids.items(): add_node(pid, "Product", {"name": p})
+    for f, fid in feature_ids.items(): add_node(fid, "Feature", {"name": f})
+
+    # Customers + ADOPTED_PRODUCT
+    for c in customers:
+        add_node(c.id, "Customer", {
+            "name": c.name, "segment": c.segment, "owner": c.owner,
+            "health": c.health, "growth_potential": c.growth_potential,
+            "current_arr": c.current_arr, "current_mrr": c.current_mrr,
+            "satisfaction_score": c.satisfaction_score, "timezone": c.timezone, "notes": c.notes
+        })
+        for p in c.products_adopted:
+            add_edge(f"edge_{c.id}_prod_{p}", "ADOPTED_PRODUCT", c.id, product_ids[p])
+
+    # Contracts
+    for ctr in contracts:
+        add_node(ctr.id, "Contract", asdict(ctr))
+        add_edge(f"edge_{ctr.customer_id}_{ctr.id}", "HAS_CONTRACT", ctr.customer_id, ctr.id)
+
+    # Support cases (+ ABOUT_AREA)
+    for sc in cases:
+        add_node(sc.id, "SupportCase", asdict(sc))
+        add_edge(f"edge_{sc.customer_id}_{sc.id}", "RAISED_CASE", sc.customer_id, sc.id)
+        if sc.product_area in feature_ids:
+            add_edge(f"edge_{sc.id}_about_{sc.product_area}", "ABOUT_AREA", sc.id, feature_ids[sc.product_area])
+
+    # Communications
+    for cm in comms:
+        add_node(cm.id, "Communication", asdict(cm))
+        add_edge(f"edge_{cm.customer_id}_{cm.id}", "HAD_COMM", cm.customer_id, cm.id)
+
+    # Opportunities (+ FOR_PRODUCT)
+    for op in opps:
+        add_node(op.id, "Opportunity", asdict(op))
+        add_edge(f"edge_{op.customer_id}_{op.id}", "HAS_OPPORTUNITY", op.customer_id, op.id)
+        add_edge(f"edge_{op.id}_for_{op.product}", "FOR_PRODUCT", op.id, f"prod_{op.product.lower().replace(' ','_')}")
+
+    # Telemetry (+ ADOPTED_FEATURE perc for key features)
+    for tp in telemetry:
+        tid = f"tel_{tp.customer_id}_{tp.month}"
+        add_node(tid, "TelemetryMonth", asdict(tp))
+        add_edge(f"edge_{tp.customer_id}_{tid}", "HAS_TELEMETRY", tp.customer_id, tid)
+        for f in ("Z-Optimizer","Copilot","API"):
+            if f in tp.feature_adoption:
+                add_edge(f"edge_{tid}_feat_{f}", "ADOPTED_FEATURE", tid, feature_ids[f],
+                         {"percent": tp.feature_adoption[f], "month": tp.month})
+
+    # QBR artifacts
+    for qb in qbrs:
+        qid = f"qbr_{qb.customer_id}_{qb.report_period}"
+        add_node(qid, "QBRArtifact", asdict(qb))
+        add_edge(f"edge_{qb.customer_id}_{qid}", "HAS_QBR", qb.customer_id, qid)
+
+    return nodes, edges
+
+
+
+
+working postgresql age graph queries:
+find_specific_node_with_all_edges:
+cypher_text = """
+            MATCH (n)
+            WHERE id(n) = toInteger($node_id)
+            OPTIONAL MATCH (n)-[e]->(t)
+            RETURN
+                id(n)            AS id,
+                labels(n)        AS label,
+                properties(n)    AS properties,
+                'edge'           AS kind,
+                id(n)            AS src,
+                id(t)            AS dst
+        """
+
+        q = sql.SQL("""
+            SELECT *
+            FROM ag_catalog.cypher({}::name, $cypher$
+            {cypher}
+            $cypher$, %s::ag_catalog.agtype)
+            AS (
+                id ag_catalog.agtype,
+                label ag_catalog.agtype,
+                properties ag_catalog.agtype,
+                kind ag_catalog.agtype,
+                src ag_catalog.agtype,
+                dst ag_catalog.agtype
+            );
+        """.replace("{cypher}", cypher_text)).format(sql.Literal(self.graph))
+
+
+get_all_nodes_and_edges:
+        cypher_text = """
+            // 1) Pick N nodes in a stable order
+            MATCH (n)
+            WITH n
+            ORDER BY id(n)
+            LIMIT toInteger($limit)
+
+            // 2) Gather outgoing edges per node (order edges by id)
+            OPTIONAL MATCH (n)-[e]->(t)
+            WITH n, e, t
+            ORDER BY id(n), id(e)
+
+            // 3) Aggregate edges per node
+            WITH
+            n,
+            collect(
+                CASE
+                WHEN e IS NULL THEN NULL
+                ELSE {
+                    id:         id(e),
+                    label:      [type(e)],
+                    properties: properties(e),
+                    kind:       'edge',
+                    src:        id(n),
+                    dst:        id(t)
+                }
+                END
+            ) AS collected
+
+            // 4) Take up to 3 non-null edges per node
+            WITH n, [x IN collected WHERE x IS NOT NULL][0..3] AS edge_rows
+
+            // 5) Emit one "node" row + up to three "edge" rows per node
+            WITH
+            [{ id: id(n),
+                label: labels(n),
+                properties: n.payload,   // use properties(n) if that's your schema
+                kind: 'node',
+                src: NULL,
+                dst: NULL }] + edge_rows AS rows
+            UNWIND rows AS r
+            RETURN r.id         AS id,
+                r.label      AS label,
+                r.properties AS properties,
+                r.kind       AS kind,
+                r.src        AS src,
+                r.dst        AS dst
+        """
+
+        # Compose the SQL without .format() to avoid conflicts with { } in Cypher.
+        q = (
+            sql.SQL("SELECT * FROM ag_catalog.cypher(")
+            + sql.Literal(self.graph)  # must be a literal ::name, not a bound param
+            + sql.SQL("::name, $cypher$\n")
+            + sql.SQL(cypher_text)
+            + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+            + sql.SQL("""AS (
+                id ag_catalog.agtype,
+                label ag_catalog.agtype,
+                properties ag_catalog.agtype,
+                kind ag_catalog.agtype,
+                src ag_catalog.agtype,
+                dst ag_catalog.agtype
+            );""")
+        )

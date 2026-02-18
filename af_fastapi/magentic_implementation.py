@@ -13,7 +13,7 @@ from agent_framework import (
     MCPStreamableHTTPTool
 )
 from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient
-from azure.identity.aio import AzureCliCredential
+from azure.identity.aio import DefaultAzureCredential
 import json
 from enum import Enum
 from dataclasses import dataclass, asdict, is_dataclass
@@ -23,7 +23,7 @@ import time
 import logging
 
 logger = logging.getLogger("uvicorn.error")
-credential = AzureCliCredential()  # OK to create globally
+credential = DefaultAzureCredential()  # Works with managed identity in Azure
 
 def create_message_store():
     return ChatMessageStore()
@@ -192,7 +192,6 @@ class MagenticWorkflow():
             yield _ndjson({"response_message": ResponseMessage(type="done", result=output)})
         except Exception as e:
             yield _ndjson({"type": "error", "message": f"Workflow execution failed: {e}"})
-
 
 
 
