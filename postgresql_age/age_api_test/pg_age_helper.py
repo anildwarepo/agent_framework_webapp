@@ -10,6 +10,7 @@ DSN = dict(
     dbname=os.getenv("PGDATABASE", "postgres"),
     user=os.getenv("PGUSER", "postgres"),
     password=os.getenv("PGPASSWORD", "postgres"),
+    sslmode=os.getenv("PGSSLMODE", "require"),
 )
 
 GRAPH = "age_smoke"

@@ -37,7 +37,7 @@ SELECT *
 FROM ag_catalog.cypher('customer_graph', $$
 
   MATCH (c:Customer)
-  WHERE c.payload.name = 'Customer 001'
+  WHERE c.payload.name = 'Customer 080'
   OPTIONAL MATCH (c)-[:ADOPTED_PRODUCT]->(p:Product)
 
   WITH c, p
