@@ -454,11 +454,19 @@ module fastApiContainerApp 'modules/container-app.bicep' = if ((deployFastApiCon
         value: !empty(azureOpenAiEndpoint) ? azureOpenAiEndpoint : aiServices.outputs.endpoint
       }
       {
+        name: 'ENDPOINT_URL'
+        value: !empty(azureOpenAiEndpoint) ? azureOpenAiEndpoint : aiServices.outputs.endpoint
+      }
+      {
         name: 'AZURE_OPENAI_API_VERSION'
         value: azureOpenAiApiVersion
       }
       {
         name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_NAME'
+        value: !empty(azureOpenAiChatDeploymentName) ? azureOpenAiChatDeploymentName : modelName
+      }
+      {
+        name: 'DEPLOYMENT_NAME'
         value: !empty(azureOpenAiChatDeploymentName) ? azureOpenAiChatDeploymentName : modelName
       }
       // MCP Server endpoint (internal) - must include /mcp path

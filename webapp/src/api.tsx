@@ -2,7 +2,9 @@
 
 // In production, use relative URLs (nginx proxies to backend)
 // In development, use localhost
-export const BASE_URL = "http://localhost:8080" // import.meta.env.VITE_API_BASE_URL || "";
+export const BASE_URL = import.meta.env.DEV
+  ? (import.meta.env.VITE_API_BASE_URL || "http://localhost:8080")
+  : "";
 
 export const API = {
   sseEvents: `${BASE_URL}/events`,

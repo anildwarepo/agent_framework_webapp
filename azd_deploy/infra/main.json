@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "15656158297968118407"
+      "templateHash": "17308636574381036928"
     }
   },
   "parameters": {
@@ -2470,11 +2470,19 @@
                 "value": "[if(not(empty(parameters('azureOpenAiEndpoint'))), parameters('azureOpenAiEndpoint'), reference(resourceId('Microsoft.Resources/deployments', 'ai-services-deployment'), '2025-04-01').outputs.endpoint.value)]"
               },
               {
+                "name": "ENDPOINT_URL",
+                "value": "[if(not(empty(parameters('azureOpenAiEndpoint'))), parameters('azureOpenAiEndpoint'), reference(resourceId('Microsoft.Resources/deployments', 'ai-services-deployment'), '2025-04-01').outputs.endpoint.value)]"
+              },
+              {
                 "name": "AZURE_OPENAI_API_VERSION",
                 "value": "[parameters('azureOpenAiApiVersion')]"
               },
               {
                 "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_NAME",
+                "value": "[if(not(empty(parameters('azureOpenAiChatDeploymentName'))), parameters('azureOpenAiChatDeploymentName'), parameters('modelName'))]"
+              },
+              {
+                "name": "DEPLOYMENT_NAME",
                 "value": "[if(not(empty(parameters('azureOpenAiChatDeploymentName'))), parameters('azureOpenAiChatDeploymentName'), parameters('modelName'))]"
               },
               {

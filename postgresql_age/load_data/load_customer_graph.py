@@ -56,10 +56,7 @@ class PGAgeHelper:
         self = cls(conn, graph)
         async with conn.cursor() as cur:
             # Ensure AGE extension present
-            await cur.execute("SELECT 1 FROM pg_extension WHERE extname='age';")
-            if not await cur.fetchone():
-                await conn.close()
-                raise RuntimeError("AGE extension not installed. Run: CREATE EXTENSION age; (as superuser)")
+            await cur.execute("CREATE EXTENSION IF NOT EXISTS AGE CASCADE;")
             # Put ag_catalog on search_path for this session
             await cur.execute('SET search_path = ag_catalog, "$user", public;')
             
