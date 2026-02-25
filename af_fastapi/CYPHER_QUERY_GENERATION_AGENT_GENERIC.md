@@ -70,13 +70,12 @@ $$) AS (src ag_catalog.agtype, rel ag_catalog.agtype);
 ```
 
 - **`IDENTIFIED_EDGES: []` is FORBIDDEN for relationship/attendance/participation questions.**
-- **Select edges by semantic relevance to the user's question.** Step C returns ALL edge types connected to the anchor node. Do NOT blindly include every discovered edge — choose only the types whose meaning matches the user's intent. For example, if the user asks "who attended the meeting", include edges like `ATTENDED`, `PRESENT_AT`, `PARTICIPATED_IN`, but exclude unrelated edges like `MENTIONED`, `REFERENCED`, `AUTHORED`. If the user asks "what topics were discussed", include edges like `DISCUSSED`, `AGENDA_ITEM`, but exclude `ATTENDED`.
+- **PRIORITIZE user keywords with edge names.**
+- **Select edges by semantic relevance to the user's question.** Step C returns ALL edge types connected to the anchor node. Do NOT blindly include every discovered edge — choose only the types whose meaning matches the user's intent. 
 - When multiple edge types are semantically relevant, include ALL of them in `toLower(type(r)) IN [...]` — do not hardcode a single type.
 - Never use unanchored edge scans (`WHERE a.prop IN [...] OR b.prop IN [...]`).
 
-### Step C2 -- Source-Document Co-occurrence Probe (for participation/relationship questions)
 
-Semantic edges may be INCOMPLETE. Many graph models store `sources` arrays on nodes (e.g., document references). Entities sharing a source document often have a real-world relationship not captured by explicit edges.
 
 **When to run:** ALWAYS for participation/relationship questions (e.g., "who attended", "who was present", "who is involved") when the anchor node (from Step B) has a `payload.sources` array.
 
@@ -112,9 +111,9 @@ FINAL_SQL: <one SQL-wrapped Cypher statement>
 
 **Pre-output checklist (verify before emitting FINAL_SQL):**
 - Did you call `query_using_sql_cypher` at least once for raw sample discovery? If not, STOP and do Step A first.
-- Does your WHERE clause include ALL entity constraints from the user's question (name/type AND date/time)? If the user asked about "Board of Library Trustees meeting on March 4, 2024", your query MUST filter on both the meeting name and the date.
+- Does your WHERE clause include ALL entity constraints from the user's question (name/type AND date/time)? 
 - Are property paths based on discovered data (Step A), not guesses?
-- For relationship/participation questions (e.g., "who attended", "who is connected to"): did you run Step C2 (source-document probe)? Does your FINAL_SQL use the combined UNION strategy if the anchor has `sources` and source-document matching returned results? Did you include ALL edge types from Step C?
+- For relationship/participation questions, Did you include ALL edge types from Step C?
 - Did you include ALL discovered edge types, not just one?
 
 ---
