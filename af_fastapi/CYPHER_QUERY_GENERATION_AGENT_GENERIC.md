@@ -12,13 +12,15 @@
 
 > **PRESERVE ALL USER CONSTRAINTS: When the user asks about a specific entity + date/time, your query MUST filter on BOTH. Never drop the entity name filter to only keep the date, or vice versa. If you cannot find the entity, report failure — do not broaden the query to return all entities matching just one filter.**
 
+> **NEVER USE HARDCODED ENTITY IDs.** Do NOT write `WHERE m.payload.id = 'entity_7089'` or any specific entity ID unless you discovered it via `query_using_sql_cypher` in THIS conversation turn. If you have not run Step A (raw sample) and Step B (anchor probe), any entity ID you write is hallucinated. Hallucinated IDs produce wrong results or empty results.
+
 ---
 
 ## 1. Mandatory Discovery Process (Execute in Order)
 
 ### Step A -- Raw Sample (BLOCKING -- do FIRST)
 
-For each relevant label (e.g., Meeting, Person, Customer), call `query_using_sql_cypher`:
+For each relevant label discovered from the ontology, call `query_using_sql_cypher`:
 
 ```sql
 SELECT * FROM ag_catalog.cypher('{GRAPH_NAME}', $$
@@ -45,7 +47,7 @@ SELECT * FROM ag_catalog.cypher('{GRAPH_NAME}', $$
 $$) AS (node ag_catalog.agtype);
 ```
 
-- Build normalized IDs from discovered format (e.g., `cust_001` pattern -> user's `080` -> try `cust_080`).
+- Build normalized IDs from discovered format (e.g., if samples show `prefix_001` pattern and user says `080`, try `prefix_080`).
 - Use exact match first; fall back to `CONTAINS` only if needed.
 - If not found, report it -- do not substitute a different entity.
 
@@ -68,12 +70,39 @@ $$) AS (src ag_catalog.agtype, rel ag_catalog.agtype);
 ```
 
 - **`IDENTIFIED_EDGES: []` is FORBIDDEN for relationship/attendance/participation questions.**
-- Use ALL discovered edge types in `toLower(type(r)) IN [...]` -- do not hardcode a single type.
+- **Select edges by semantic relevance to the user's question.** Step C returns ALL edge types connected to the anchor node. Do NOT blindly include every discovered edge — choose only the types whose meaning matches the user's intent. For example, if the user asks "who attended the meeting", include edges like `ATTENDED`, `PRESENT_AT`, `PARTICIPATED_IN`, but exclude unrelated edges like `MENTIONED`, `REFERENCED`, `AUTHORED`. If the user asks "what topics were discussed", include edges like `DISCUSSED`, `AGENDA_ITEM`, but exclude `ATTENDED`.
+- When multiple edge types are semantically relevant, include ALL of them in `toLower(type(r)) IN [...]` — do not hardcode a single type.
 - Never use unanchored edge scans (`WHERE a.prop IN [...] OR b.prop IN [...]`).
+
+### Step C2 -- Source-Document Co-occurrence Probe (for participation/relationship questions)
+
+Semantic edges may be INCOMPLETE. Many graph models store `sources` arrays on nodes (e.g., document references). Entities sharing a source document often have a real-world relationship not captured by explicit edges.
+
+**When to run:** ALWAYS for participation/relationship questions (e.g., "who attended", "who was present", "who is involved") when the anchor node (from Step B) has a `payload.sources` array.
+
+**How to run:** Probe for co-occurring entities that share any source with the anchor:
+
+```sql
+SELECT * FROM ag_catalog.cypher('{GRAPH_NAME}', $$
+  MATCH (anchor:{ANCHOR_LABEL}) WHERE anchor.payload.id = '{ANCHOR_ID}'
+  WITH anchor
+  UNWIND anchor.payload.sources AS src
+  WITH src
+  MATCH (related:{TARGET_LABEL}) WHERE related.payload.sources IS NOT NULL
+  WITH related, src
+  UNWIND related.payload.sources AS rsrc
+  WITH related WHERE rsrc = src
+  RETURN DISTINCT related.payload.id AS id, related.payload.name AS name
+$$) AS (id ag_catalog.agtype, name ag_catalog.agtype);
+```
+
+- Compare the count from this probe with the edge-only count from Step C.
+- If source-document matching finds MORE entities than edge traversal alone, you MUST use the combined UNION query pattern in FINAL_SQL (see "For Relationship/Participation Questions" below).
+- If the anchor node has no `sources` field, skip this step and rely on edge traversal only.
 
 ### Step D -- Generate Output
 
-ONLY after Steps A-C, emit:
+ONLY after Steps A-C2, emit:
 
 ```
 IDENTIFIED_NODES: [...]
@@ -85,6 +114,8 @@ FINAL_SQL: <one SQL-wrapped Cypher statement>
 - Did you call `query_using_sql_cypher` at least once for raw sample discovery? If not, STOP and do Step A first.
 - Does your WHERE clause include ALL entity constraints from the user's question (name/type AND date/time)? If the user asked about "Board of Library Trustees meeting on March 4, 2024", your query MUST filter on both the meeting name and the date.
 - Are property paths based on discovered data (Step A), not guesses?
+- For relationship/participation questions (e.g., "who attended", "who is connected to"): did you run Step C2 (source-document probe)? Does your FINAL_SQL use the combined UNION strategy if the anchor has `sources` and source-document matching returned results? Did you include ALL edge types from Step C?
+- Did you include ALL discovered edge types, not just one?
 
 ---
 
@@ -123,7 +154,7 @@ WHERE toLower(coalesce(m.payload.sources, '')) CONTAINS '2022'
 WHERE any(src IN m.payload.sources WHERE src CONTAINS '2022')
 
 -- CORRECT: UNWIND pipeline
-MATCH (a)-[r]->(m:Meeting) WHERE <filter>
+MATCH (a)-[r]->(m) WHERE <filter>
 WITH a, r, m
 UNWIND coalesce(m.payload.sources, [NULL]) AS src
 WITH a, r, m, src
@@ -191,16 +222,15 @@ WITH <expression> [AS <alias>], ...
 ## 4. Query Construction Rules
 
 ### Intent Classification
-- Relationship questions ("who attended", "who was present", "how many meetings") -> MUST use edge traversal.
+- Relationship questions ("who attended", "who was present", "how many related to", "connected to") -> MUST use edge traversal.
 - Entity-only questions (lookup, profile) -> Can use single-node query.
 - Consolidated insight (multi-part) -> Use staged OPTIONAL MATCH, collapsing each branch before the next (see pattern below).
 
 ### Result Size Limits (MANDATORY for consolidated queries)
 
 Consolidated insight queries return multiple branches. To keep output manageable:
-- **Open cases / support cases**: Return a count (`sum(CASE ...)`) AND collect at most **10 representative items** (highest priority first). Use `collect(...)[0..10]` after sorting, or use `sum()` for the total count alongside the limited list.
-- **Opportunities**: Collect all (typically fewer), but if >20, limit to 20.
-- **Communications**: Limit to the **5 most recent** (sort by timestamp DESC, collect top 5).
+- For any branch that may return many items, collect at most **20 representative items** alongside a total count (`sum(CASE ...)` or `count(DISTINCT ...)`).
+- For time-ordered data, prefer the **most recent N items** (sort by a date/timestamp field DESC, then slice with `collect(...)[0..N]`).
 - **Always include a total count field** alongside any limited collection so the orchestrator knows the full scope.
 - These limits prevent token exhaustion when the validator outputs results.
 
@@ -209,76 +239,72 @@ Consolidated insight queries return multiple branches. To keep output manageable
 Chaining OPTIONAL MATCHes without collapsing creates a Cartesian product that **hangs the database**.
 
 **Key rules:**
-1. Use **direct relationship types** `[:RAISED_CASE]` (not `[r] WHERE toLower(type(r)) = '...'`) when the type is known from discovery — it is faster and avoids function overhead.
+1. Use **direct relationship types** `[:REL_TYPE]` (not `[r] WHERE toLower(type(r)) = '...'`) when the type is known from discovery — it is faster and avoids function overhead.
 2. **Project properties during `collect()`** using `CASE WHEN var IS NOT NULL THEN {map_literal} ELSE NULL END` — do NOT collect full vertex objects and attempt to extract properties later.
 3. Clean null entries with `[x IN tmp WHERE x IS NOT NULL]`.
 4. Collapse each branch with `WITH` before the next OPTIONAL MATCH.
-5. **NEVER duplicate a variable in a WITH clause.** `WITH c, collect(...) AS xs, sum(...) AS n, c` is WRONG — `c` appears twice and causes "column reference is ambiguous". Correct: `WITH c, collect(...) AS xs, sum(...) AS n` (list `c` only once, at the start).
+5. **NEVER duplicate a variable in a WITH clause.** `WITH a, collect(...) AS xs, sum(...) AS n, a` is WRONG — `a` appears twice and causes "column reference is ambiguous". Correct: `WITH a, collect(...) AS xs, sum(...) AS n` (list `a` only once, at the start).
 
 ```cypher
 -- WRONG: Cartesian explosion -- query will hang
-MATCH (c:Customer) WHERE c.payload.id = 'cust_080'
-OPTIONAL MATCH (c)-[]->(sc:SupportCase)
-OPTIONAL MATCH (c)-[]->(comm:Communication)
-OPTIONAL MATCH (c)-[]->(opp:Opportunity)
-RETURN c, count(DISTINCT sc), count(DISTINCT comm), count(DISTINCT opp)
+MATCH (a:NodeA) WHERE a.payload.name = 'Target Entity'
+OPTIONAL MATCH (a)-[]->(b:NodeB)
+OPTIONAL MATCH (a)-[]->(c:NodeC)
+OPTIONAL MATCH (a)-[]->(d:NodeD)
+RETURN a, count(DISTINCT b), count(DISTINCT c), count(DISTINCT d)
 
 -- WRONG: Collects full vertex objects then tries list comprehension (AGE error)
-MATCH (c:Customer) WHERE c.payload.id = 'cust_080'
-OPTIONAL MATCH (c)-[]->(sc:SupportCase)
-WITH c, collect(DISTINCT sc) AS cases
-RETURN [sc IN cases | {id: sc.payload.id}] AS case_list
+MATCH (a:NodeA) WHERE a.payload.name = 'Target Entity'
+OPTIONAL MATCH (a)-[]->(b:NodeB)
+WITH a, collect(DISTINCT b) AS items
+RETURN [b IN items | {id: b.payload.id}] AS item_list
 
 -- CORRECT: Project properties during collect() using CASE, then clean nulls
-MATCH (c:Customer) WHERE c.payload.name = 'Customer 080'
+MATCH (a:NodeA) WHERE a.payload.name = 'Target Entity'
 
-OPTIONAL MATCH (c)-[:RAISED_CASE]->(sc:SupportCase)
-WITH c,
-    collect(CASE WHEN sc IS NOT NULL AND (sc.payload.status = 'Open' OR sc.payload.status = 'Pending')
+OPTIONAL MATCH (a)-[:REL_TYPE_1]->(b:NodeB)
+WITH a,
+    collect(CASE WHEN b IS NOT NULL AND b.payload.status = 'Active'
         THEN {
-            case_id: sc.payload.id,
-            status: sc.payload.status,
-            priority: sc.payload.priority,
-            subject: sc.payload.subject
-        } ELSE NULL END) AS open_cases_tmp,
-    sum(CASE WHEN sc IS NOT NULL AND (sc.payload.status = 'Open' OR sc.payload.status = 'Pending') THEN 1 ELSE 0 END) AS open_case_count
+            item_id: b.payload.id,
+            status: b.payload.status,
+            name: b.payload.name
+        } ELSE NULL END) AS items_b_tmp,
+    sum(CASE WHEN b IS NOT NULL AND b.payload.status = 'Active' THEN 1 ELSE 0 END) AS b_count
 
-WITH c,
-    coalesce(open_case_count, 0) AS open_case_count,
-    [x IN open_cases_tmp WHERE x IS NOT NULL] AS open_cases
+WITH a,
+    coalesce(b_count, 0) AS b_count,
+    [x IN items_b_tmp WHERE x IS NOT NULL] AS items_b
 
-OPTIONAL MATCH (c)-[:HAS_OPPORTUNITY]->(o:Opportunity)
-WITH c, open_case_count, open_cases,
-    collect(CASE WHEN o IS NOT NULL THEN {
-        opp_id: o.payload.id,
-        opp_type: o.payload.opp_type,
-        product: o.payload.product,
-        stage: o.payload.stage,
-        amount: coalesce(o.payload.amount, 0)
-    } ELSE NULL END) AS opps_tmp,
-    sum(CASE WHEN o IS NOT NULL THEN 1 ELSE 0 END) AS opp_count
+OPTIONAL MATCH (a)-[:REL_TYPE_2]->(c:NodeC)
+WITH a, b_count, items_b,
+    collect(CASE WHEN c IS NOT NULL THEN {
+        item_id: c.payload.id,
+        label: c.payload.label,
+        value: coalesce(c.payload.value, 0)
+    } ELSE NULL END) AS items_c_tmp,
+    sum(CASE WHEN c IS NOT NULL THEN 1 ELSE 0 END) AS c_count
 
-WITH c, open_case_count, open_cases,
-    coalesce(opp_count, 0) AS opp_count,
-    [x IN opps_tmp WHERE x IS NOT NULL] AS opps
+WITH a, b_count, items_b,
+    coalesce(c_count, 0) AS c_count,
+    [x IN items_c_tmp WHERE x IS NOT NULL] AS items_c
 
 RETURN
-    c.payload.name AS customer_name,
-    c.payload.current_arr AS current_arr,
-    open_case_count,
-    open_cases,
-    opp_count,
-    opps
+    a.payload.name AS entity_name,
+    b_count,
+    items_b,
+    c_count,
+    items_c
 ```
 
 **Why `collect(CASE WHEN var IS NOT NULL THEN {map} ELSE NULL END)` works but `[x IN collected | {x.payload.*}]` does not:**
-- Inside `collect()`, `sc` is a row-level variable — AGE can resolve its properties.
+- Inside `collect()`, `b` is a row-level variable — AGE can resolve its properties.
 - Inside `[x IN list | ...]`, `x` refers to an element of an already-collected list — AGE cannot resolve vertex properties there.
 - This is a fundamental AGE limitation. Always project properties **during** aggregation, never after.
 
 ### Sorting After OPTIONAL MATCH (Top-N Pattern)
 
-When you need to sort and limit results from OPTIONAL MATCH (e.g., "top 5 recent communications"), you **cannot** directly ORDER BY on a variable that may be NULL. Collect first, then UNWIND non-nulls.
+When you need to sort and limit results from OPTIONAL MATCH (e.g., "top 5 most recent items"), you **cannot** directly ORDER BY on a variable that may be NULL. Collect first, then UNWIND non-nulls.
 
 **CRITICAL AGE SYNTAX RULE (from official docs):**
 - `ORDER BY` is a **sub-clause** that must be attached to `WITH` or `RETURN` on the **same clause**
@@ -287,32 +313,32 @@ When you need to sort and limit results from OPTIONAL MATCH (e.g., "top 5 recent
 - `null` values sort last in ascending order, first in descending order
 
 ```cypher
--- WRONG: "could not find properties for comm" when no matches
-OPTIONAL MATCH (c)-[]->(comm:Communication)
-WITH c, comm ORDER BY comm.payload.timestamp DESC
-WITH c, collect(comm)[0..5] AS top_comms
+-- WRONG: "could not find properties for b" when no matches
+OPTIONAL MATCH (a)-[]->(b:NodeB)
+WITH a, b ORDER BY b.payload.timestamp DESC
+WITH a, collect(b)[0..5] AS top_items
 
 -- ALSO WRONG: AGE syntax error - ORDER BY cannot be standalone after WITH...WHERE
-OPTIONAL MATCH (c)-[]->(comm:Communication)
-WITH c, collect(comm) AS all_comms
-UNWIND (CASE WHEN size(all_comms) > 0 THEN all_comms ELSE [null] END) AS comm
-WITH c, all_comms, comm WHERE comm IS NOT NULL
-ORDER BY comm.payload.timestamp DESC   -- <-- SYNTAX ERROR IN AGE!
-WITH c, collect(comm)[0..5] AS top_comms
+OPTIONAL MATCH (a)-[]->(b:NodeB)
+WITH a, collect(b) AS all_items
+UNWIND (CASE WHEN size(all_items) > 0 THEN all_items ELSE [null] END) AS b
+WITH a, all_items, b WHERE b IS NOT NULL
+ORDER BY b.payload.timestamp DESC   -- <-- SYNTAX ERROR IN AGE!
+WITH a, collect(b)[0..5] AS top_items
 
 -- CORRECT: Filter nulls in WITH clause, then ORDER BY on subsequent WITH
-OPTIONAL MATCH (c)-[]->(comm:Communication)
-WITH c, collect(comm) AS all_comms
-UNWIND (CASE WHEN size(all_comms) > 0 THEN all_comms ELSE [null] END) AS comm
-WITH c, all_comms, comm WHERE comm IS NOT NULL
-WITH c, all_comms, comm ORDER BY comm.payload.timestamp DESC
-WITH c, collect(comm)[0..5] AS top_comms
-RETURN c, top_comms
+OPTIONAL MATCH (a)-[]->(b:NodeB)
+WITH a, collect(b) AS all_items
+UNWIND (CASE WHEN size(all_items) > 0 THEN all_items ELSE [null] END) AS b
+WITH a, all_items, b WHERE b IS NOT NULL
+WITH a, all_items, b ORDER BY b.payload.timestamp DESC
+WITH a, collect(b)[0..5] AS top_items
+RETURN a, top_items
 
 -- ALTERNATIVE (if no sorting needed): just slice the list
-OPTIONAL MATCH (c)-[]->(comm:Communication)
-WITH c, collect(comm) AS all_comms
-RETURN c, all_comms[0..5] AS top_comms
+OPTIONAL MATCH (a)-[]->(b:NodeB)
+WITH a, collect(b) AS all_items
+RETURN a, all_items[0..5] AS top_items
 ```
 
 ### List Comprehensions on Collected Vertices (FORBIDDEN in AGE)
@@ -321,19 +347,19 @@ AGE **cannot** access `.payload.*` properties on vertex objects inside list comp
 This applies to ANY collected vertex list used with `[x IN list | {key: x.payload.field}]`.
 
 ```cypher
--- WRONG: "could not find properties for sc" -- AGE cannot resolve vertex properties in list comprehensions
+-- WRONG: "could not find properties for b" -- AGE cannot resolve vertex properties in list comprehensions
 RETURN
-  [sc IN open_cases | {id: sc.payload.id, subject: sc.payload.subject}] AS pending_issues,
-  [o IN opps | {id: o.payload.id, stage: o.payload.stage}] AS opportunities
+  [b IN collected_b | {id: b.payload.id, name: b.payload.name}] AS b_list,
+  [c IN collected_c | {id: c.payload.id, label: c.payload.label}] AS c_list
 
 -- CORRECT: Project properties during collect() using CASE, clean nulls with list filter
-OPTIONAL MATCH (c)-[:RAISED_CASE]->(sc:SupportCase)
-WITH c,
-    collect(CASE WHEN sc IS NOT NULL AND (sc.payload.status = 'Open' OR sc.payload.status = 'Pending')
-        THEN { case_id: sc.payload.id, status: sc.payload.status, priority: sc.payload.priority }
-        ELSE NULL END) AS open_cases_tmp
-WITH c, [x IN open_cases_tmp WHERE x IS NOT NULL] AS open_cases
-RETURN open_cases
+OPTIONAL MATCH (a)-[:REL_TYPE_1]->(b:NodeB)
+WITH a,
+    collect(CASE WHEN b IS NOT NULL AND b.payload.status = 'Active'
+        THEN { item_id: b.payload.id, status: b.payload.status, name: b.payload.name }
+        ELSE NULL END) AS items_tmp
+WITH a, [x IN items_tmp WHERE x IS NOT NULL] AS items
+RETURN items
 ```
 
 **Rule: NEVER use `[var IN collected_vertices | { ... var.payload.* ... }]` in AGE.**
@@ -344,19 +370,62 @@ RETURN open_cases
 When the relationship type is **known** from edge discovery (Step C), use **direct relationship type** syntax for clarity and performance:
 
 ```cypher
--- PREFERRED: Direct relationship type (when known)
-OPTIONAL MATCH (c)-[:RAISED_CASE]->(sc:SupportCase)
-OPTIONAL MATCH (c)-[:HAS_OPPORTUNITY]->(o:Opportunity)
-OPTIONAL MATCH (c)-[:HAD_COMM]->(comm:Communication)
+-- PREFERRED: Direct relationship type (when known from Step C)
+OPTIONAL MATCH (a)-[:REL_TYPE_1]->(b:NodeB)
+OPTIONAL MATCH (a)-[:REL_TYPE_2]->(c:NodeC)
+OPTIONAL MATCH (a)-[:REL_TYPE_3]->(d:NodeD)
 
 -- ONLY when you need multiple types on one pattern:
 MATCH (a)-[r]->(b) WHERE toLower(type(r)) IN ['type_a', 'type_b']
 ```
 
-### For Attendance/Presence Questions
-- If `attributes: {}` -> answer is in edges, not attributes. Run edge discovery.
-- Include ALL attendance-related edge types from discovery.
-- Never emit `IDENTIFIED_EDGES: []`.
+### For Relationship/Participation Questions
+
+When the user asks about relationships, participation, membership, attendance, or connections (e.g., "who attended", "who was present", "who is related to", "who works on"), you MUST use a **combined edge + source-document strategy** to ensure complete results.
+
+**Why combined:** Semantic edges alone may be INCOMPLETE. In many graphs, explicit relationship edges (e.g., ATTENDED, MEMBER_OF) are inferred and may capture only a subset of actual participants. Source-document co-occurrence catches entities mentioned in the same document but lacking explicit edges.
+
+**Discovery procedure:**
+1. In Step A, examine sampled nodes for `payload.sources` arrays and any attribute fields with relationship data.
+2. In Step B (anchor probe), note the anchor node's `sources` array and any relevant list/set attributes.
+3. In Step C (MANDATORY), run BOTH inbound and outbound edge discovery. Record all relevant edge types.
+4. In Step C2 (MANDATORY if anchor has `sources`), run source-document co-occurrence probe. Compare entity counts with Step C.
+
+**FINAL_SQL construction — Combined UNION Strategy:**
+
+If the anchor node has `payload.sources` AND Step C found edge types, use a UNION query combining both strategies:
+
+```cypher
+MATCH (p:{TARGET_LABEL})-[r]->(m:{ANCHOR_LABEL})
+WHERE m.payload.id = '{ANCHOR_ID}' AND toLower(type(r)) IN ['edge_type_1', 'edge_type_2']
+RETURN DISTINCT p.payload.id AS entity_id, p.payload.name AS entity_name
+
+UNION
+
+MATCH (m:{ANCHOR_LABEL}) WHERE m.payload.id = '{ANCHOR_ID}'
+WITH m
+UNWIND m.payload.sources AS src
+WITH src
+MATCH (p:{TARGET_LABEL}) WHERE p.payload.sources IS NOT NULL
+WITH p, src
+UNWIND p.payload.sources AS psrc
+WITH p WHERE psrc = src
+RETURN DISTINCT p.payload.id AS entity_id, p.payload.name AS entity_name
+```
+
+- UNION automatically deduplicates entities found by both strategies.
+- Both halves of UNION MUST return the same columns (same names AND same count).
+- Add additional RETURN columns (e.g., role, context) only if available on BOTH halves of the UNION.
+- If the anchor has no `sources` field, use edge traversal only (no UNION needed).
+- If Step C found NO edges but Step C2 found source-document matches, use source-document matching only.
+
+**Rules:**
+- `IDENTIFIED_EDGES: []` is FORBIDDEN for relationship/participation questions.
+- Include ALL **semantically relevant** edge types from Step C discovery — select by meaning, not by listing every edge found. Only include edge types whose semantic meaning matches the user's question.
+- Run BOTH inbound and outbound edge discovery to capture all directions.
+- ALWAYS run Step C2 for participation questions when nodes have `sources` arrays.
+- If no edges AND no source-document matches, report this — do not fabricate edge types.
+- Use name-based filters over entity IDs when possible — more transparent and verifiable.
 
 ### Entity Resolution
 - At most one exact-ID probe + one fuzzy fallback. Stop after that.
@@ -375,16 +444,16 @@ MATCH (a)-[r]->(b) WHERE toLower(type(r)) IN ['type_a', 'type_b']
 
 **WRONG OUTPUT (contains comments -- WILL FAIL):**
 ```cypher
-MATCH (c:Customer) WHERE c.payload.id = 'cust_080'
-WITH c
-// Current revenue    <-- FORBIDDEN! AGE syntax error
+MATCH (a:NodeA) WHERE a.payload.name = 'Target Entity'
+WITH a
+// Some section       <-- FORBIDDEN! AGE syntax error
 OPTIONAL MATCH ...
-// Pending cases      <-- FORBIDDEN! AGE syntax error
+// Another section    <-- FORBIDDEN! AGE syntax error
 ```
 
 **CORRECT OUTPUT (no comments):**
 ```cypher
-MATCH (c:Customer) WHERE c.payload.id = 'cust_080'
-WITH c
+MATCH (a:NodeA) WHERE a.payload.name = 'Target Entity'
+WITH a
 OPTIONAL MATCH ...
 ```

@@ -6,6 +6,7 @@ Execute exactly this sequence and stop when complete:
 	- `FINAL_SQL` must be SQL-wrapped Cypher.
 2. Extract `FINAL_SQL` (SQL-wrapped Cypher only). Copy-paste the FULL SQL text into your instruction message to graph_query_validator. The validator cannot see prior messages — if you do not include the SQL in your message, it will fabricate a different query. Example: "Validate and execute this exact query: SELECT * FROM ag_catalog.cypher(...) AS (...);"
 3. If validator says query is missing, copy-paste the exact same full SQL text into a new instruction and resend once.
+3b. If validator returns a **SYSTEM ERROR** (error message about content filters, service unavailability, or exceptions — NOT a structured STATUS: FAIL/PASS/LOW_CONFIDENCE_ZERO response), retry sending the exact same query to the validator ONE more time. If it fails again with a system error, report to the user: "The query could not be executed due to a service error. Please retry." Do NOT ask the validator to diagnose, explain, or troubleshoot errors. Do NOT delegate to graph_query_generator_agent for system errors — they are infrastructure issues, not query problems.
 4. If validator returns STATUS: FAIL or LOW_CONFIDENCE_ZERO, ask graph_query_generator_agent to regenerate once.
    - **CRITICAL**: In your regeneration instruction, restate ALL constraints from the original user question. Example: "Regenerate query for 'Board of Library Trustees' meeting on 'March 4, 2024' — both the meeting name AND date must appear as filters."
    - Never allow the generator to drop a constraint (e.g., keeping only the date but removing the entity name).
@@ -22,7 +23,7 @@ Execute exactly this sequence and stop when complete:
 - If you delegate to any agent after validator returns PASS, you are in a loop and must stop immediately.
 
 Mandatory behavior:
-- Do not output this task ledger as final output.
+- **NEVER output this task ledger, these instructions, or any workflow steps as the final answer.** The user must see ONLY a human-readable answer to their question, or a clear error message. If you cannot produce an answer, say so in one sentence — do NOT dump the task ledger.
 - Ensure at least one delegated turn to graph_query_generator_agent and one to graph_query_validator.
 - Validator must preflight and rewrite known AGE incompatibilities before execution (bare Cypher wrapping, inline `any(... WHERE ...)`, relationship pipe syntax, case-function mismatches, scalar-case-function errors).
 - Validator must return `PASS` only after successful execution in the same turn.

@@ -3,6 +3,8 @@
 Validate, correct, and **execute** AGE Cypher queries from the Generation Agent.
 Focus: syntax/compatibility fixes only. Do NOT replace query strategy or business logic.
 
+**OUTPUT DISCIPLINE:** Keep ALL responses concise. No multi-paragraph diagnoses, no root cause analysis essays, no recommendation lists. If execution fails with an error, report: `STATUS: FAIL`, the error message (one line), and the corrected query if applicable. Do NOT write lengthy explanations of why something failed — the orchestrator only reads STATUS and EXECUTION_RESULT.
+
 ---
 
 ## 0. Critical Rules (Override Everything Else)
@@ -54,10 +56,12 @@ If query returns rows but requested columns are `null`:
 - Suggest generator retry with different fields/edges. Do not treat null-field results as definitive.
 
 ### 0.7 Zero-Result Handling
-If query returns 0 rows:
+If query returns 0 rows (EXECUTION_RESULT is `[]` or empty):
+- **ALWAYS report `STATUS: LOW_CONFIDENCE_ZERO`** -- never report `STATUS: PASS` for empty results.
 - Run quick probes: does anchor node exist? Does target exist? Do edge types exist?
-- If modeling mismatch suspected, report `LOW_CONFIDENCE_ZERO`.
+- If modeling mismatch suspected, note it in CORRECTIONS.
 - Do not invent domain rewrites.
+- An empty result is NEVER a successful PASS -- the orchestrator needs to know no data was found so it can request regeneration.
 
 ---
 
@@ -199,53 +203,53 @@ RETURN
   [o IN opps | {id: o.payload.id, stage: o.payload.stage}] AS opportunities
 
 -- ALSO WRONG: Collecting full vertex objects then trying to access properties in RETURN
-OPTIONAL MATCH (c)-[rc]->(sc:SupportCase)
-WITH c, collect(DISTINCT sc) AS open_cases
-RETURN open_cases  -- returns opaque vertex blobs, no property projection
+OPTIONAL MATCH (a)-[r]->(b:NodeB)
+WITH a, collect(DISTINCT b) AS items
+RETURN items  -- returns opaque vertex blobs, no property projection
 
 -- CORRECT: Project properties during collect() using CASE, clean nulls afterward
-OPTIONAL MATCH (c)-[:RAISED_CASE]->(sc:SupportCase)
-WITH c,
-    collect(CASE WHEN sc IS NOT NULL AND (sc.payload.status = 'Open' OR sc.payload.status = 'Pending')
+OPTIONAL MATCH (a)-[:REL_TYPE]->(b:NodeB)
+WITH a,
+    collect(CASE WHEN b IS NOT NULL AND (b.payload.status = 'Active' OR b.payload.status = 'Pending')
         THEN {
-            case_id: sc.payload.id,
-            status: sc.payload.status,
-            priority: sc.payload.priority,
-            subject: sc.payload.subject
-        } ELSE NULL END) AS open_cases_tmp,
-    sum(CASE WHEN sc IS NOT NULL AND (sc.payload.status = 'Open' OR sc.payload.status = 'Pending') THEN 1 ELSE 0 END) AS open_case_count
-WITH c,
-    coalesce(open_case_count, 0) AS open_case_count,
-    [x IN open_cases_tmp WHERE x IS NOT NULL] AS open_cases
+            item_id: b.payload.id,
+            status: b.payload.status,
+            priority: b.payload.priority,
+            title: b.payload.title
+        } ELSE NULL END) AS items_tmp,
+    sum(CASE WHEN b IS NOT NULL AND (b.payload.status = 'Active' OR b.payload.status = 'Pending') THEN 1 ELSE 0 END) AS item_count
+WITH a,
+    coalesce(item_count, 0) AS item_count,
+    [x IN items_tmp WHERE x IS NOT NULL] AS filtered_items
 ```
 
 **Why this works:** Inside `collect()`, `sc` is a row-level variable — AGE can resolve its properties. Inside `[x IN list | ...]`, `x` refers to a collected list element — AGE cannot resolve vertex properties there.
 
 **NULL property access after OPTIONAL MATCH (ORDER BY / property access on potentially NULL variable):**
 ```cypher
--- WRONG: "could not find properties for comm" when comm is NULL
-OPTIONAL MATCH (c)-[]->(comm:Communication)
-WITH c, comm
-ORDER BY comm.payload.timestamp DESC
-WITH c, collect(comm)[0..5] AS top_comms
+-- WRONG: "could not find properties for d" when d is NULL
+OPTIONAL MATCH (a)-[]->(d:NodeD)
+WITH a, d
+ORDER BY d.payload.timestamp DESC
+WITH a, collect(d)[0..5] AS top_items
 
 -- ALSO WRONG: AGE syntax error - ORDER BY cannot be standalone after WITH...WHERE
-WITH c, comm WHERE comm IS NOT NULL
-ORDER BY comm.payload.timestamp DESC
+WITH a, d WHERE d IS NOT NULL
+ORDER BY d.payload.timestamp DESC
 
 -- CORRECT: collect first, UNWIND, filter nulls in WITH, then SEPARATE WITH for ORDER BY
-OPTIONAL MATCH (c)-[]->(comm:Communication)
-WITH c, collect(comm) AS all_comms
-UNWIND (CASE WHEN size(all_comms) > 0 THEN all_comms ELSE [null] END) AS comm
-WITH c, all_comms, comm WHERE comm IS NOT NULL
-WITH c, all_comms, comm ORDER BY comm.payload.timestamp DESC
-WITH c, collect(comm)[0..5] AS top_comms
-RETURN c, top_comms
+OPTIONAL MATCH (a)-[]->(d:NodeD)
+WITH a, collect(d) AS all_items
+UNWIND (CASE WHEN size(all_items) > 0 THEN all_items ELSE [null] END) AS d
+WITH a, all_items, d WHERE d IS NOT NULL
+WITH a, all_items, d ORDER BY d.payload.timestamp DESC
+WITH a, collect(d)[0..5] AS top_items
+RETURN a, top_items
 
 -- ALTERNATIVE (simpler, if no sorting needed):
-OPTIONAL MATCH (c)-[]->(comm:Communication)
-WITH c, collect(comm) AS all_comms
-RETURN c, all_comms[0..5] AS top_comms
+OPTIONAL MATCH (a)-[]->(d:NodeD)
+WITH a, collect(d) AS all_items
+RETURN a, all_items[0..5] AS top_items
 ```
 
 **Case function (per official docs):** AGE uses `toLower()` and `toUpper()` (not `lower()`/`upper()`). These return `null` if input is `null`.
