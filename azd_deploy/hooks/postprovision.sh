@@ -139,8 +139,8 @@ conn = psycopg.connect(
     port=int(os.environ.get('PGPORT', '5432')),
     dbname=os.environ.get('PGDATABASE', 'postgres'),
     user=os.environ['PGUSER'],
-  password=os.environ['PGPASSWORD'],
-  sslmode='require'
+    password=os.environ['PGPASSWORD'],
+    sslmode='require'
 )
 conn.autocommit = True
 with conn.cursor() as cur:
@@ -162,7 +162,41 @@ PY
     exit 1
   fi
 
-  echo "Skipping graph data load (provisioning-only mode)."
+  if [ ! -f "$loader_script" ]; then
+    echo "ERROR: Data loader script not found: $loader_script"
+    exit 1
+  fi
+
+  if [ ! -d "$data_dir" ]; then
+    echo "ERROR: Data directory not found: $data_dir"
+    exit 1
+  fi
+
+  echo "Loading graph data into PostgreSQL AGE..."
+  local load_succeeded=false
+  for attempt in $(seq 1 3); do
+    if PGHOST="$server_fqdn" \
+      PGPORT="5432" \
+      PGDATABASE="postgres" \
+      PGUSER="$admin_user" \
+      PGPASSWORD="$admin_password" \
+      PGSSLMODE="require" \
+      GRAPH_NAME="$graph_name" \
+      DATA_DIR="$data_dir" \
+      "$python_exe" "$loader_script"
+    then
+      load_succeeded=true
+      break
+    fi
+
+    echo "Graph data load failed (attempt $attempt/3). Retrying in 20 seconds..."
+    sleep 20
+  done
+
+  if [ "$load_succeeded" != "true" ]; then
+    echo "ERROR: Graph data load failed after retries."
+    exit 1
+  fi
 }
 
 invoke_provision_phase() {
@@ -202,14 +236,17 @@ postgres_admin_user="$(get_azd_env postgresqlAdminLogin)"
 postgres_admin_password="$(get_azd_env POSTGRESQL_ADMIN_PASSWORD)"
 graph_name="$(get_azd_env graphName)"
 
-echo "Skipping PostgreSQL AGE initialization (provisioning-only mode)."
-
 if [ -z "$acr_name" ]; then
   echo "ACR not deployed, skipping container builds"
   exit 0
 fi
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
+
+if [ -n "$postgres_server_name" ]; then
+  wait_postgres_ready "$resource_group" "$postgres_server_name"
+  initialize_postgres_age_and_data "$resource_group" "$postgres_server_name" "$postgres_admin_user" "$postgres_admin_password" "$postgres_server_fqdn" "$graph_name"
+fi
 
 if [ "$build_mcp" != "false" ]; then
   mcp_full_path="$(cd "$script_dir/$MCP_SERVER_PATH" && pwd)"
@@ -221,6 +258,8 @@ if [ "$build_mcp" != "false" ]; then
   fi
 fi
 
+invoke_provision_phase "MCP Server" "true" "false" "false"
+
 if [ "$build_fastapi" != "false" ]; then
   fastapi_full_path="$(cd "$script_dir/$FASTAPI_PATH" && pwd)"
   IFS=';' read -r fastapi_needed fastapi_hash <<< "$(build_needed "$fastapi_full_path" "fastApiFolderHash")"
@@ -230,6 +269,8 @@ if [ "$build_fastapi" != "false" ]; then
     echo "FastAPI container built: $acr_login_server/${fastapi_image_name}:${fastapi_image_tag}"
   fi
 fi
+
+invoke_provision_phase "FastAPI Backend" "true" "true" "false"
 
 if [ "$build_webapp" != "false" ]; then
   webapp_full_path="$(cd "$script_dir/$WEBAPP_PATH" && pwd)"
@@ -246,8 +287,6 @@ if [ "$build_webapp" != "false" ]; then
   fi
 fi
 
-invoke_provision_phase "MCP Server" "true" "false" "false"
-invoke_provision_phase "FastAPI Backend" "true" "true" "false"
 invoke_provision_phase "Webapp" "true" "true" "true"
 
 echo "=========================================="

@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Input } from "@/components/ui/input";
 import { API } from "./api";
 import { SafeHTML, sanitizeHtml, isHtml, hasTable } from "@/components/ui/safehtml";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Settings } from "lucide-react";
 
 
 interface Message {
@@ -17,6 +18,12 @@ interface Message {
   };
   isTypingPlaceholder?: boolean;
   isRunLogCollapsed?: boolean; // NEW: collapsible state per message
+}
+
+interface AgentSetting {
+  id: string;
+  agent_name: string;
+  agent_instructions: string;
 }
 
 
@@ -45,16 +52,44 @@ export default function ChatUI() {
     //{ value: "handoff",    label: "Handoff" },
     
   ];
+  const GRAPH_OPTIONS = [
+    { value: "customer_graph", label: "customer_graph" },
+    { value: "meetings_graph", label: "meetings_graph" },
+  ];
   const [mode, setMode] = useState<string>(MODE_OPTIONS[0].value);
+  const [selectedGraph, setSelectedGraph] = useState<string>(GRAPH_OPTIONS[0].value);
   const [isTyping, setIsTyping] = useState(false);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const [input, setInput] = useState("");
   const [user_id] = useState(() => crypto.randomUUID());
   const [progressPct, setProgressPct] = useState<number | null>(null);
   const [clientId, setClientId] = useState<string | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [faqs, setFaqs] = useState<string[]>([]);
+  const [selectedFaq, setSelectedFaq] = useState("");
+  const [agentSettings, setAgentSettings] = useState<AgentSetting[]>([
+    { id: crypto.randomUUID(), agent_name: "", agent_instructions: "" },
+  ]);
   const taRef = useRef<HTMLTextAreaElement | null>(null);
   const controllerRef = useRef<AbortController | null>(null);
   const assistantIndexRef = useRef<number | null>(null);
+
+  function addAgentSetting() {
+    setAgentSettings((prev) => [
+      ...prev,
+      { id: crypto.randomUUID(), agent_name: "", agent_instructions: "" },
+    ]);
+  }
+
+  function updateAgentSetting(
+    id: string,
+    key: "agent_name" | "agent_instructions",
+    value: string
+  ) {
+    setAgentSettings((prev) =>
+      prev.map((agent) => (agent.id === id ? { ...agent, [key]: value } : agent))
+    );
+  }
 
   function appendToAssistant(text: string) {
   setMessages(prev => {
@@ -167,6 +202,37 @@ function appendToAssistantStream(text: string) {
     autosize();
   }, [input]);
 
+  useEffect(() => {
+    let mounted = true;
+    setFaqs([]);
+    setSelectedFaq("");
+
+    const loadFaqs = async () => {
+      try {
+        const res = await fetch(API.getFaqs(selectedGraph));
+        if (!res.ok) {
+          if (mounted) setFaqs([]);
+          return;
+        }
+        const data = await res.json();
+        const items = Array.isArray(data?.faqs)
+          ? data.faqs.filter((item: unknown) => typeof item === "string")
+          : [];
+        if (mounted) {
+          setFaqs(items);
+          setSelectedFaq("");
+        }
+      } catch {
+        if (mounted) setFaqs([]);
+      }
+    };
+
+    loadFaqs();
+    return () => {
+      mounted = false;
+    };
+  }, [selectedGraph]);
+
   // SSE wire-up
   useEffect(() => {
     const es = new EventSource(`${API.sseEvents}?sid=${user_id}`);
@@ -224,11 +290,10 @@ function appendToAssistantStream(text: string) {
   }
   
   // send handler
-  const handleSend = async () => {
-  if (!input.trim() || isTyping) return;
+  const handleSendMessage = async (rawText: string) => {
+  if (!rawText.trim() || isTyping) return;
 
-  //const userMsg: Message = { id: crypto.randomUUID(), role: "user", content: input };
-  const text = input; // snapshot before clearing
+  const text = rawText.trim();
   setInput("");
   setIsTyping(true);
   setProgressPct(0);
@@ -266,7 +331,11 @@ function appendToAssistantStream(text: string) {
         "Content-Type": "application/json",
         "Accept": "application/x-ndjson",
       },
-      body: JSON.stringify({ user_query: text, client_id: clientId }),
+      body: JSON.stringify({
+        user_query: text,
+        client_id: clientId,
+        graph_name: selectedGraph,
+      }),
       signal: ctrl.signal,
     });
     if (!res.ok || !res.body) {
@@ -314,6 +383,10 @@ function appendToAssistantStream(text: string) {
   }
 };
 
+  const handleSend = async () => {
+    await handleSendMessage(input);
+  };
+
 
   // enter to send, shift+enter for newline
   const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -331,13 +404,51 @@ function appendToAssistantStream(text: string) {
       "
     >
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/60 backdrop-blur supports-[backdrop-filter]:bg-slate-900/60">
-        <div className="px-4 py-3 flex items-center justify-between">
+      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/60 backdrop-blur supports-[backdrop-filter]:bg-slate-900/60 w-full">
+        <div className="px-4 py-3 flex items-center justify-between w-full">
         
-          <div className="text-xs text-slate-400">
+          <div className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">
             User ID: <span className="font-mono text-slate-200">{user_id}</span>
           </div>
           <div className="flex items-center gap-2">
+            <span className="text-xs text-slate-400 hidden sm:inline">FAQs</span>
+            <select
+              value={selectedFaq}
+              onChange={async (e) => {
+                const faq = e.target.value;
+                setSelectedFaq(faq);
+                if (faq) {
+                  await handleSendMessage(faq);
+                  setSelectedFaq("");
+                }
+              }}
+              className="select-dark w-72 rounded-md px-3 py-2 text-sm outline-none
+                        focus:ring-2 focus:ring-indigo-500/60"
+              aria-label="FAQs"
+              disabled={isTyping || faqs.length === 0}
+            >
+              <option value="">{faqs.length ? "Select FAQ" : "No FAQs available"}</option>
+              {faqs.map((faq) => (
+                <option key={faq} value={faq}>
+                  {faq}
+                </option>
+              ))}
+            </select>
+            <span className="text-xs text-slate-400 hidden sm:inline">Graph</span>
+            <select
+              value={selectedGraph}
+              onChange={(e) => setSelectedGraph(e.target.value)}
+              className="select-dark w-44 rounded-md px-3 py-2 text-sm outline-none
+                        focus:ring-2 focus:ring-indigo-500/60"
+              aria-label="Graph"
+              disabled={isTyping}
+            >
+              {GRAPH_OPTIONS.map((graph) => (
+                <option key={graph.value} value={graph.value}>
+                  {graph.label}
+                </option>
+              ))}
+            </select>
             <span className="text-xs text-slate-400 hidden sm:inline">Orchestration</span>
             <select
               value={mode}
@@ -352,6 +463,16 @@ function appendToAssistantStream(text: string) {
                 </option>
               ))}
             </select>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-9 rounded-md border-white/20 bg-white/5 text-slate-100 hover:bg-white/10"
+              onClick={() => setIsSettingsOpen(true)}
+              aria-label="Open settings"
+            >
+              <Settings className="h-4 w-4" aria-hidden="true" />
+              <span>Settings</span>
+            </Button>
           </div>
         </div>
         {progressPct !== null && (
@@ -370,12 +491,12 @@ function appendToAssistantStream(text: string) {
 
       {/* Chat Panel */}
       <main className="w-full px-0 py-0">
-        <Card className="relative overflow-hidden rounded-none border border-white/10 bg-white/[0.06] shadow-2xl">
-          <CardContent className="p-0">
-            <ScrollArea className="h-[calc(100dvh-260px)] overflow-x-hidden">
+        <Card className="relative rounded-none border border-white/10 bg-white/[0.06] shadow-2xl w-full">
+          <CardContent className="p-0 w-full">
+            <ScrollArea className="h-[calc(100dvh-260px)] w-full" type="always">
 
               <div
-                className="p-1 space-y-1"
+                className="p-1 space-y-1 w-full"
                 ref={(el) => {
                   if (!el) return;
                   setTimeout(() => {
@@ -396,14 +517,14 @@ function appendToAssistantStream(text: string) {
                   return (
                     <div
                         key={msg.id}
-                        className="flex w-full min-w-0 items-start gap-2 overflow-x-hidden" // ⬅️ important
+                        className="flex w-full min-w-0 items-start gap-2"
                       >
-                      {/* Left avatar slot (48px). Show only for assistant; keep spacer for user. */}
-                      <div className="w-12 flex-shrink-0 flex justify-start">
-                        {!isUser && (
+                      {/* Left avatar slot (48px). Show only for assistant messages. */}
+                      {!isUser && (
+                        <div className="w-12 flex-shrink-0 flex justify-start">
                           <div className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-500 to-slate-600 ring-1 ring-white/10 shadow" />
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                       {/* Bubble column (shrinks safely) */}
                       <div
@@ -416,8 +537,7 @@ function appendToAssistantStream(text: string) {
                             className={[
                               "relative isolate rounded-2xl px-4 py-3 shadow-lg ring-1 text-left",
                               "inline-flex items-start min-w-0",       // ⬅️ can shrink
-                              "overflow-hidden",                       // ⬅️ bubble is the clip boundary
-                              isUser ? "max-w-[85vw] md:max-w-[88%]" : "max-w-[90vw] md:max-w-[88%]",
+                              isUser ? "max-w-[85vw] md:max-w-[88%]" : "max-w-full",
                               isUser
                                 ? "bg-gradient-to-br from-slate-600 to-slate-700 text-white ring-white/5"
                                 : "bg-gradient-to-br from-indigo-600 to-slate-700 text-white ring-white/5",
@@ -490,8 +610,8 @@ function appendToAssistantStream(text: string) {
                                     hidden={!!msg.isRunLogCollapsed}
                                   >
                                     {/* DISTINCT BACKGROUND FOR RUN LOG */}
-                                    <div className="rounded-xl bg-slate-900/45 ring-1 ring-white/10 p-3">
-                                      <pre className="whitespace-pre-wrap break-words font-mono text-[13px] leading-snug text-white/90">
+                                    <div className="rounded-xl bg-slate-900/45 ring-1 ring-white/10 p-3 overflow-x-auto">
+                                      <pre className="whitespace-pre-wrap break-all font-mono text-[13px] leading-snug text-white/90">
                                         {msg.parts.stream || ""}
                                       </pre>
                                     </div>
@@ -535,12 +655,12 @@ function appendToAssistantStream(text: string) {
                         </div>
 
 
-                      {/* Right avatar slot (48px). Show only for user; keep spacer for assistant. */}
-                      <div className="w-12 flex-shrink-0 flex justify-end">
-                        {isUser && (
+                      {/* Right avatar slot (48px). Show only for user messages. */}
+                      {isUser && (
+                        <div className="w-12 flex-shrink-0 flex justify-end">
                           <div className="h-9 w-9 rounded-full bg-gradient-to-br from-slate-500 to-slate-700 ring-1 ring-white/10 shadow" />
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   );
 
@@ -549,7 +669,11 @@ function appendToAssistantStream(text: string) {
 
                 {/* Typing indicator (outside the array so it never replaces messages) */}
                 {isTyping && (
-                  <div className="flex justify-start">
+                  <div className="flex w-full min-w-0 items-start gap-2">
+                    {/* Left avatar slot */}
+                    <div className="w-12 flex-shrink-0 flex justify-start">
+                      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-500 to-slate-600 ring-1 ring-white/10 shadow" />
+                    </div>
                     <TypingBubble />
                   </div>
                 )}
@@ -582,6 +706,74 @@ function appendToAssistantStream(text: string) {
           </div>
         </div>
       </footer>
+
+      {isSettingsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Agent settings"
+        >
+          <div className="w-full max-w-3xl rounded-2xl border border-white/15 bg-slate-900 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+              <h2 className="text-base font-semibold text-slate-100">Agent Settings</h2>
+              <Button
+                type="button"
+                variant="ghost"
+                className="text-slate-300 hover:text-white"
+                onClick={() => setIsSettingsOpen(false)}
+              >
+                Close
+              </Button>
+            </div>
+
+            <div className="max-h-[70vh] overflow-y-auto px-5 py-4 space-y-4">
+              {agentSettings.map((agent, index) => (
+                <div key={agent.id} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3">
+                  <div className="text-xs uppercase tracking-wide text-slate-400">Agent {index + 1}</div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Agent Name</label>
+                    <Input
+                      value={agent.agent_name}
+                      onChange={(e) => updateAgentSetting(agent.id, "agent_name", e.target.value)}
+                      placeholder="Enter agent name"
+                      className="bg-slate-800/70 border-white/15 text-slate-100"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs text-slate-300">Agent Instructions</label>
+                    <textarea
+                      value={agent.agent_instructions}
+                      onChange={(e) => updateAgentSetting(agent.id, "agent_instructions", e.target.value)}
+                      placeholder="Enter agent instructions"
+                      rows={4}
+                      className="w-full resize-y rounded-md border border-white/15 bg-slate-800/70 px-3 py-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between border-t border-white/10 px-5 py-4">
+              <Button
+                type="button"
+                onClick={addAgentSetting}
+                className="rounded-md bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white hover:from-fuchsia-400 hover:to-indigo-500"
+              >
+                Add Agent
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="border-white/20 bg-white/5 text-slate-100 hover:bg-white/10"
+                onClick={() => setIsSettingsOpen(false)}
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

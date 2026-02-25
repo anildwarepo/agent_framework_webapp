@@ -106,6 +106,8 @@ Examples:
 
 Do **not** commit real secrets in `.env` files.
 
+PostgreSQL connections now default to `sslmode=require` via `PGSSLMODE`. Set `PGSSLMODE` explicitly in `.env` if you need a different mode (for example `verify-full`, `verify-ca`, or `disable` for local non-TLS development).
+
 ## Azure deployment (`azd_deploy`)
 
 Deployment is managed by Azure Developer CLI (`azd`) and Bicep templates.
@@ -149,13 +151,14 @@ This sequencing is controlled by deployment flags in:
 
 ## Important current behavior (AGE/data load)
 
-The post-provision hooks are currently set to **provisioning-only mode** for DB initialization:
-- PostgreSQL AGE initialization is skipped
-- Graph data loading is skipped
+Post-provision hooks now run database initialization and phased app deployment automatically:
+- Wait for PostgreSQL to be Ready
+- Set AGE server parameters (`azure.extensions`, `shared_preload_libraries`) and restart server
+- Enable AGE extension in `postgres` database and set search path
+- Load graph data from `postgresql_age/data`
+- Deploy Container Apps in sequence: MCP server, then FastAPI, then Webapp
 
-This was done to avoid blocking infrastructure deployment when DB startup/connectivity is unstable.
-
-If you want DB init/data load back in deployment flow, adjust:
+Automation lives in:
 - `azd_deploy/hooks/postprovision.ps1`
 - `azd_deploy/hooks/postprovision.sh`
 

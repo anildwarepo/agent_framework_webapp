@@ -5,6 +5,35 @@ $ErrorActionPreference = "Stop"
 # Always run from this script's directory
 Set-Location $PSScriptRoot
 
+function Stop-ProcessOnPort {
+    param(
+        [Parameter(Mandatory = $true)]
+        [int]$Port,
+        [Parameter(Mandatory = $true)]
+        [string]$ServiceName
+    )
+
+    $connections = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue |
+        Select-Object -ExpandProperty OwningProcess -Unique
+
+    if (-not $connections) {
+        return
+    }
+
+    Write-Host "Stopping existing $ServiceName process(es) on :$Port ..."
+    foreach ($procId in $connections) {
+        try {
+            Stop-Process -Id $procId -Force -ErrorAction Stop
+            Write-Host "Stopped PID $procId"
+        }
+        catch {
+            Write-Warning "Could not stop PID $procId on port $Port. $_"
+        }
+    }
+
+    Start-Sleep -Seconds 1
+}
+
 # ---- Python env / deps ----
 uv sync          # install/update deps, creates .venv if needed
 
@@ -27,6 +56,7 @@ uv sync          # install/update deps, creates .venv if needed
 #    'python af_alta_search_mcp_server.py'
 #)
 
+Stop-ProcessOnPort -Port 3002 -ServiceName "AGE MCP server"
 Write-Host "Starting AGE MCP server on :3002 ..."
 Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'mcp_server') -ArgumentList @(
     '-NoExit',
@@ -35,6 +65,7 @@ Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'mcp_server'
 )
 
 # ---- FastAPI + PostgreSQL + AGE ----
+Stop-ProcessOnPort -Port 8080 -ServiceName "FastAPI"
 Write-Host "Starting FastAPI on :8080 ..."
 Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'af_fastapi') -ArgumentList @(
     '-NoExit',
@@ -43,6 +74,7 @@ Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'af_fastapi'
 )
 
 # ---- React Frontend ----
+Stop-ProcessOnPort -Port 5173 -ServiceName "React dev server"
 Write-Host "Starting React dev server ..."
 Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'webapp') -ArgumentList @(
     '-NoExit',

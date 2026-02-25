@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import contextlib
 import os
+from pathlib import Path
 
 from dotenv import load_dotenv
 from sse_bus import SESSIONS
@@ -31,7 +32,7 @@ from azure.identity.aio import (AzureDeveloperCliCredential,
 
 from magentic_implementation import MagenticWorkflow
 from handoff_implementation import  HandoffWorkflow
-from graph_implementation import GraphWorkflow
+from graph_implementation_generic_ontology import GraphWorkflow
 from single_agent_implementation import SingleAgent
 import logging
 import sys, asyncio
@@ -389,9 +390,38 @@ async def health():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
+@app.get("/get_faqs")
+async def get_faqs(graph_name: str) -> dict:
+    faq_files = {
+        "customer_graph": "customer_graph_faqs.txt",
+        "meeting_graph": "meetings_graph_faqs.txt",
+        "meetings_graph": "meetings_graph_faqs.txt",
+    }
+    selected_file = faq_files.get(graph_name)
+    if not selected_file:
+        raise HTTPException(status_code=400, detail="Unsupported graph_name")
+
+    faqs_path = Path(__file__).with_name(selected_file)
+    try:
+        with faqs_path.open("r", encoding="utf-8") as file:
+            faqs = [line.strip() for line in file if line.strip()]
+        return {"faqs": faqs}
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"{selected_file} not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 class ConversationIn(BaseModel):
     user_query: str
+    graph_name: str
     #client_id: str
+
+
+def _normalize_graph_name(graph_name: str) -> str:
+    if graph_name in {"meeting_graph", "meetings_graph"}:
+        return "meetings_graph"
+    return graph_name
 
 async def call_mcp_tool(mcp_client, message):
     if getattr(message, "tool_calls", None):
@@ -609,6 +639,7 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
 
     orchestration_mode = request.query_params.get("mode", "handoff")
     print(f"orchestration_mode={orchestration_mode}")
+    normalized_graph_name = _normalize_graph_name(convo.graph_name)
 
 
     session_id = user_id  # keep your existing per-user session key
@@ -621,7 +652,7 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
     if orchestration_mode == "magentic":
         workflow = MagenticWorkflow()
     elif orchestration_mode == "graph":
-        workflow = GraphWorkflow()
+        workflow = GraphWorkflow(normalized_graph_name)
     elif orchestration_mode == "singleagent":
         workflow = SingleAgent()
     else:

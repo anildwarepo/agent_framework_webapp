@@ -33,6 +33,12 @@ class PGAgeHelper:
 
     @classmethod
     async def create(cls) -> "PGAgeHelper":
+        conn = await cls._create_connection()
+        return cls(conn)
+
+    @classmethod
+    async def _create_connection(cls) -> psycopg.AsyncConnection:
+        """Create and initialize a new database connection."""
         # row_factory=dict_row -> rows become dicts instead of tuples
         conn = await psycopg.AsyncConnection.connect(**DSN, row_factory=dict_row)
         
@@ -80,7 +86,30 @@ class PGAgeHelper:
             except Exception as e:
                 print(f"Note: Could not check/create graph: {e}")
 
-        return cls(conn)
+        return conn
+
+    async def _ensure_connected(self) -> None:
+        """Check if connection is alive and reconnect if needed."""
+        try:
+            # Check if connection is in a bad state
+            if self._conn.closed or self._conn.broken:
+                print("Connection is closed or broken, reconnecting...")
+                await self._reconnect()
+        except Exception as e:
+            print(f"Connection check failed: {e}, attempting reconnect...")
+            await self._reconnect()
+
+    async def _reconnect(self) -> None:
+        """Close existing connection (if any) and create a new one."""
+        try:
+            if self._conn and not self._conn.closed:
+                await self._conn.close()
+        except Exception as e:
+            print(f"Error closing old connection: {e}")
+        
+        print("Creating new database connection...")
+        self._conn = await self._create_connection()
+        print("Reconnection successful")
 
     @staticmethod
     def _normalize_cypher_query(query: str) -> str:
@@ -92,28 +121,54 @@ class PGAgeHelper:
         replacement = r'\1 ag_catalog.cypher('
         return re.sub(pattern, replacement, query, flags=re.IGNORECASE)
 
-    async def query_using_sql_cypher(self, query: str) -> list[dict]:
+    @staticmethod
+    def _apply_graph_name(query: str, graph_name: str | None) -> str:
+        if not graph_name:
+            return query
+        pattern = r"ag_catalog\.cypher\s*\(\s*'[^']*'\s*,"
+        replacement = f"ag_catalog.cypher('{graph_name}',"
+        return re.sub(pattern, replacement, query, flags=re.IGNORECASE)
+
+    async def query_using_sql_cypher(self, query: str, graph_name: str | None = None) -> list[dict]:
         query = self._normalize_cypher_query(query)
+        query = self._apply_graph_name(query, graph_name)
         print("Executing query:\n", query)
 
-        try:
-            async with self._conn.cursor() as cur:
-                # Ensure search path includes ag_catalog for AGE functions
-                await cur.execute('SET search_path = ag_catalog, "$user", public;')
-                await cur.execute(query)
-                rows = await cur.fetchall()
-                print("Raw rows:", rows)
-                return rows
-        except Exception as e:
-            print("Error executing query:", e)
+        max_retries = 2
+        for attempt in range(max_retries):
             try:
-                print("Attempting to rollback transaction...")
-                await self._conn.rollback()
-                print("Rollback successful.")
-            except Exception:
-                # If rollback itself failed, you may need to reconnect upstream
-                pass
-            raise
+                # Ensure connection is alive before executing
+                await self._ensure_connected()
+                
+                async with self._conn.cursor() as cur:
+                    # Ensure search path includes ag_catalog for AGE functions
+                    await cur.execute('SET search_path = ag_catalog, "$user", public;')
+                    await cur.execute(query)
+                    rows = await cur.fetchall()
+                    print("Raw rows:", rows)
+                    return rows
+            except psycopg.OperationalError as e:
+                print(f"Connection error on attempt {attempt + 1}/{max_retries}: {e}")
+                if attempt < max_retries - 1:
+                    print("Attempting to reconnect and retry...")
+                    try:
+                        await self._reconnect()
+                    except Exception as reconnect_error:
+                        print(f"Reconnection failed: {reconnect_error}")
+                        raise
+                else:
+                    print("Max retries reached, giving up.")
+                    raise
+            except Exception as e:
+                print("Error executing query:", e)
+                try:
+                    print("Attempting to rollback transaction...")
+                    await self._conn.rollback()
+                    print("Rollback successful.")
+                except Exception:
+                    # If rollback itself failed, you may need to reconnect upstream
+                    pass
+                raise
 
    
 

@@ -232,7 +232,23 @@ conn.close()
         }
     } -MaxAttempts 15 -DelaySeconds 12
 
-    Write-Host "Skipping graph data load (provisioning-only mode)."
+    if (-not (Test-Path $loaderScript)) {
+        throw "Data loader script not found: $loaderScript"
+    }
+
+    if (-not (Test-Path $dataDir)) {
+        throw "Data directory not found: $dataDir"
+    }
+
+    Write-Host "Loading graph data into PostgreSQL AGE..."
+    Invoke-WithRetry -Operation "Graph data load" -Action {
+        $env:GRAPH_NAME = $effectiveGraphName
+        $env:DATA_DIR = $dataDir
+        & $pythonExe $loaderScript
+        if ($LASTEXITCODE -ne 0) {
+            throw "Graph data load exited with code $LASTEXITCODE"
+        }
+    } -MaxAttempts 3 -DelaySeconds 20
 
     Remove-Item -Path $initSqlScript -ErrorAction SilentlyContinue
 }
@@ -279,10 +295,6 @@ $postgresqlAdminLogin = Get-AzdEnvValue "postgresqlAdminLogin"
 $postgresqlAdminPassword = Get-AzdEnvValue "POSTGRESQL_ADMIN_PASSWORD"
 $graphName = Get-AzdEnvValue "graphName"
 
-if (-not [string]::IsNullOrEmpty($postgresqlServerName)) {
-    Write-Host "Skipping PostgreSQL AGE initialization (provisioning-only mode)."
-}
-
 if ([string]::IsNullOrEmpty($acrName)) {
     Write-Host "ACR not deployed, skipping container builds"
     exit 0
@@ -297,6 +309,11 @@ $env:PYTHONUTF8 = "1"
 $env:AZURE_CORE_NO_COLOR = "1"
 chcp 65001 | Out-Null
 
+if (-not [string]::IsNullOrEmpty($postgresqlServerName)) {
+    Wait-PostgresqlReady -ResourceGroup $resourceGroup -ServerName $postgresqlServerName
+    Initialize-PostgresqlAgeAndData -ResourceGroup $resourceGroup -ServerName $postgresqlServerName -AdminUser $postgresqlAdminLogin -AdminPassword $postgresqlAdminPassword -ServerFqdn $postgresqlServerFqdn -GraphName $graphName
+}
+
 if ($buildMcpServerContainer -ne "false") {
     $mcpServerFullPath = Resolve-Path (Join-Path $scriptDir $McpServerPath)
     $mcpBuildCheck = Test-BuildNeeded -FolderPath $mcpServerFullPath -HashEnvVarName "mcpServerFolderHash"
@@ -307,6 +324,8 @@ if ($buildMcpServerContainer -ne "false") {
     }
 }
 
+Invoke-ProvisionPhase -PhaseName "MCP Server" -DeployMcp "true" -DeployFastApi "false" -DeployWebapp "false"
+
 if ($buildFastApiContainer -ne "false") {
     $fastApiFullPath = Resolve-Path (Join-Path $scriptDir $FastApiPath)
     $fastApiBuildCheck = Test-BuildNeeded -FolderPath $fastApiFullPath -HashEnvVarName "fastApiFolderHash"
@@ -316,6 +335,8 @@ if ($buildFastApiContainer -ne "false") {
         Write-Host "FastAPI container built: $acrLoginServer/${fastApiImageName}:${fastApiImageTag}"
     }
 }
+
+Invoke-ProvisionPhase -PhaseName "FastAPI Backend" -DeployMcp "true" -DeployFastApi "true" -DeployWebapp "false"
 
 if ($buildWebappContainer -ne "false") {
     $webappFullPath = Resolve-Path (Join-Path $scriptDir $WebappPath)
@@ -333,8 +354,6 @@ if ($buildWebappContainer -ne "false") {
     }
 }
 
-Invoke-ProvisionPhase -PhaseName "MCP Server" -DeployMcp "true" -DeployFastApi "false" -DeployWebapp "false"
-Invoke-ProvisionPhase -PhaseName "FastAPI Backend" -DeployMcp "true" -DeployFastApi "true" -DeployWebapp "false"
 Invoke-ProvisionPhase -PhaseName "Webapp" -DeployMcp "true" -DeployFastApi "true" -DeployWebapp "true"
 
 Write-Host "=========================================="
