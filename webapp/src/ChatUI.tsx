@@ -29,8 +29,8 @@ interface AgentSetting {
 
 function TypingBubble() {
   return (
-    <div className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 bg-white/10 text-slate-200 ring-1 ring-white/10 shadow-sm">
-      <span className="opacity-80">Assistant is typing</span>
+    <div className="inline-flex items-center gap-2 rounded-2xl px-4 py-2 bg-slate-700 text-slate-300 ring-1 ring-slate-600 shadow-sm">
+      <span className="animate-pulse-fade">thinking...</span>
       <span className="typing-dots">
         <span className="dot" />
         <span className="dot" />
@@ -350,11 +350,17 @@ function appendToAssistantStream(text: string) {
       const payload = obj?.response_message ?? obj;
       const t = payload?.type as string | undefined;
       const delta = typeof payload?.delta === "string" ? payload.delta : "";
+      const errorMessage = typeof payload?.message === "string" ? payload.message : "";
 
       if (!t) return;
 
       if (t === "WorkflowFinalResultEvent") {
         appendToAssistantFinal(delta);
+      } else if (t === "error") {
+        appendToAssistant(`⚠️ ${errorMessage || "Workflow failed."}`);
+        setIsTyping(false);
+        setProgressPct(null);
+        return;
       } else if (t === "done") {
         setIsTyping(false);
         setProgressPct(null);
@@ -399,16 +405,16 @@ function appendToAssistantStream(text: string) {
   return (
     <div
       className="
-        h-full min-h-0 w-full text-slate-100
+        h-full min-h-0 w-full text-slate-200
         grid grid-rows-[auto_1fr_auto]
       "
     >
       {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-white/10 bg-slate-900/60 backdrop-blur supports-[backdrop-filter]:bg-slate-900/60 w-full">
+      <header className="sticky top-0 z-20 border-b border-slate-700 bg-slate-800/90 backdrop-blur supports-[backdrop-filter]:bg-slate-800/90 w-full">
         <div className="px-4 py-3 flex items-center justify-between w-full">
         
           <div className="text-xs text-slate-400 whitespace-nowrap flex-shrink-0">
-            User ID: <span className="font-mono text-slate-200">{user_id}</span>
+            User ID: <span className="font-mono text-slate-300">{user_id}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-slate-400 hidden sm:inline">FAQs</span>
@@ -423,7 +429,7 @@ function appendToAssistantStream(text: string) {
                 }
               }}
               className="select-dark w-72 rounded-md px-3 py-2 text-sm outline-none
-                        focus:ring-2 focus:ring-indigo-500/60"
+                        focus:ring-2 focus:ring-blue-500/40"
               aria-label="FAQs"
               disabled={isTyping || faqs.length === 0}
             >
@@ -439,7 +445,7 @@ function appendToAssistantStream(text: string) {
               value={selectedGraph}
               onChange={(e) => setSelectedGraph(e.target.value)}
               className="select-dark w-44 rounded-md px-3 py-2 text-sm outline-none
-                        focus:ring-2 focus:ring-indigo-500/60"
+                        focus:ring-2 focus:ring-blue-500/40"
               aria-label="Graph"
               disabled={isTyping}
             >
@@ -454,7 +460,7 @@ function appendToAssistantStream(text: string) {
               value={mode}
               onChange={(e) => setMode(e.target.value)}
               className="select-dark w-44 rounded-md px-3 py-2 text-sm outline-none
-                        focus:ring-2 focus:ring-indigo-500/60"
+                        focus:ring-2 focus:ring-blue-500/40"
               aria-label="Orchestration"
             >
               {MODE_OPTIONS.map(opt => (
@@ -466,7 +472,7 @@ function appendToAssistantStream(text: string) {
             <Button
               type="button"
               variant="outline"
-              className="h-9 rounded-md border-white/20 bg-white/5 text-slate-100 hover:bg-white/10"
+              className="h-9 rounded-md border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600"
               onClick={() => setIsSettingsOpen(true)}
               aria-label="Open settings"
             >
@@ -476,9 +482,9 @@ function appendToAssistantStream(text: string) {
           </div>
         </div>
         {progressPct !== null && (
-          <div className="h-1 bg-slate-800">
+          <div className="h-1 bg-slate-700">
             <div
-              className="h-1 w-0 transition-[width] duration-200 bg-gradient-to-r from-amber-400 via-fuchsia-400 to-indigo-400"
+              className="h-1 w-0 transition-[width] duration-200 bg-blue-500"
               style={{ width: `${Math.min(Math.max(progressPct, 0), 100)}%` }}
               role="progressbar"
               aria-valuemin={0}
@@ -491,7 +497,7 @@ function appendToAssistantStream(text: string) {
 
       {/* Chat Panel */}
       <main className="w-full px-0 py-0">
-        <Card className="relative rounded-none border border-white/10 bg-white/[0.06] shadow-2xl w-full">
+        <Card className="relative rounded-none border-0 bg-slate-800 shadow-none w-full">
           <CardContent className="p-0 w-full">
             <ScrollArea className="h-[calc(100dvh-260px)] w-full" type="always">
 
@@ -522,7 +528,7 @@ function appendToAssistantStream(text: string) {
                       {/* Left avatar slot (48px). Show only for assistant messages. */}
                       {!isUser && (
                         <div className="w-12 flex-shrink-0 flex justify-start">
-                          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-500 to-slate-600 ring-1 ring-white/10 shadow" />
+                          <div className="h-9 w-9 rounded-full bg-blue-600 ring-1 ring-blue-500/30 shadow-sm flex items-center justify-center text-white text-xs font-semibold">AI</div>
                         </div>
                       )}
 
@@ -539,8 +545,8 @@ function appendToAssistantStream(text: string) {
                               "inline-flex items-start min-w-0",       // ⬅️ can shrink
                               isUser ? "max-w-[85vw] md:max-w-[88%]" : "max-w-full",
                               isUser
-                                ? "bg-gradient-to-br from-slate-600 to-slate-700 text-white ring-white/5"
-                                : "bg-gradient-to-br from-indigo-600 to-slate-700 text-white ring-white/5",
+                                ? "bg-slate-600 text-slate-100 ring-slate-500/30"
+                                : "bg-slate-700 text-slate-100 ring-slate-600",
                             ].join(" ")}
                           >
 
@@ -550,7 +556,7 @@ function appendToAssistantStream(text: string) {
                               <div className="w-full space-y-0">
                                 {/* Answer (MagenticFinalResultEvent only) */}
                                 <div>
-                                  <div className="text-[11px] uppercase tracking-wide text-white/60 mb-1">Answer</div>
+                                  <div className="text-[11px] uppercase tracking-wide text-slate-400 mb-1">Answer</div>
                                   {(() => {
                                     const finalRaw = msg.parts!.final ?? "";
                                     const finalClean = sanitizeHtml(finalRaw);
@@ -593,7 +599,7 @@ function appendToAssistantStream(text: string) {
                                   <button
                                     type="button"
                                     onClick={() => toggleRunLog(msg.id)}
-                                    className="group inline-flex items-center gap-2 text-left text-[12px] font-medium text-white/80 hover:text-white transition-colors"
+                                    className="group inline-flex items-center gap-2 text-left text-[12px] font-medium text-slate-400 hover:text-slate-200 transition-colors"
                                     aria-expanded={!msg.isRunLogCollapsed}
                                     aria-controls={`runlog-${msg.id}`}
                                   >
@@ -610,8 +616,8 @@ function appendToAssistantStream(text: string) {
                                     hidden={!!msg.isRunLogCollapsed}
                                   >
                                     {/* DISTINCT BACKGROUND FOR RUN LOG */}
-                                    <div className="rounded-xl bg-slate-900/45 ring-1 ring-white/10 p-3 overflow-x-auto">
-                                      <pre className="whitespace-pre-wrap break-all font-mono text-[13px] leading-snug text-white/90">
+                                    <div className="rounded-xl bg-slate-800 ring-1 ring-slate-600 p-3 overflow-x-auto">
+                                      <pre className="whitespace-pre-wrap break-all font-mono text-[13px] leading-snug text-slate-300">
                                         {msg.parts.stream || ""}
                                       </pre>
                                     </div>
@@ -658,7 +664,7 @@ function appendToAssistantStream(text: string) {
                       {/* Right avatar slot (48px). Show only for user messages. */}
                       {isUser && (
                         <div className="w-12 flex-shrink-0 flex justify-end">
-                          <div className="h-9 w-9 rounded-full bg-gradient-to-br from-slate-500 to-slate-700 ring-1 ring-white/10 shadow" />
+                          <div className="h-9 w-9 rounded-full bg-slate-600 ring-1 ring-slate-500/40 shadow-sm flex items-center justify-center text-slate-300 text-xs font-semibold">You</div>
                         </div>
                       )}
                     </div>
@@ -672,7 +678,7 @@ function appendToAssistantStream(text: string) {
                   <div className="flex w-full min-w-0 items-start gap-2">
                     {/* Left avatar slot */}
                     <div className="w-12 flex-shrink-0 flex justify-start">
-                      <div className="h-9 w-9 rounded-full bg-gradient-to-br from-indigo-500 to-slate-600 ring-1 ring-white/10 shadow" />
+                      <div className="h-9 w-9 rounded-full bg-blue-600 ring-1 ring-blue-500/30 shadow-sm flex items-center justify-center text-white text-xs font-semibold">AI</div>
                     </div>
                     <TypingBubble />
                   </div>
@@ -684,9 +690,9 @@ function appendToAssistantStream(text: string) {
       </main>
 
       {/* Composer */}
-      <footer className="border-t border-white/10 bg-slate-900/50 backdrop-blur supports-[backdrop-filter]:bg-slate-900/50 mb-6 md:mb-10 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <footer className="border-t border-slate-700 bg-slate-800/90 backdrop-blur supports-[backdrop-filter]:bg-slate-800/90 mb-6 md:mb-10 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
         <div className="px-4 py-4">
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-2 shadow-xl flex items-end gap-2">
+          <div className="rounded-2xl border border-slate-600 bg-slate-700 p-2 shadow-lg flex items-end gap-2">
             <textarea
               ref={taRef}
               rows={1}
@@ -699,7 +705,7 @@ function appendToAssistantStream(text: string) {
             />
             <Button
               onClick={handleSend}
-              className="rounded-xl px-5 py-2.5 font-medium bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white hover:from-fuchsia-400 hover:to-indigo-500 shadow-lg shadow-indigo-900/30"
+              className="rounded-xl px-5 py-2.5 font-medium bg-slate-600 text-slate-100 hover:bg-slate-500 shadow-sm"
             >
               Send
             </Button>
@@ -709,18 +715,18 @@ function appendToAssistantStream(text: string) {
 
       {isSettingsOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
           role="dialog"
           aria-modal="true"
           aria-label="Agent settings"
         >
-          <div className="w-full max-w-3xl rounded-2xl border border-white/15 bg-slate-900 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+          <div className="w-full max-w-3xl rounded-2xl border border-slate-600 bg-slate-800 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-700 px-5 py-4">
               <h2 className="text-base font-semibold text-slate-100">Agent Settings</h2>
               <Button
                 type="button"
                 variant="ghost"
-                className="text-slate-300 hover:text-white"
+                className="text-slate-400 hover:text-slate-100"
                 onClick={() => setIsSettingsOpen(false)}
               >
                 Close
@@ -729,7 +735,7 @@ function appendToAssistantStream(text: string) {
 
             <div className="max-h-[70vh] overflow-y-auto px-5 py-4 space-y-4">
               {agentSettings.map((agent, index) => (
-                <div key={agent.id} className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-3">
+                <div key={agent.id} className="rounded-xl border border-slate-600 bg-slate-700/50 p-4 space-y-3">
                   <div className="text-xs uppercase tracking-wide text-slate-400">Agent {index + 1}</div>
                   <div className="space-y-1">
                     <label className="text-xs text-slate-300">Agent Name</label>
@@ -737,7 +743,7 @@ function appendToAssistantStream(text: string) {
                       value={agent.agent_name}
                       onChange={(e) => updateAgentSetting(agent.id, "agent_name", e.target.value)}
                       placeholder="Enter agent name"
-                      className="bg-slate-800/70 border-white/15 text-slate-100"
+                      className="bg-slate-700 border-slate-600 text-slate-100"
                     />
                   </div>
                   <div className="space-y-1">
@@ -747,25 +753,25 @@ function appendToAssistantStream(text: string) {
                       onChange={(e) => updateAgentSetting(agent.id, "agent_instructions", e.target.value)}
                       placeholder="Enter agent instructions"
                       rows={4}
-                      className="w-full resize-y rounded-md border border-white/15 bg-slate-800/70 px-3 py-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/60"
+                      className="w-full resize-y rounded-md border border-slate-600 bg-slate-700 px-3 py-2 text-sm text-slate-100 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40"
                     />
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex items-center justify-between border-t border-white/10 px-5 py-4">
+            <div className="flex items-center justify-between border-t border-slate-700 px-5 py-4">
               <Button
                 type="button"
                 onClick={addAgentSetting}
-                className="rounded-md bg-gradient-to-br from-fuchsia-500 to-indigo-600 text-white hover:from-fuchsia-400 hover:to-indigo-500"
+                className="rounded-md bg-blue-600 text-white hover:bg-blue-500"
               >
                 Add Agent
               </Button>
               <Button
                 type="button"
                 variant="outline"
-                className="border-white/20 bg-white/5 text-slate-100 hover:bg-white/10"
+                className="border-slate-600 bg-slate-700 text-slate-200 hover:bg-slate-600"
                 onClick={() => setIsSettingsOpen(false)}
               >
                 Done

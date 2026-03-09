@@ -132,7 +132,7 @@ body { overflow: hidden; }
   width: 6px;
   height: 6px;
   border-radius: 9999px;
-  background: white;
+  background: #94a3b8;
   opacity: .6;
   animation: td-bounce 1.2s infinite ease-in-out;
 }
@@ -141,6 +141,15 @@ body { overflow: hidden; }
 @keyframes td-bounce {
   0%, 80%, 100% { transform: translateY(0); opacity: .6; }
   40% { transform: translateY(-3px); opacity: 1; }
+}
+
+/* Thinking text fade in/out */
+@keyframes pulse-fade {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.animate-pulse-fade {
+  animation: pulse-fade 1.8s ease-in-out infinite;
 }
 
 /* Rich HTML safety defaults */

@@ -30,7 +30,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logger = logging.getLogger("uvicorn.error")
-credential = DefaultAzureCredential()  # Works with managed identity in Azure
+_aoai_api_key = os.environ.get("AZURE_OPENAI_API_KEY", "").strip()
+# Priority: Entra ID service principal first, API key fallback
+try:
+    credential = DefaultAzureCredential()
+    _aoai_api_key = ""  # SP available, ignore API key
+except Exception:
+    credential = None
+if not credential and not _aoai_api_key:
+    logger.warning("Azure credentials not configured. Graph workflow (generic) will be unavailable.")
 MCP_ENDPOINT = os.environ.get("MCP_ENDPOINT")
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_DEPLOYMENT_NAME = os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
@@ -132,12 +140,20 @@ class GraphWorkflow():
             print("[Chat] AI response received")
     
     async def _get_fresh_token(self):
-        """Fetch or refresh an access token (buffers 60s before expiry)."""
+        """Fetch or refresh an access token (buffers 60s before expiry). Skipped when using API key."""
+        if _aoai_api_key:
+            return None
         now = int(time.time())
         logger.info(f"Fetching fresh token at time {now}")
         if self._access_token is None or (getattr(self._access_token, "expires_on", 0) - 60) <= now:
             self._access_token = await credential.get_token("https://cognitiveservices.azure.com/.default")
         return self._access_token
+
+    def _chat_client_kwargs(self, token, **extra):
+        """Build kwargs for AzureOpenAIChatClient depending on auth mode."""
+        if _aoai_api_key:
+            return dict(api_key=_aoai_api_key, endpoint=AZURE_OPENAI_ENDPOINT, deployment_name=AZURE_DEPLOYMENT_NAME, **extra)
+        return dict(ad_token=token.token, endpoint=AZURE_OPENAI_ENDPOINT, deployment_name=AZURE_DEPLOYMENT_NAME, **extra)
     
     async def _ensure_clients(self):
         """Create agents and the workflow exactly once (or after token refresh if you choose)."""
@@ -160,9 +176,7 @@ class GraphWorkflow():
                 name="graph query generator agent",
                 description="Graph query generator agent that can answer questions about the graph using a graph query tool.",
                 instructions=graph_query_generator_instructions,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                  endpoint=AZURE_OPENAI_ENDPOINT,
-                                                  deployment_name=AZURE_DEPLOYMENT_NAME),
+                chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token)),
                 #chat_message_store_factory=self._create_message_store,
                 tools=graph_age_mcp_server
             )
@@ -174,9 +188,7 @@ class GraphWorkflow():
                 name="graph_query_validator",
                 description="Graph query validator agent that can validate and refine graph queries using a graph query tool.",
                 instructions=graph_query_validator_instructions,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                  endpoint=AZURE_OPENAI_ENDPOINT,
-                                                  deployment_name=AZURE_DEPLOYMENT_NAME),
+                chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token)),
                 #chat_message_store_factory=self._create_message_store,
                 tools=graph_age_mcp_server
             )
@@ -189,9 +201,7 @@ class GraphWorkflow():
                 State the query that you received from the graph query generator agent before executing it.
                 Do not modify the generated queries. Send them as-is to the tool.
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                  endpoint=AZURE_OPENAI_ENDPOINT,
-                                                  deployment_name=AZURE_DEPLOYMENT_NAME, temperature=0.0),
+                chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token, temperature=0.0)),
                 middleware=[LoggingChatMiddleware()],
                 #chat_message_store_factory=self._create_message_store,
                 tools=graph_age_mcp_server
@@ -208,9 +218,7 @@ class GraphWorkflow():
                 The response should use the results obtained from the graph query executor agent to answer the user's question.
                 You only need to respond when the query results are available from the _graph_query_validator_agent.
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                  endpoint=AZURE_OPENAI_ENDPOINT,
-                                                  deployment_name=AZURE_DEPLOYMENT_NAME, temperature=0.0),
+                chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token, temperature=0.0)),
                 #chat_message_store_factory=self._create_message_store,
 
             )
@@ -238,9 +246,7 @@ class GraphWorkflow():
                     Do NOT delegate to any agent — you write this answer directly.
                     If no results were found, state that no results were found.
                     """,
-                    chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                      endpoint=AZURE_OPENAI_ENDPOINT,
-                                                      deployment_name=AZURE_DEPLOYMENT_NAME, temperature=0.0),
+                    chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token, temperature=0.0)),
                     max_round_count=6,
                     max_stall_count=2,
                     max_reset_count=2,
@@ -250,16 +256,15 @@ class GraphWorkflow():
             logger.info("Workflow built successfully")
 
     async def run_workflow(self, chat_history: List[ChatMessage]):
-        await self._ensure_clients()
-        logger.info(f"Running workflow with question: {chat_history[-1].text}")
-        # local stream state per run
-        self._last_stream_agent_id = None
-        self._stream_line_open = False
-        self._output = None
-
-        
         output = None
         try:
+            await self._ensure_clients()
+            logger.info(f"Running workflow with question: {chat_history[-1].text}")
+            # local stream state per run
+            self._last_stream_agent_id = None
+            self._stream_line_open = False
+            self._output = None
+
             async for event in self._workflow.run_stream(chat_history):
                 if isinstance(event, MagenticOrchestratorMessageEvent):
                     resp = ResponseMessage(type="MagenticOrchestratorMessageEvent", delta=f"\n[ORCH:{event.kind}]\n\n{getattr(event.message, 'text', '')}\n{'-' * 26}")
@@ -288,7 +293,10 @@ class GraphWorkflow():
                         yield _ndjson({"response_message": ResponseMessage(type="WorkflowFinalResultEvent", delta=event.message.text)})
 
                 elif isinstance(event, WorkflowOutputEvent):
-                    output = str(event.data.text) if event.data is not None else None
+                    if event.data is None:
+                        output = None
+                    else:
+                        output = str(getattr(event.data, "text", event.data))
                     self._output = output
                     chat_history.append(ChatMessage(role="assistant", text=output or ""))
                     yield _ndjson({"response_message": ResponseMessage(type="WorkflowOutputEvent", delta=f"Workflow output event: {output}")})
@@ -297,9 +305,14 @@ class GraphWorkflow():
 
             final_output = self._output if self._output is not None else output
             yield _ndjson({"response_message": ResponseMessage(type="done", result=final_output)})
-        except Exception as e:
-            print(f"Workflow execution failed: {e}")
-            yield _ndjson({"type": "error", "message": f"Workflow execution failed: {e}"})
+        except asyncio.CancelledError:
+            logger.warning("Workflow stream cancelled (client disconnected).")
+            return
+        except BaseException as e:
+            logger.exception("Workflow execution failed")
+            error_message = f"Workflow execution failed: {e}"
+            yield _ndjson({"response_message": ResponseMessage(type="error", message=error_message)})
+            yield _ndjson({"response_message": ResponseMessage(type="done", result=self._output if self._output is not None else output)})
 
 
 

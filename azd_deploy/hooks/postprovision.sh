@@ -5,6 +5,13 @@
 
 set -euo pipefail
 
+# Guard against recursive execution: when deploy_all_container_apps calls
+# 'azd provision --no-prompt', azd re-triggers hooks.  Skip the nested run.
+if [ "${AZD_POSTPROVISION_PHASE:-}" = "1" ]; then
+  echo "Skipping nested postprovision hook (provision phase in progress)."
+  exit 0
+fi
+
 MCP_SERVER_PATH="${1:-../../mcp_server}"
 FASTAPI_PATH="${2:-../../af_fastapi}"
 WEBAPP_PATH="${3:-../../webapp}"
@@ -112,7 +119,10 @@ initialize_postgres_age_and_data() {
   local repo_root
   repo_root="$(cd "$script_dir/../.." && pwd)"
 
-  local loader_script="$repo_root/postgresql_age/load_data/load_customer_graph.py"
+  local customer_graph_loader="$repo_root/postgresql_age/load_data/customer_graph/load_customer_graph.py"
+  local meetings_graph_loader="$repo_root/postgresql_age/load_data/meetings_graph/load_meetings_graph.py"
+  local cg_index_script="$repo_root/postgresql_age/load_data/customer_graph/build_graph_indexes.py"
+  local mg_index_script="$repo_root/postgresql_age/load_data/meetings_graph/build_graph_indexes.py"
   local data_dir="$repo_root/postgresql_age/data"
   local python_exe="python"
   if [ -x "$repo_root/.venv/bin/python" ]; then
@@ -122,6 +132,19 @@ initialize_postgres_age_and_data() {
   fi
 
   echo "Enabling AGE extension in postgres database..."
+
+  # Reset the PostgreSQL admin password via Azure CLI to ensure it matches
+  # the stored POSTGRESQL_ADMIN_PASSWORD value.  On the first run, azd prompts
+  # for the @secure() parameter before the preprovision hook generates the
+  # password, so the server may have been created with a different value.
+  echo "Resetting PostgreSQL admin password to match stored environment value..."
+  az postgres flexible-server update \
+    --resource-group "$resource_group" \
+    --name "$server_name" \
+    --admin-password "$admin_password" \
+    --output none 2>&1 || true
+  wait_postgres_ready "$resource_group" "$server_name"
+
   age_init_succeeded=false
   for attempt in $(seq 1 15); do
     if PGHOST="$server_fqdn" \
@@ -162,8 +185,13 @@ PY
     exit 1
   fi
 
-  if [ ! -f "$loader_script" ]; then
-    echo "ERROR: Data loader script not found: $loader_script"
+  if [ ! -f "$customer_graph_loader" ]; then
+    echo "ERROR: Customer graph loader script not found: $customer_graph_loader"
+    exit 1
+  fi
+
+  if [ ! -f "$meetings_graph_loader" ]; then
+    echo "ERROR: Meetings graph loader script not found: $meetings_graph_loader"
     exit 1
   fi
 
@@ -172,7 +200,7 @@ PY
     exit 1
   fi
 
-  echo "Loading graph data into PostgreSQL AGE..."
+  echo "Loading customer graph data into PostgreSQL AGE..."
   local load_succeeded=false
   for attempt in $(seq 1 3); do
     if PGHOST="$server_fqdn" \
@@ -183,40 +211,180 @@ PY
       PGSSLMODE="require" \
       GRAPH_NAME="$graph_name" \
       DATA_DIR="$data_dir" \
-      "$python_exe" "$loader_script"
+      "$python_exe" "$customer_graph_loader"
     then
       load_succeeded=true
       break
     fi
 
-    echo "Graph data load failed (attempt $attempt/3). Retrying in 20 seconds..."
+    echo "Customer graph data load failed (attempt $attempt/3). Retrying in 20 seconds..."
     sleep 20
   done
 
   if [ "$load_succeeded" != "true" ]; then
-    echo "ERROR: Graph data load failed after retries."
+    echo "ERROR: Customer graph data load failed after retries."
     exit 1
+  fi
+
+  echo "Loading meetings graph data into PostgreSQL AGE..."
+  local mg_load_succeeded=false
+  for attempt in $(seq 1 3); do
+    if PGHOST="$server_fqdn" \
+      PGPORT="5432" \
+      PGDATABASE="postgres" \
+      PGUSER="$admin_user" \
+      PGPASSWORD="$admin_password" \
+      PGSSLMODE="require" \
+      DATA_DIR="$data_dir" \
+      "$python_exe" "$meetings_graph_loader"
+    then
+      mg_load_succeeded=true
+      break
+    fi
+
+    echo "Meetings graph data load failed (attempt $attempt/3). Retrying in 20 seconds..."
+    sleep 20
+  done
+
+  if [ "$mg_load_succeeded" != "true" ]; then
+    echo "ERROR: Meetings graph data load failed after retries."
+    exit 1
+  fi
+
+  if [ -f "$cg_index_script" ]; then
+    echo "Building customer graph indexes..."
+    local cg_index_succeeded=false
+    for attempt in $(seq 1 3); do
+      if PGHOST="$server_fqdn" \
+        PGPORT="5432" \
+        PGDATABASE="postgres" \
+        PGUSER="$admin_user" \
+        PGPASSWORD="$admin_password" \
+        PGSSLMODE="require" \
+        "$python_exe" "$cg_index_script"
+      then
+        cg_index_succeeded=true
+        break
+      fi
+
+      echo "Customer graph index build failed (attempt $attempt/3). Retrying in 20 seconds..."
+      sleep 20
+    done
+
+    if [ "$cg_index_succeeded" != "true" ]; then
+      echo "ERROR: Customer graph index build failed after retries."
+      exit 1
+    fi
+  else
+    echo "Customer graph index script not found at $cg_index_script, skipping."
+  fi
+
+  if [ -f "$mg_index_script" ]; then
+    echo "Building meetings graph indexes..."
+    local mg_index_succeeded=false
+    for attempt in $(seq 1 3); do
+      if PGHOST="$server_fqdn" \
+        PGPORT="5432" \
+        PGDATABASE="postgres" \
+        PGUSER="$admin_user" \
+        PGPASSWORD="$admin_password" \
+        PGSSLMODE="require" \
+        "$python_exe" "$mg_index_script"
+      then
+        mg_index_succeeded=true
+        break
+      fi
+
+      echo "Meetings graph index build failed (attempt $attempt/3). Retrying in 20 seconds..."
+      sleep 20
+    done
+
+    if [ "$mg_index_succeeded" != "true" ]; then
+      echo "ERROR: Meetings graph index build failed after retries."
+      exit 1
+    fi
+  else
+    echo "Meetings graph index script not found at $mg_index_script, skipping."
   fi
 }
 
-invoke_provision_phase() {
-  local phase_name="$1"
-  local deploy_mcp="$2"
-  local deploy_fastapi="$3"
-  local deploy_webapp="$4"
+# Deploy all container apps using az deployment group create directly.
+# This bypasses azd entirely, avoiding env file locking and TUI output issues.
+deploy_all_container_apps() {
+  local resource_group="$1"
+  local pg_admin_password="$2"
 
+  echo ""
   echo "=========================================="
-  echo "Provision phase: $phase_name"
+  echo "DEPLOY PHASE: Deploying all container apps"
   echo "=========================================="
 
-  set_azd_env "deployContainerApp" "false"
-  set_azd_env "deployContainerAppsEnv" "true"
-  set_azd_env "deployMcpServerContainerApp" "$deploy_mcp"
-  set_azd_env "deployFastApiContainerApp" "$deploy_fastapi"
-  set_azd_env "deployWebappContainerApp" "$deploy_webapp"
+  local infra_dir
+  infra_dir="$(cd "$(dirname "$0")/../infra" && pwd)"
+  local template_file="$infra_dir/main.bicep"
+  local parameters_file="$infra_dir/main.parameters.json"
 
-  azd provision --no-prompt
+  if [ ! -f "$template_file" ]; then
+    echo "ERROR: Bicep template not found: $template_file" >&2
+    return 1
+  fi
+  if [ ! -f "$parameters_file" ]; then
+    echo "ERROR: Parameters file not found: $parameters_file" >&2
+    return 1
+  fi
+
+  local client_ip
+  client_ip="$(get_azd_env CLIENT_IP_ADDRESS)"
+  [ -z "$client_ip" ] && client_ip="0.0.0.0"
+
+  echo "  Resource Group:   $resource_group"
+  echo "  Template:         $template_file"
+  echo "  Deploy flags:     MCP=true, FastAPI=true, Webapp=true"
+  echo ""
+
+  # Create a resolved parameters file replacing azd ${...} tokens
+  local resolved_params="/tmp/azd-deploy-params-resolved.json"
+  python3 -c "
+import json, sys
+with open('$parameters_file') as f:
+    params = json.load(f)
+params['parameters']['postgresqlAdminPassword']['value'] = sys.argv[1]
+params['parameters']['clientIpAddress']['value'] = sys.argv[2]
+params['parameters']['deployContainerApp']['value'] = False
+params['parameters']['deployContainerAppsEnv']['value'] = True
+params['parameters']['deployMcpServerContainerApp']['value'] = True
+params['parameters']['deployFastApiContainerApp']['value'] = True
+params['parameters']['deployWebappContainerApp']['value'] = True
+json.dump(params, open('$resolved_params', 'w'), indent=2)
+" "$pg_admin_password" "$client_ip"
+
+  echo "  Resolved parameters written to: $resolved_params"
+  echo "  Starting ARM deployment (this may take several minutes)..."
+  echo ""
+
+  az deployment group create \
+    --resource-group "$resource_group" \
+    --template-file "$template_file" \
+    --parameters "@$resolved_params" \
+    --name "postprovision-containers" \
+    --no-prompt
+
+  local deploy_exit=$?
+  rm -f "$resolved_params"
+
+  if [ $deploy_exit -ne 0 ]; then
+    echo ""
+    echo "ERROR: Container app deployment failed (exit code $deploy_exit)." >&2
+    return $deploy_exit
+  fi
+
+  echo ""
+  echo "  Container app deployment completed successfully."
 }
+
+# ============================================================
+# MAIN EXECUTION
+# ============================================================
 
 acr_name="$(get_azd_env acrName)"
 acr_login_server="$(get_azd_env acrLoginServer)"
@@ -235,6 +403,7 @@ postgres_server_fqdn="$(get_azd_env postgresqlServerFqdn)"
 postgres_admin_user="$(get_azd_env postgresqlAdminLogin)"
 postgres_admin_password="$(get_azd_env POSTGRESQL_ADMIN_PASSWORD)"
 graph_name="$(get_azd_env graphName)"
+initialize_pg_age="$(get_azd_env initializePostgresqlAge)"
 
 if [ -z "$acr_name" ]; then
   echo "ACR not deployed, skipping container builds"
@@ -243,10 +412,24 @@ fi
 
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 
-if [ -n "$postgres_server_name" ]; then
+# ---- PHASE 0: PostgreSQL AGE initialization (flag-gated) ----
+if [ -n "$postgres_server_name" ] && [ "$initialize_pg_age" != "false" ]; then
   wait_postgres_ready "$resource_group" "$postgres_server_name"
   initialize_postgres_age_and_data "$resource_group" "$postgres_server_name" "$postgres_admin_user" "$postgres_admin_password" "$postgres_server_fqdn" "$graph_name"
+  set_azd_env "initializePostgresqlAge" "false"
+  echo "PostgreSQL AGE initialization complete. Set initializePostgresqlAge=false to skip on next run."
+else
+  if [ "$initialize_pg_age" = "false" ]; then
+    echo "Skipping PostgreSQL AGE initialization (initializePostgresqlAge=false)."
+  elif [ -z "$postgres_server_name" ]; then
+    echo "Skipping PostgreSQL AGE initialization (no server name)."
+  fi
 fi
+
+# ---- BUILD PHASE: Build all container images ----
+echo "=========================================="
+echo "Building container images..."
+echo "=========================================="
 
 if [ "$build_mcp" != "false" ]; then
   mcp_full_path="$(cd "$script_dir/$MCP_SERVER_PATH" && pwd)"
@@ -255,10 +438,10 @@ if [ "$build_mcp" != "false" ]; then
     az acr build --registry "$acr_name" --image "${mcp_image_name}:${mcp_image_tag}" --image "${mcp_image_name}:latest" --file "$mcp_full_path/Dockerfile" "$mcp_full_path"
     set_azd_env "mcpServerFolderHash" "$mcp_hash"
     echo "MCP Server container built: $acr_login_server/${mcp_image_name}:${mcp_image_tag}"
+  else
+    echo "MCP Server container is up-to-date, skipping build."
   fi
 fi
-
-invoke_provision_phase "MCP Server" "true" "false" "false"
 
 if [ "$build_fastapi" != "false" ]; then
   fastapi_full_path="$(cd "$script_dir/$FASTAPI_PATH" && pwd)"
@@ -267,10 +450,10 @@ if [ "$build_fastapi" != "false" ]; then
     az acr build --registry "$acr_name" --image "${fastapi_image_name}:${fastapi_image_tag}" --image "${fastapi_image_name}:latest" --file "$fastapi_full_path/Dockerfile" "$fastapi_full_path"
     set_azd_env "fastApiFolderHash" "$fastapi_hash"
     echo "FastAPI container built: $acr_login_server/${fastapi_image_name}:${fastapi_image_tag}"
+  else
+    echo "FastAPI container is up-to-date, skipping build."
   fi
 fi
-
-invoke_provision_phase "FastAPI Backend" "true" "true" "false"
 
 if [ "$build_webapp" != "false" ]; then
   webapp_full_path="$(cd "$script_dir/$WEBAPP_PATH" && pwd)"
@@ -284,10 +467,13 @@ if [ "$build_webapp" != "false" ]; then
     fi
     set_azd_env "webappFolderHash" "$webapp_hash"
     echo "Webapp container built: $acr_login_server/${webapp_image_name}:${webapp_image_tag}"
+  else
+    echo "Webapp container is up-to-date, skipping build."
   fi
 fi
 
-invoke_provision_phase "Webapp" "true" "true" "true"
+# ---- DEPLOY PHASE: Single ARM deployment to deploy all container apps ----
+deploy_all_container_apps "$resource_group" "$postgres_admin_password"
 
 echo "=========================================="
 echo "Post-provision completed successfully."

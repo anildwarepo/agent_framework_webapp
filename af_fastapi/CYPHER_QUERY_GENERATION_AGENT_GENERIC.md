@@ -14,6 +14,8 @@
 
 > **NEVER USE HARDCODED ENTITY IDs.** Do NOT write `WHERE m.payload.id = 'entity_7089'` or any specific entity ID unless you discovered it via `query_using_sql_cypher` in THIS conversation turn. If you have not run Step A (raw sample) and Step B (anchor probe), any entity ID you write is hallucinated. Hallucinated IDs produce wrong results or empty results.
 
+> **NEVER USE `count()`, `sum()`, OR `collect()` INSIDE UNION HALVES.** UNION deduplicates rows, not aggregated values. If each half returns `RETURN count(DISTINCT m) AS cnt`, the result is TWO separate rows (e.g., `12` and `22`) — NOT a combined total. For "how many" questions, use the **Single-Query Combined Pattern** (Section 4), NOT UNION.
+
 ---
 
 ## 1. Mandatory Discovery Process (Execute in Order)
@@ -42,7 +44,7 @@ Find the user's specific entity using paths confirmed in Step A:
 ```sql
 SELECT * FROM ag_catalog.cypher('{GRAPH_NAME}', $$
   MATCH (a:{LABEL})
-  WHERE a.{ID_PROP} = '{NORMALIZED_ID}'
+  WHERE toLower(a.payload.name) CONTAINS toLower('{SEARCH_TERM}')
   RETURN a LIMIT 5
 $$) AS (node ag_catalog.agtype);
 ```
@@ -50,6 +52,19 @@ $$) AS (node ag_catalog.agtype);
 - Build normalized IDs from discovered format (e.g., if samples show `prefix_001` pattern and user says `080`, try `prefix_080`).
 - Use exact match first; fall back to `CONTAINS` only if needed.
 - If not found, report it -- do not substitute a different entity.
+
+#### Entity Deduplication (CRITICAL)
+
+The same real-world entity often exists as **multiple graph nodes** with name variants (e.g., "Mayor Jane Smith" and "Jane Smith", or "Acme Corp" and "Acme Corporation"). These nodes typically have **non-overlapping `payload.sources` arrays**, meaning each captures different events/documents.
+
+**Detection:** If the anchor probe returns multiple nodes whose names are variants of the same entity (differing by title, abbreviation, or prefix), treat them ALL as the same real-world entity.
+
+**Action:** Collect ALL matching entity IDs and use `WHERE node.payload.id IN ['id_1', 'id_2', ...]` throughout the rest of the query (Steps C, C2, and FINAL_SQL). If you use only one ID, you will miss data captured by the other node(s).
+
+**Example:** Searching for "Larry Klein" returns `entity_88` ("Mayor Larry Klein") and `entity_246` ("Larry Klein"). Both must appear in the final query's WHERE clause.
+
+- Run edge discovery (Step C) for ALL variant IDs, not just one.
+- Ignore auto-created stub nodes with empty `sources: []` — they contribute no data.
 
 ### Step C -- Edge Discovery (MANDATORY for multi-entity or relationship questions)
 
@@ -69,34 +84,35 @@ SELECT * FROM ag_catalog.cypher('{GRAPH_NAME}', $$
 $$) AS (src ag_catalog.agtype, rel ag_catalog.agtype);
 ```
 
-- **`IDENTIFIED_EDGES: []` is FORBIDDEN for relationship/attendance/participation questions.**
+- **`IDENTIFIED_EDGES: []` is FORBIDDEN for multi-entity relationship questions.**
 - **PRIORITIZE user keywords with edge names.**
-- **Select edges by semantic relevance to the user's question.** Step C returns ALL edge types connected to the anchor node. Do NOT blindly include every discovered edge — choose only the types whose meaning matches the user's intent. 
-- When multiple edge types are semantically relevant, include ALL of them in `toLower(type(r)) IN [...]` — do not hardcode a single type.
+- For questions about how entities are connected (e.g., involvement, association, membership), note that ANY edge from anchor to target label (regardless of type) may indicate a relationship. Do not over-filter by specific edge types — match all edges to the target label and let source-document deduplication handle accuracy.
+- When you need to filter by specific edge semantics, include ALL relevant types in `toLower(type(r)) IN [...]` — do not hardcode a single type.
+- **Run edge discovery for ALL anchor entity IDs** when Step B found multiple variants of the same entity.
 - Never use unanchored edge scans (`WHERE a.prop IN [...] OR b.prop IN [...]`).
 
+### Step C2 -- Source-Document Co-occurrence Probe (OPTIONAL)
 
+**When to run:** Only as a supplementary check when edge discovery (Step C) returns few/no edges to the target label, but you suspect connections exist. This is a FALLBACK, not the default strategy.
 
-**When to run:** ALWAYS for participation/relationship questions (e.g., "who attended", "who was present", "who is involved") when the anchor node (from Step B) has a `payload.sources` array.
+**CAUTION:** Source co-occurrence overcounts — it finds entities *mentioned* in the same document, not just those that *participated*. Prefer edge-based results as the primary strategy.
 
 **How to run:** Probe for co-occurring entities that share any source with the anchor:
 
 ```sql
 SELECT * FROM ag_catalog.cypher('{GRAPH_NAME}', $$
-  MATCH (anchor:{ANCHOR_LABEL}) WHERE anchor.payload.id = '{ANCHOR_ID}'
-  WITH anchor
-  UNWIND anchor.payload.sources AS src
-  WITH src
+  MATCH (anchor:{ANCHOR_LABEL}) WHERE anchor.payload.id IN ['{ANCHOR_ID_1}', '{ANCHOR_ID_2}']
+  UNWIND coalesce(anchor.payload.sources, []) AS src
+  WITH DISTINCT src
   MATCH (related:{TARGET_LABEL}) WHERE related.payload.sources IS NOT NULL
-  WITH related, src
-  UNWIND related.payload.sources AS rsrc
-  WITH related WHERE rsrc = src
+  UNWIND coalesce(related.payload.sources, []) AS rsrc
+  WITH related, rsrc, src WHERE rsrc = src
   RETURN DISTINCT related.payload.id AS id, related.payload.name AS name
 $$) AS (id ag_catalog.agtype, name ag_catalog.agtype);
 ```
 
 - Compare the count from this probe with the edge-only count from Step C.
-- If source-document matching finds MORE entities than edge traversal alone, you MUST use the combined UNION query pattern in FINAL_SQL (see "For Relationship/Participation Questions" below).
+- If edge traversal finds results, prefer those. Source co-occurrence is supplementary.
 - If the anchor node has no `sources` field, skip this step and rely on edge traversal only.
 
 ### Step D -- Generate Output
@@ -113,8 +129,9 @@ FINAL_SQL: <one SQL-wrapped Cypher statement>
 - Did you call `query_using_sql_cypher` at least once for raw sample discovery? If not, STOP and do Step A first.
 - Does your WHERE clause include ALL entity constraints from the user's question (name/type AND date/time)? 
 - Are property paths based on discovered data (Step A), not guesses?
-- For relationship/participation questions, Did you include ALL edge types from Step C?
-- Did you include ALL discovered edge types, not just one?
+- Did Step B find multiple nodes for the same real-world entity? If yes, does your WHERE clause use `IN [...]` to cover all variants?
+- For "how many" questions, are you deduplicating by source document (not entity ID) to avoid overcounting?
+- For multi-entity relationship questions, are you using edge-based traversal to the target label?
 
 ---
 
@@ -142,6 +159,7 @@ FINAL_SQL: <one SQL-wrapped Cypher statement>
 | List comprehension with `ORDER BY` or `LIMIT` inside `[...]` | AGE doesn't support -- use UNWIND+ORDER BY+collect pattern |
 | `[x IN collected_list \| {prop: x.payload.prop}]` list comprehension with property access on collected vertices | **AGE cannot resolve vertex properties inside list comprehensions on collected lists.** Use `collect(CASE WHEN var IS NOT NULL THEN {key: var.payload.field} ELSE NULL END)` during aggregation instead — property access on row-level variables inside `collect()` works. Then clean with `[x IN tmp WHERE x IS NOT NULL]`. |
 | `WITH c, collect(...) AS xs, c` -- duplicate variable in WITH | **AGE error: "column reference is ambiguous".** Each variable may appear only ONCE in a WITH clause. If `c` is already listed at the start, do NOT repeat it. WRONG: `WITH c, collect(...) AS xs, sum(...) AS n, c` CORRECT: `WITH c, collect(...) AS xs, sum(...) AS n` |
+| `RETURN count(DISTINCT m) ... UNION ... RETURN count(DISTINCT m)` | **FORBIDDEN: aggregation inside UNION halves produces SEPARATE rows, not a combined total.** Use Single-Query Combined Pattern (Section 4, Pattern A) instead. UNION is ONLY for listing individual entity rows with `RETURN DISTINCT`. |
 
 ### List-Field Filtering (e.g., `payload.sources`)
 
@@ -172,6 +190,7 @@ SELECT * FROM ag_catalog.cypher('{GRAPH_NAME}', $$
 $$) AS (col1 ag_catalog.agtype, col2 ag_catalog.agtype);
 ```
 
+- Outer SELECT must always be `SELECT *`.
 - RETURN column count must equal AS column count.
 - All columns typed `ag_catalog.agtype`.
 - No `//` comments inside `$$`.
@@ -221,7 +240,7 @@ WITH <expression> [AS <alias>], ...
 ## 4. Query Construction Rules
 
 ### Intent Classification
-- Relationship questions ("who attended", "who was present", "how many related to", "connected to") -> MUST use edge traversal.
+- Relationship questions ("how many X are connected to Y", "who is related to", "list all X for Y", "connected to") -> MUST use edge traversal.
 - Entity-only questions (lookup, profile) -> Can use single-node query.
 - Consolidated insight (multi-part) -> Use staged OPTIONAL MATCH, collapsing each branch before the next (see pattern below).
 
@@ -378,53 +397,119 @@ OPTIONAL MATCH (a)-[:REL_TYPE_3]->(d:NodeD)
 MATCH (a)-[r]->(b) WHERE toLower(type(r)) IN ['type_a', 'type_b']
 ```
 
-### For Relationship/Participation Questions
+### Deduplication Strategy (CRITICAL for "how many" questions)
 
-When the user asks about relationships, participation, membership, attendance, or connections (e.g., "who attended", "who was present", "who is related to", "who works on"), you MUST use a **combined edge + source-document strategy** to ensure complete results.
+When counting real-world events or items, be aware that **multiple graph nodes can represent the same real-world entity** (e.g., two nodes of the same label created from the same source document, or sub-items within one parent). Counting by `payload.id` may overcount.
 
-**Why combined:** Semantic edges alone may be INCOMPLETE. In many graphs, explicit relationship edges (e.g., ATTENDED, MEMBER_OF) are inferred and may capture only a subset of actual participants. Source-document co-occurrence catches entities mentioned in the same document but lacking explicit edges.
+**Preferred deduplication for counting:**
+1. **By source document** — If nodes have `payload.sources` arrays, deduplicate by unique source strings (`collect(DISTINCT src)`) rather than by node ID. One unique source document = one real-world event.
+2. **By entity ID** — Use only when source-document dedup is not applicable (e.g., nodes lack `sources` arrays, or sources don't correspond to distinct events).
+
+**How to implement source-document dedup:**
+```cypher
+MATCH (p:{ANCHOR_LABEL})-[r]->(m:{TARGET_LABEL})
+WHERE p.payload.id IN ['{ID_1}', '{ID_2}']
+WITH DISTINCT m
+UNWIND coalesce(m.payload.sources, []) AS src
+WITH src WHERE src STARTS WITH '{YEAR}-'
+WITH collect(DISTINCT src) AS unique_sources
+RETURN size(unique_sources) AS total_count, unique_sources
+```
+
+- First `WITH DISTINCT m` deduplicates matched target nodes.
+- Then UNWIND sources and filter by time.
+- `collect(DISTINCT src)` produces one entry per real-world event.
+- This avoids double-counting when multiple graph entities share the same source document.
+
+### For Multi-Entity Relationship Questions
+
+When the user asks about relationships, associations, involvement, or connections between entities (e.g., "how many X are connected to Y", "who is related to", "list all X for Y", "which X belong to Y"), prefer **edge-based traversal** as the primary strategy.
+
+**Why edge-based is preferred:** Edge traversal finds entities with direct graph relationships to the anchor. Source-document co-occurrence is broader (any mention in the same document) and tends to overcount — an entity *mentioned* in a document is not the same as an entity *directly related* to the anchor entity.
+
+**When to use each strategy:**
+- **Edge-based (DEFAULT):** For any question about how entities are connected, associated, or involved. Match ALL outbound edges from anchor to target label (any edge type — they all indicate a relationship). Filter by time using source-document dates when applicable.
+- **Source co-occurrence (SECONDARY):** Only as a fallback when edge discovery (Step C) reveals NO edges to the target label, but the anchor and target nodes share `payload.sources` entries.
+- **Combined (RARE):** Only when Step C2 source probe finds significantly MORE results than edge-only AND you have reason to believe edges are incomplete.
 
 **Discovery procedure:**
 1. In Step A, examine sampled nodes for `payload.sources` arrays and any attribute fields with relationship data.
-2. In Step B (anchor probe), note the anchor node's `sources` array and any relevant list/set attributes.
-3. In Step C (MANDATORY), run BOTH inbound and outbound edge discovery. Record all relevant edge types.
-4. In Step C2 (MANDATORY if anchor has `sources`), run source-document co-occurrence probe. Compare entity counts with Step C.
+2. In Step B (anchor probe), note the anchor node's `sources` array and any relevant list/set attributes. Check for **entity deduplication** (multiple nodes = same entity).
+3. In Step C (MANDATORY), run BOTH inbound and outbound edge discovery for ALL anchor entity IDs. Record all relevant edge types.
+4. In Step C2 (OPTIONAL — run if edge results seem sparse), run source-document co-occurrence probe. Compare with Step C count.
 
-**FINAL_SQL construction — Combined UNION Strategy:**
+**FINAL_SQL construction — Choose the right pattern:**
 
-If the anchor node has `payload.sources` AND Step C found edge types, use a UNION query combining both strategies:
+**Pattern A: Edge-Based with Source-Document Deduplication (DEFAULT for count/aggregation)**
+
+When the user asks "how many", "count", or needs a single number:
 
 ```cypher
-MATCH (p:{TARGET_LABEL})-[r]->(m:{ANCHOR_LABEL})
-WHERE m.payload.id = '{ANCHOR_ID}' AND toLower(type(r)) IN ['edge_type_1', 'edge_type_2']
-RETURN DISTINCT p.payload.id AS entity_id, p.payload.name AS entity_name
+MATCH (p:{ANCHOR_LABEL})-[r]->(m:{TARGET_LABEL})
+WHERE p.payload.id IN ['{ID_1}', '{ID_2}']
+WITH DISTINCT m
+UNWIND coalesce(m.payload.sources, []) AS src
+WITH src WHERE src STARTS WITH '{YEAR}-'
+WITH collect(DISTINCT src) AS unique_sources
+RETURN size(unique_sources) AS total_count, unique_sources
+```
+
+- Matches ALL edge types from anchor(s) to target label — does not filter by specific edge types since any edge indicates involvement.
+- Deduplicates by **source document**, not entity ID, to avoid overcounting when multiple graph nodes represent the same real-world event.
+- Uses `WHERE p.payload.id IN [...]` to cover all entity variants from Step B deduplication.
+- Add time filter on source strings (e.g., `STARTS WITH '2022-'`) to scope results.
+- Returns count and the list of unique source identifiers.
+
+**Pattern B: Edge-Based Entity Listing (for listing individual entities)**
+
+Use when the user wants a LIST of individual connected entities (names, IDs):
+
+```cypher
+MATCH (p:{ANCHOR_LABEL})-[r]->(m:{TARGET_LABEL})
+WHERE p.payload.id IN ['{ID_1}', '{ID_2}']
+WITH DISTINCT m
+UNWIND coalesce(m.payload.sources, []) AS src
+WITH m, src WHERE src STARTS WITH '{YEAR}-'
+RETURN DISTINCT m.payload.id AS entity_id, m.payload.name AS entity_name
+```
+
+- Matches all edge types from anchor(s) to target label.
+- Uses `WITH DISTINCT m` to deduplicate target nodes before filtering.
+- Filter by time using source-document dates.
+- Returns individual rows per entity.
+
+**Pattern C: UNION Strategy (ONLY if edges are sparse and source co-occurrence is needed)**
+
+Use UNION as a fallback when edge discovery found few/no edges but source co-occurrence found results:
+
+```cypher
+MATCH (p:{ANCHOR_LABEL})-[r]->(m:{TARGET_LABEL})
+WHERE p.payload.id IN ['{ID_1}', '{ID_2}']
+RETURN DISTINCT m.payload.id AS entity_id, m.payload.name AS entity_name
 
 UNION
 
-MATCH (m:{ANCHOR_LABEL}) WHERE m.payload.id = '{ANCHOR_ID}'
-WITH m
-UNWIND m.payload.sources AS src
-WITH src
-MATCH (p:{TARGET_LABEL}) WHERE p.payload.sources IS NOT NULL
-WITH p, src
-UNWIND p.payload.sources AS psrc
-WITH p WHERE psrc = src
-RETURN DISTINCT p.payload.id AS entity_id, p.payload.name AS entity_name
+MATCH (p:{ANCHOR_LABEL}) WHERE p.payload.id IN ['{ID_1}', '{ID_2}']
+UNWIND coalesce(p.payload.sources, []) AS psrc
+WITH DISTINCT psrc
+MATCH (m:{TARGET_LABEL}) WHERE m.payload.sources IS NOT NULL
+UNWIND coalesce(m.payload.sources, []) AS msrc
+WITH m, psrc, msrc WHERE msrc = psrc
+RETURN DISTINCT m.payload.id AS entity_id, m.payload.name AS entity_name
 ```
 
-- UNION automatically deduplicates entities found by both strategies.
+- UNION automatically deduplicates entity rows found by both strategies.
 - Both halves of UNION MUST return the same columns (same names AND same count).
-- Add additional RETURN columns (e.g., role, context) only if available on BOTH halves of the UNION.
+- **UNION halves must ONLY use `RETURN DISTINCT` on individual rows. NEVER use `count()`, `sum()`, `collect()` inside UNION halves.** This produces multiple rows with separate values, not a combined total. Use Pattern A instead for counts.
 - If the anchor has no `sources` field, use edge traversal only (no UNION needed).
-- If Step C found NO edges but Step C2 found source-document matches, use source-document matching only.
 
 **Rules:**
-- `IDENTIFIED_EDGES: []` is FORBIDDEN for relationship/participation questions.
-- Include ALL **semantically relevant** edge types from Step C discovery — select by meaning, not by listing every edge found. Only include edge types whose semantic meaning matches the user's question.
+- `IDENTIFIED_EDGES: []` is FORBIDDEN for multi-entity relationship questions.
+- For counting questions, use **Pattern A** with source-document deduplication — not entity-ID counting.
+- When the anchor has **multiple entity variants** (Step B deduplication), always use `WHERE id IN [...]` to cover all variants.
 - Run BOTH inbound and outbound edge discovery to capture all directions.
-- ALWAYS run Step C2 for participation questions when nodes have `sources` arrays.
+- Source co-occurrence is a fallback, not the default — it overcounts because mere mention in the same document does not equal a direct relationship.
 - If no edges AND no source-document matches, report this — do not fabricate edge types.
-- Use name-based filters over entity IDs when possible — more transparent and verifiable.
 
 ### Entity Resolution
 - At most one exact-ID probe + one fuzzy fallback. Stop after that.
@@ -438,7 +523,6 @@ RETURN DISTINCT p.payload.id AS entity_id, p.payload.name AS entity_name
 - One executable SQL-wrapped Cypher statement.
 - No markdown fences, rationale, or commentary in FINAL_SQL.
 - **ABSOLUTELY NO `//` or `/* */` comments inside the Cypher body** -- AGE will fail with syntax error.
-- Max 8 nodes, max 20 edges in discovery output.
 - Deduplicate edge names (collapse case variants).
 
 **WRONG OUTPUT (contains comments -- WILL FAIL):**

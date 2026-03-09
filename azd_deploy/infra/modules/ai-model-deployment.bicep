@@ -17,7 +17,7 @@ param modelVersion string
 param skuName string = 'GlobalStandard'
 
 @description('The capacity in TPM')
-param capacity int = 40
+param capacity int = 500000 
 
 resource account 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = {
   name: accountName

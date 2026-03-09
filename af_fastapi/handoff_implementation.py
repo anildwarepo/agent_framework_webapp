@@ -28,9 +28,18 @@ from agent_framework import ChatMessageStore
 from typing import List, Optional
 import time
 import logging
+import os
 
 logger = logging.getLogger("uvicorn.error")
-credential = DefaultAzureCredential()  # Works with managed identity in Azure
+_aoai_api_key = os.environ.get("AZURE_OPENAI_API_KEY", "").strip()
+# Priority: Entra ID service principal first, API key fallback
+try:
+    credential = DefaultAzureCredential()
+    _aoai_api_key = ""  # SP available, ignore API key
+except Exception:
+    credential = None
+if not credential and not _aoai_api_key:
+    logger.warning("Azure credentials not configured. Handoff workflow will be unavailable.")
 
 def create_message_store():
     return ChatMessageStore()
@@ -76,7 +85,9 @@ class HandoffWorkflow():
 
     
     async def _get_fresh_token(self):
-        """Fetch or refresh an access token (buffers 60s before expiry)."""
+        """Fetch or refresh an access token (buffers 60s before expiry). Skipped when using API key."""
+        if _aoai_api_key:
+            return None
         now = int(time.time())
         logger.info(f"Fetching fresh token at time {now}")
         if self._access_token is None or (getattr(self._access_token, "expires_on", 0) - 60) <= now:
@@ -109,7 +120,7 @@ class HandoffWorkflow():
                 "- If the question is about backup related, call handoff_to_search_agent."
                 "- Handle only one handoff based on the user's previous questions."
                 "Be consise and friendly in your responses.",
-                chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                chat_client=AzureOpenAIChatClient(api_key=_aoai_api_key) if _aoai_api_key else AzureOpenAIChatClient(ad_token=token.token),
                 #chat_message_store_factory=self._create_message_store,
                 tools=weather_mcp_server
             )
@@ -121,7 +132,7 @@ class HandoffWorkflow():
                 "If the question is about backup related call handoff_to_search_agent."
                 "- Handle only one handoff based on the user's previous questions."
                 "Be consise and friendly in your responses.",
-                chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                chat_client=AzureOpenAIChatClient(api_key=_aoai_api_key) if _aoai_api_key else AzureOpenAIChatClient(ad_token=token.token),
                 #chat_message_store_factory=self._create_message_store,
                 tools=weather_mcp_server
             )
@@ -135,7 +146,7 @@ class HandoffWorkflow():
                             "If the question is about weather call handoff_to_weather_agent"
                             "- Handle only one handoff based on the user's previous questions."
                             "Be consise and friendly in your responses.",
-                chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                chat_client=AzureOpenAIChatClient(api_key=_aoai_api_key) if _aoai_api_key else AzureOpenAIChatClient(ad_token=token.token),
                 #chat_message_store_factory=self._create_message_store,
                 tools=search_mcp_server
             )

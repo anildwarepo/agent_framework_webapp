@@ -472,7 +472,7 @@ module fastApiContainerApp 'modules/container-app.bicep' = if ((deployFastApiCon
       // MCP Server endpoint (internal) - must include /mcp path
       {
         name: 'MCP_ENDPOINT'
-        value: 'http://${containerAppName}.internal.${containerAppsEnv!.outputs.defaultDomain}:3002/mcp'
+        value: 'https://${containerAppName}.internal.${containerAppsEnv!.outputs.defaultDomain}/mcp'
       }
       // Azure Search configuration
       {
@@ -499,9 +499,22 @@ module fastApiContainerApp 'modules/container-app.bicep' = if ((deployFastApiCon
   }
 }
 
-// Role assignment for FastAPI identity to access AI Services (Cognitive Services User role)
-// This is done via az CLI after deployment since we need the identity principal ID
-// which is only available after the container app is created
+resource aiServicesAccount 'Microsoft.CognitiveServices/accounts@2025-04-01-preview' existing = {
+  name: accountName
+}
+
+// Grant FastAPI managed identity permission to call Azure OpenAI chat completions.
+// Uses the identity principal ID output from the container-app module to ensure
+// the identity is created before this role assignment runs.
+resource fastApiOpenAiUserRole 'Microsoft.Authorization/roleAssignments@2022-04-01' = if ((deployFastApiContainerApp || deployContainerApp) && deployAcrVnet && buildFastApiContainer) {
+  name: guid(accountName, fastApiContainerAppName, 'cognitive-services-openai-user')
+  scope: aiServicesAccount
+  properties: {
+    principalId: fastApiContainerApp!.outputs.identityPrincipalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd') // Cognitive Services OpenAI User
+  }
+}
 
 // Webapp Container App
 module webappContainerApp 'modules/container-app.bicep' = if ((deployWebappContainerApp || deployContainerApp) && deployAcrVnet && buildWebappContainer && (deployFastApiContainerApp || deployContainerApp)) {
@@ -521,7 +534,11 @@ module webappContainerApp 'modules/container-app.bicep' = if ((deployWebappConta
     environmentVariables: [
       {
         name: 'FASTAPI_BACKEND_URL'
-        value: 'https://${fastApiContainerApp!.outputs.fqdn}'
+        value: 'https://${fastApiContainerAppName}.internal.${containerAppsEnv!.outputs.defaultDomain}'
+      }
+      {
+        name: 'FASTAPI_BACKEND_HOST'
+        value: '${fastApiContainerAppName}.internal.${containerAppsEnv!.outputs.defaultDomain}'
       }
     ]
     secrets: []

@@ -1,0 +1,132 @@
+services:
+  pg-age:
+    image: apache/age:latest
+    container_name: pg-age
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_age_data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-appdb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - agent-net
+
+  pg-init:
+    build:
+      context: ../postgresql_age
+      dockerfile: docker/Dockerfile.init
+    container_name: pg-init
+    environment:
+      PGHOST: ${PGHOST:-pg-age}
+      PGPORT: ${PGPORT:-5432}
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres}
+      PGDATABASE: ${PGDATABASE:-appdb}
+      PGSSLMODE: ${PGSSLMODE:-disable}
+      GRAPH_NAME: ${GRAPH_NAME:-customer_graph}
+      DATA_DIR: /app/data
+      PYTHONUNBUFFERED: "1"
+    depends_on:
+      pg-age:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - agent-net
+
+  mcp-server:
+    build:
+      context: ../mcp_server
+      dockerfile: Dockerfile
+    container_name: af-mcp-server
+    command: ["uvicorn", "mcp_fastapi_server:app", "--host", "0.0.0.0", "--port", "3000"]
+    env_file:
+      - ./.env.docker
+    environment:
+      PYTHONUNBUFFERED: "1"
+      PGHOST: ${PGHOST:-pg-age}
+      PGPORT: ${PGPORT:-5432}
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres}
+      PGDATABASE: ${PGDATABASE:-appdb}
+      PGSSLMODE: ${PGSSLMODE:-disable}
+      GRAPH: ${GRAPH_NAME:-customer_graph}
+      GRAPH_NAME: ${GRAPH_NAME:-customer_graph}
+    depends_on:
+      pg-age:
+        condition: service_healthy
+      pg-init:
+        condition: service_completed_successfully
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    networks:
+      - agent-net
+
+  fastapi:
+    build:
+      context: ../af_fastapi
+      dockerfile: Dockerfile
+    container_name: af-fastapi
+    env_file:
+      - ./.env.docker
+    environment:
+      PYTHONUNBUFFERED: "1"
+      MCP_ENDPOINT: http://mcp-server:3000/mcp
+      PGHOST: ${PGHOST:-pg-age}
+      PGPORT: ${PGPORT:-5432}
+      PGUSER: ${PGUSER:-postgres}
+      PGPASSWORD: ${PGPASSWORD:-postgres}
+      PGDATABASE: ${PGDATABASE:-appdb}
+      PGSSLMODE: ${PGSSLMODE:-disable}
+      AZURE_CLIENT_ID: ${AZURE_CLIENT_ID}
+      AZURE_TENANT_ID: ${AZURE_TENANT_ID}
+      AZURE_CLIENT_SECRET: ${AZURE_CLIENT_SECRET}
+      AZURE_OPENAI_ENDPOINT: ${AZURE_OPENAI_ENDPOINT}
+      AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${AZURE_OPENAI_CHAT_DEPLOYMENT_NAME}
+      AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-02-15-preview}
+      AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+    depends_on:
+      pg-age:
+        condition: service_healthy
+      pg-init:
+        condition: service_completed_successfully
+      mcp-server:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    networks:
+      - agent-net
+
+  webapp:
+    build:
+      context: ../webapp
+      dockerfile: Dockerfile
+    container_name: af-webapp
+    environment:
+      FASTAPI_BACKEND_URL: http://fastapi:8080
+      FASTAPI_BACKEND_HOST: fastapi
+    depends_on:
+      - fastapi
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+    networks:
+      - agent-net
+
+networks:
+  agent-net:
+    driver: bridge
+
+volumes:
+  pg_age_data:
+    name: pg_age_data_v18

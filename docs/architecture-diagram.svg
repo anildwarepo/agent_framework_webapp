@@ -1,0 +1,165 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 680" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <filter id="shadow" x="-4%" y="-4%" width="108%" height="112%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="azureBg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e8f4fd"/>
+      <stop offset="100%" stop-color="#d6ecfa"/>
+    </linearGradient>
+    <linearGradient id="uiGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4fc3f7"/>
+      <stop offset="100%" stop-color="#0288d1"/>
+    </linearGradient>
+    <linearGradient id="apiGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#81c784"/>
+      <stop offset="100%" stop-color="#388e3c"/>
+    </linearGradient>
+    <linearGradient id="mcpGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffb74d"/>
+      <stop offset="100%" stop-color="#f57c00"/>
+    </linearGradient>
+    <linearGradient id="pgGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7986cb"/>
+      <stop offset="100%" stop-color="#3949ab"/>
+    </linearGradient>
+    <linearGradient id="acrGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b39ddb"/>
+      <stop offset="100%" stop-color="#7e57c2"/>
+    </linearGradient>
+    <linearGradient id="aiGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f48fb1"/>
+      <stop offset="100%" stop-color="#e91e63"/>
+    </linearGradient>
+    <marker id="arrowGray" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#607d8b"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#7e57c2"/>
+    </marker>
+    <marker id="arrowPink" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e91e63"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1100" height="680" rx="12" fill="#f5f7fa"/>
+
+  <!-- Title -->
+  <text x="550" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#1a237e">High-Level Architecture — Graph RAG on Azure PostgreSQL</text>
+
+  <!-- Azure boundary -->
+  <rect x="50" y="56" width="1000" height="600" rx="16" fill="url(#azureBg)" stroke="#90caf9" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="76" y="82" font-size="14" font-weight="600" fill="#1565c0">☁  Azure</text>
+
+  <!-- Container Apps Environment sub-boundary -->
+  <rect x="80" y="94" width="680" height="410" rx="12" fill="#ffffff" fill-opacity="0.55" stroke="#b0bec5" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <text x="106" y="118" font-size="12" font-weight="600" fill="#546e7f">Container Apps Environment  +  VNet</text>
+
+  <!-- ===== SERVICE BOXES ===== -->
+
+  <!-- React WebApp -->
+  <rect x="120" y="150" width="180" height="90" rx="10" fill="url(#uiGrad)" filter="url(#shadow)"/>
+  <text x="210" y="186" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">React WebApp</text>
+  <text x="210" y="206" text-anchor="middle" font-size="11" fill="#e1f5fe">Container App · port 5173</text>
+  <text x="210" y="222" text-anchor="middle" font-size="10" fill="#e1f5fe">webapp/</text>
+
+  <!-- FastAPI Backend -->
+  <rect x="410" y="150" width="180" height="90" rx="10" fill="url(#apiGrad)" filter="url(#shadow)"/>
+  <text x="500" y="186" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">FastAPI Backend</text>
+  <text x="500" y="206" text-anchor="middle" font-size="11" fill="#e8f5e9">Container App · port 8080</text>
+  <text x="500" y="222" text-anchor="middle" font-size="10" fill="#e8f5e9">af_fastapi/</text>
+
+  <!-- MCP Server -->
+  <rect x="410" y="310" width="180" height="90" rx="10" fill="url(#mcpGrad)" filter="url(#shadow)"/>
+  <text x="500" y="346" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">MCP Server</text>
+  <text x="500" y="366" text-anchor="middle" font-size="11" fill="#fff3e0">Container App · port 3000</text>
+  <text x="500" y="382" text-anchor="middle" font-size="10" fill="#fff3e0">mcp_server/</text>
+
+  <!-- PostgreSQL + AGE -->
+  <g>
+    <rect x="120" y="310" width="180" height="90" rx="10" fill="url(#pgGrad)" filter="url(#shadow)"/>
+    <!-- cylinder accent -->
+    <ellipse cx="210" cy="318" rx="70" ry="10" fill="#5c6bc0" opacity="0.5"/>
+    <text x="210" y="352" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">Azure PostgreSQL</text>
+    <text x="210" y="372" text-anchor="middle" font-size="11" fill="#e8eaf6">+ Apache AGE</text>
+    <text x="210" y="388" text-anchor="middle" font-size="10" fill="#e8eaf6">postgresql_age/</text>
+  </g>
+
+  <!-- ACR -->
+  <rect x="120" y="440" width="180" height="56" rx="10" fill="url(#acrGrad)" filter="url(#shadow)"/>
+  <text x="210" y="472" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Azure Container Registry</text>
+  <text x="210" y="488" text-anchor="middle" font-size="10" fill="#ede7f6">ACR</text>
+
+  <!-- Azure AI Foundry -->
+  <rect x="820" y="200" width="200" height="80" rx="10" fill="url(#aiGrad)" filter="url(#shadow)"/>
+  <text x="920" y="236" text-anchor="middle" font-size="14" font-weight="700" fill="#fff">Azure OpenAI</text>
+  <text x="920" y="256" text-anchor="middle" font-size="11" fill="#fce4ec">AI Foundry · GPT-4.1</text>
+
+  <!-- ===== ARROWS ===== -->
+
+  <!-- UI → API  (HTTP / SSE) -->
+  <line x1="300" y1="195" x2="406" y2="195" stroke="#607d8b" stroke-width="2.2" marker-end="url(#arrowGray)"/>
+  <rect x="318" y="178" width="74" height="18" rx="4" fill="#fff" fill-opacity="0.85"/>
+  <text x="355" y="191" text-anchor="middle" font-size="10" font-weight="600" fill="#455a64">HTTP / SSE</text>
+
+  <!-- API → MCP  (MCP over HTTP) -->
+  <line x1="500" y1="244" x2="500" y2="306" stroke="#607d8b" stroke-width="2.2" marker-end="url(#arrowGray)"/>
+  <rect x="508" y="260" width="94" height="18" rx="4" fill="#fff" fill-opacity="0.85"/>
+  <text x="555" y="273" text-anchor="middle" font-size="10" font-weight="600" fill="#455a64">MCP over HTTP</text>
+
+  <!-- API → PG  (PG queries) -->
+  <line x1="410" y1="236" x2="300" y2="316" stroke="#607d8b" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrowGray)"/>
+  <rect x="330" y="260" width="68" height="18" rx="4" fill="#fff" fill-opacity="0.85"/>
+  <text x="364" y="273" text-anchor="middle" font-size="10" font-weight="600" fill="#455a64">PG queries</text>
+
+  <!-- MCP → PG  (PG queries) -->
+  <line x1="410" y1="355" x2="304" y2="355" stroke="#607d8b" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrowGray)"/>
+  <rect x="330" y="338" width="68" height="18" rx="4" fill="#fff" fill-opacity="0.85"/>
+  <text x="364" y="351" text-anchor="middle" font-size="10" font-weight="600" fill="#455a64">PG queries</text>
+
+  <!-- API → AI -->
+  <line x1="590" y1="195" x2="816" y2="230" stroke="#e91e63" stroke-width="2" marker-end="url(#arrowPink)"/>
+
+
+
+  <!-- ACR → UI (dashed, deploy) -->
+  <line x1="178" y1="440" x2="178" y2="244" stroke="#7e57c2" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrowPurple)"/>
+
+  <!-- ACR → API (dashed, deploy) -->
+  <path d="M 300 460 Q 460 460 460 244" fill="none" stroke="#7e57c2" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrowPurple)"/>
+
+  <!-- ACR → MCP (dashed, deploy) -->
+  <path d="M 300 475 Q 560 475 560 404" fill="none" stroke="#7e57c2" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrowPurple)"/>
+
+  <!-- ===== LEGEND ===== -->
+  <rect x="770" y="380" width="270" height="170" rx="10" fill="#fff" fill-opacity="0.75" stroke="#cfd8dc" stroke-width="1"/>
+  <text x="905" y="404" text-anchor="middle" font-size="13" font-weight="700" fill="#37474f">Legend</text>
+
+  <!-- data flow -->
+  <line x1="790" y1="428" x2="840" y2="428" stroke="#607d8b" stroke-width="2" marker-end="url(#arrowGray)"/>
+  <text x="852" y="432" font-size="11" fill="#455a64">Data / API flow</text>
+
+  <!-- AI call -->
+  <line x1="790" y1="452" x2="840" y2="452" stroke="#e91e63" stroke-width="2" marker-end="url(#arrowPink)"/>
+  <text x="852" y="456" font-size="11" fill="#455a64">LLM inference call</text>
+
+  <!-- deploy -->
+  <line x1="790" y1="476" x2="840" y2="476" stroke="#7e57c2" stroke-width="1.5" stroke-dasharray="5 3" marker-end="url(#arrowPurple)"/>
+  <text x="852" y="480" font-size="11" fill="#455a64">Container image deploy</text>
+
+  <!-- PG -->
+  <line x1="790" y1="500" x2="840" y2="500" stroke="#607d8b" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrowGray)"/>
+  <text x="852" y="504" font-size="11" fill="#455a64">PostgreSQL queries</text>
+
+  <!-- service key -->
+  <rect x="790" y="518" width="14" height="14" rx="3" fill="url(#uiGrad)"/>
+  <text x="812" y="530" font-size="11" fill="#455a64">WebApp</text>
+  <rect x="862" y="518" width="14" height="14" rx="3" fill="url(#apiGrad)"/>
+  <text x="884" y="530" font-size="11" fill="#455a64">FastAPI</text>
+  <rect x="940" y="518" width="14" height="14" rx="3" fill="url(#mcpGrad)"/>
+  <text x="962" y="530" font-size="11" fill="#455a64">MCP</text>
+
+  <!-- footer -->
+  <text x="550" y="644" text-anchor="middle" font-size="11" fill="#90a4ae">Graph RAG — Multi-Agent Orchestration on Azure PostgreSQL + Apache AGE</text>
+</svg>

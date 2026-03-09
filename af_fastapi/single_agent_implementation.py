@@ -20,7 +20,15 @@ import time
 import logging
 
 logger = logging.getLogger("uvicorn.error")
-credential = DefaultAzureCredential()  # Works with managed identity in Azure
+_aoai_api_key = os.environ.get("AZURE_OPENAI_API_KEY", "").strip()
+# Priority: Entra ID service principal first, API key fallback
+try:
+    credential = DefaultAzureCredential()
+    _aoai_api_key = ""  # SP available, ignore API key
+except Exception:
+    credential = None
+if not credential and not _aoai_api_key:
+    logger.warning("Azure credentials not configured. Single agent will be unavailable.")
 
 def create_message_store():
     return ChatMessageStore()
@@ -64,7 +72,9 @@ class SingleAgent():
 
     
     async def _get_fresh_token(self):
-        """Fetch or refresh an access token (buffers 60s before expiry)."""
+        """Fetch or refresh an access token (buffers 60s before expiry). Skipped when using API key."""
+        if _aoai_api_key:
+            return None
         now = int(time.time())
         logger.info(f"Fetching fresh token at time {now}")
         if self._access_token is None or (getattr(self._access_token, "expires_on", 0) - 60) <= now:
@@ -102,7 +112,7 @@ class SingleAgent():
             name="microsoftdocs_agent",
             description="Microsoft Docs agent that can answer questions about Microsoft documentation using a docs tool.",
             instructions="You are a helpful Microsoft Docs agent. Use the docs tool to answer questions about Microsoft documentation. Answer questions about Microsoft documentation and nothing else only using the microsoft docs mcp server tool.",
-            chat_client=AzureOpenAIChatClient(ad_token=token.token),
+            chat_client=AzureOpenAIChatClient(api_key=_aoai_api_key) if _aoai_api_key else AzureOpenAIChatClient(ad_token=token.token),
             tools=microsoftdocs_mcp_server
             #chat_message_store_factory=self._create_message_store,
 

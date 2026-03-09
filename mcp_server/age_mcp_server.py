@@ -104,4 +104,4 @@ if __name__ == "__main__":
     #result = asyncio.run(query_using_sql_cypher(test_query))
     #print("Test query result:\n", result)
 
-    mcp.run(transport="streamable-http", port=3002)
+    mcp.run(transport="streamable-http", host="0.0.0.0", port=3002)

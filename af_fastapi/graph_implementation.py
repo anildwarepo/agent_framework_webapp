@@ -29,7 +29,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 logger = logging.getLogger("uvicorn.error")
-credential = DefaultAzureCredential()  # Works with managed identity in Azure
+_aoai_api_key = os.environ.get("AZURE_OPENAI_API_KEY", "").strip()
+# Priority: Entra ID service principal first, API key fallback
+try:
+    credential = DefaultAzureCredential()
+    _aoai_api_key = ""  # SP available, ignore API key
+except Exception:
+    credential = None
+if not credential and not _aoai_api_key:
+    logger.warning("Azure credentials not configured. Graph workflow will be unavailable.")
 MCP_ENDPOINT = os.environ.get("MCP_ENDPOINT")
 AZURE_OPENAI_ENDPOINT = os.environ.get("AZURE_OPENAI_ENDPOINT")
 AZURE_DEPLOYMENT_NAME = os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT_NAME")
@@ -120,12 +128,20 @@ class GraphWorkflow():
             print("[Chat] AI response received")
     
     async def _get_fresh_token(self):
-        """Fetch or refresh an access token (buffers 60s before expiry)."""
+        """Fetch or refresh an access token (buffers 60s before expiry). Skipped when using API key."""
+        if _aoai_api_key:
+            return None
         now = int(time.time())
         logger.info(f"Fetching fresh token at time {now}")
         if self._access_token is None or (getattr(self._access_token, "expires_on", 0) - 60) <= now:
             self._access_token = await credential.get_token("https://cognitiveservices.azure.com/.default")
         return self._access_token
+
+    def _chat_client_kwargs(self, token, **extra):
+        """Build kwargs for AzureOpenAIChatClient depending on auth mode."""
+        if _aoai_api_key:
+            return dict(api_key=_aoai_api_key, endpoint=AZURE_OPENAI_ENDPOINT, deployment_name=AZURE_DEPLOYMENT_NAME, **extra)
+        return dict(ad_token=token.token, endpoint=AZURE_OPENAI_ENDPOINT, deployment_name=AZURE_DEPLOYMENT_NAME, **extra)
     
     async def _ensure_clients(self):
         """Create agents and the workflow exactly once (or after token refresh if you choose)."""
@@ -210,9 +226,7 @@ class GraphWorkflow():
 
                 
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                  endpoint=AZURE_OPENAI_ENDPOINT,
-                                                  deployment_name=AZURE_DEPLOYMENT_NAME),
+                chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token)),
                 #chat_message_store_factory=self._create_message_store,
                 #tools=graph_age_mcp_server
             )
@@ -687,9 +701,7 @@ class GraphWorkflow():
                 Share the results with other agents for further processing.
 
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                  endpoint=AZURE_OPENAI_ENDPOINT,
-                                                  deployment_name=AZURE_DEPLOYMENT_NAME),
+                chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token)),
                 #chat_message_store_factory=self._create_message_store,
                 tools=graph_age_mcp_server
             )
@@ -702,9 +714,7 @@ class GraphWorkflow():
                 State the query that you received from the graph query generator agent before executing it.
                 Do not modify the generated queries. Send them as-is to the tool.
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                  endpoint=AZURE_OPENAI_ENDPOINT,
-                                                  deployment_name=AZURE_DEPLOYMENT_NAME),
+                chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token)),
                 middleware=[LoggingChatMiddleware()],
                 #chat_message_store_factory=self._create_message_store,
                 tools=graph_age_mcp_server
@@ -721,9 +731,7 @@ class GraphWorkflow():
                 The response should use the results obtained from the graph query executor agent to answer the user's question.
                 You only need to respond when the query results are available from the _graph_query_validator_agent.
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                  endpoint=AZURE_OPENAI_ENDPOINT,
-                                                  deployment_name=AZURE_DEPLOYMENT_NAME, temperature=0.0),
+                chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token, temperature=0.0)),
                 #chat_message_store_factory=self._create_message_store,
                 
             )
@@ -757,9 +765,7 @@ class GraphWorkflow():
                     Based on the results obtained from the graph query executor agent, provide a concise and accurate answer to the user's question.
                     If no results were found, state that no results were found.
                     """,
-                    chat_client=AzureOpenAIChatClient(ad_token=token.token, 
-                                                      endpoint=AZURE_OPENAI_ENDPOINT,
-                                                      deployment_name=AZURE_DEPLOYMENT_NAME, temperature=0.0),
+                    chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token, temperature=0.0)),
                     max_round_count=3,
                     max_stall_count=3,
                     max_reset_count=2,

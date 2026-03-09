@@ -35,7 +35,7 @@ function Stop-ProcessOnPort {
 }
 
 # ---- Python env / deps ----
-uv sync          # install/update deps, creates .venv if needed
+#uv sync          # install/update deps, creates .venv if needed
 
 # In PowerShell the activation script is Activate.ps1, not "activate"
 . ".\.venv\Scripts\Activate.ps1"

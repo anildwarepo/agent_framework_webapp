@@ -21,7 +21,7 @@ DSN = dict(
     sslmode=os.getenv("PGSSLMODE", "require"),
 )
 
-GRAPH = os.getenv("GRAPH_NAME", "age_smoke_2")
+GRAPH = "customer_graph"
 DATA_DIR = os.getenv("DATA_DIR", "../data")
 NODES_FILE = os.getenv("NODES_FILE", os.path.join(DATA_DIR, "graph_nodes.json"))
 EDGES_FILE = os.getenv("EDGES_FILE", os.path.join(DATA_DIR, "graph_edges.json"))

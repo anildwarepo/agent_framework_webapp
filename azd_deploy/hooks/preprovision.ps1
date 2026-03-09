@@ -1,10 +1,11 @@
 <#
 .SYNOPSIS
-    Pre-provision hook to get the client IP address for PostgreSQL firewall rule.
+    Pre-provision hook to get the client IP address for PostgreSQL firewall rule
+    and ensure the PostgreSQL admin password is set as an azd environment variable.
 #>
 
 Write-Host "=========================================="
-Write-Host "Pre-provision hook: Getting client IP..."
+Write-Host "Pre-provision hook starting..."
 Write-Host "=========================================="
 
 # Get client public IP
@@ -21,5 +22,47 @@ try {
     # Set empty value
     cmd /c "azd env set CLIENT_IP_ADDRESS '' 2>&1"
 }
+
+# Ensure POSTGRESQL_ADMIN_PASSWORD is set as a regular env value so the
+# postprovision hook can read it via 'azd env get-value'. Without this,
+# azd stores @secure() parameter values only in its encrypted vault,
+# which is not accessible from hooks.
+# Use cmd /c to avoid PS5.1 NativeCommandError on azd stderr warnings
+$existingPassword = (cmd /c "azd env get-value POSTGRESQL_ADMIN_PASSWORD 2>nul")
+if ($existingPassword) { $existingPassword = $existingPassword.Trim() }
+if ([string]::IsNullOrEmpty($existingPassword)) {
+    Write-Host "Generating PostgreSQL admin password..."
+    # Generate a random password that meets Azure PostgreSQL complexity requirements.
+    # IMPORTANT: Avoid characters that are shell metacharacters (! @ # $ % ^ & * ` |)
+    # because they corrupt cmd /c and cause azd env set to silently fail.
+    $upper = -join ((65..90) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
+    $lower = -join ((97..122) | Get-Random -Count 5 | ForEach-Object { [char]$_ })
+    $digits = -join ((48..57) | Get-Random -Count 4 | ForEach-Object { [char]$_ })
+    $special = -join (('.', '-', '_', '~') | Get-Random -Count 2)
+    $all = ($upper + $lower + $digits + $special).ToCharArray() | Sort-Object { Get-Random }
+    $password = -join $all
+    # Temporarily relax ErrorActionPreference so azd stderr warnings don't
+    # cause PS5.1 to throw NativeCommandError.
+    $savedEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & azd env set POSTGRESQL_ADMIN_PASSWORD "$password" 2>&1 | Out-Null
+    } finally {
+        $ErrorActionPreference = $savedEAP
+    }
+    Write-Host "POSTGRESQL_ADMIN_PASSWORD has been generated and set."
+} else {
+    Write-Host "POSTGRESQL_ADMIN_PASSWORD is already set."
+}
+
+# Reset container app deployment flags to false so the initial azd provision
+# (run by 'azd up') only creates infrastructure.  The postprovision hook will
+# Reset container app deployment flags to false so the initial azd provision
+# (run by 'azd up') only creates infrastructure.  The postprovision hook will
+# deploy container apps directly via az deployment group create.
+Write-Host "Resetting container app deployment flags for clean provision..."
+cmd /c "azd env set deployMcpServerContainerApp false 2>&1"
+cmd /c "azd env set deployFastApiContainerApp false 2>&1"
+cmd /c "azd env set deployWebappContainerApp false 2>&1"
 
 Write-Host "=========================================="

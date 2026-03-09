@@ -15,6 +15,7 @@ from agent_framework import (
 from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient
 from azure.identity.aio import DefaultAzureCredential
 import json
+import os
 from enum import Enum
 from dataclasses import dataclass, asdict, is_dataclass
 from agent_framework import ChatMessageStore
@@ -23,7 +24,15 @@ import time
 import logging
 
 logger = logging.getLogger("uvicorn.error")
-credential = DefaultAzureCredential()  # Works with managed identity in Azure
+_aoai_api_key = os.environ.get("AZURE_OPENAI_API_KEY", "").strip()
+# Priority: Entra ID service principal first, API key fallback
+try:
+    credential = DefaultAzureCredential()
+    _aoai_api_key = ""  # SP available, ignore API key
+except Exception:
+    credential = None
+if not credential and not _aoai_api_key:
+    logger.warning("Azure credentials not configured. Magentic workflow will be unavailable.")
 
 def create_message_store():
     return ChatMessageStore()
@@ -69,7 +78,9 @@ class MagenticWorkflow():
 
     
     async def _get_fresh_token(self):
-        """Fetch or refresh an access token (buffers 60s before expiry)."""
+        """Fetch or refresh an access token (buffers 60s before expiry). Skipped when using API key."""
+        if _aoai_api_key:
+            return None
         now = int(time.time())
         logger.info(f"Fetching fresh token at time {now}")
         if self._access_token is None or (getattr(self._access_token, "expires_on", 0) - 60) <= now:
@@ -96,7 +107,7 @@ class MagenticWorkflow():
                 name="weather agent",
                 description="Weather agent that can answer questions about the weather using a weather tool.",
                 instructions="You are a helpful weather agent. Use the weather tool to answer questions about the weather. Answer questions about weather and nothing else",
-                chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                chat_client=AzureOpenAIChatClient(api_key=_aoai_api_key) if _aoai_api_key else AzureOpenAIChatClient(ad_token=token.token),
                 #chat_message_store_factory=self._create_message_store,
                 tools=weather_mcp_server
             )
@@ -107,7 +118,7 @@ class MagenticWorkflow():
                 instructions="You are an AI agent. Always use the tools provided to answer the questions. If you cannot " \
             "answer using the tools, respond with 'I don't know.'" \
             "Alway provide citations[part_id, chapter_id, part_title] for your answers from the tools.",
-                chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                chat_client=AzureOpenAIChatClient(api_key=_aoai_api_key) if _aoai_api_key else AzureOpenAIChatClient(ad_token=token.token),
                 #chat_message_store_factory=self._create_message_store,
                 tools=search_mcp_server
             )
@@ -119,7 +130,7 @@ class MagenticWorkflow():
                 If the tool return incorrect or incomplete information, ask the relevant agent to call the tool with correct parameters and answer the question accurately. 
                 Always present the final answer with citations[part_id, chapter_id, part_title] from the tools used by other agents.
                 """,
-                chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                chat_client=AzureOpenAIChatClient(api_key=_aoai_api_key) if _aoai_api_key else AzureOpenAIChatClient(ad_token=token.token),
                 #chat_message_store_factory=self._create_message_store,
 
             )
@@ -135,7 +146,7 @@ class MagenticWorkflow():
                     task_ledger_full_prompt="When using the search tool always send the original user query as the query parameter."
                     "Do not modify the user query in any way.",
                     
-                    chat_client=AzureOpenAIChatClient(ad_token=token.token),
+                    chat_client=AzureOpenAIChatClient(api_key=_aoai_api_key) if _aoai_api_key else AzureOpenAIChatClient(ad_token=token.token),
                     max_round_count=3,
                     max_stall_count=3,
                     max_reset_count=2,

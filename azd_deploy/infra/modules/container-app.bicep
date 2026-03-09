@@ -37,6 +37,9 @@ param environmentVariables array = []
 @description('Secrets for the container (array of {name, value} objects)')
 param secrets array = []
 
+@description('Allow insecure (HTTP) ingress traffic without redirect to HTTPS')
+param allowInsecure bool = false
+
 @description('Tags for the resources')
 param tags object = {}
 
@@ -85,7 +88,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
         external: externalIngress
         targetPort: targetPort
         transport: 'auto'
-        allowInsecure: false
+        allowInsecure: allowInsecure
       }
       registries: [
         {

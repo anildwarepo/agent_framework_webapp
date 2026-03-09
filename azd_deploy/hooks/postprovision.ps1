@@ -11,13 +11,22 @@ param(
 
 $ErrorActionPreference = "Stop"
 
+# Guard against recursive execution: when Invoke-ContainerAppsDeploy calls
+# 'azd provision --no-prompt', azd re-triggers hooks.  Skip the nested run.
+if ($env:AZD_POSTPROVISION_PHASE -eq "1") {
+    Write-Host "Skipping nested postprovision hook (provision phase in progress)."
+    exit 0
+}
+
 Write-Host "=========================================="
 Write-Host "Post-provision hook starting..."
 Write-Host "=========================================="
 
 function Get-AzdEnvValue {
     param([string]$Name)
-    (cmd /c "azd env get-value $Name 2>nul").Trim()
+    # Use cmd /c to avoid PS5.1 NativeCommandError on azd stderr warnings
+    $result = (cmd /c "azd env get-value $Name 2>nul")
+    if ($result) { $result.Trim() } else { "" }
 }
 
 function Set-AzdEnvValue {
@@ -25,14 +34,39 @@ function Set-AzdEnvValue {
         [string]$Name,
         [string]$Value
     )
-    cmd /c "azd env set $Name $Value 2>&1" | Out-Null
+    # Temporarily relax ErrorActionPreference so azd stderr warnings
+    # (e.g., version-out-of-date) don't cause PS5.1 to throw.
+    $savedEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & azd env set $Name "$Value" 2>&1 | Out-Null
+    } finally {
+        $ErrorActionPreference = $savedEAP
+    }
+}
+
+# Helper: Run a native command without PS5.1 NativeCommandError on stderr.
+# Temporarily lowers ErrorActionPreference so warnings/info on stderr don't
+# become terminating errors.
+function Invoke-NativeCommand {
+    param(
+        [Parameter(Mandatory)]
+        [scriptblock]$Command
+    )
+    $savedEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & $Command
+    } finally {
+        $ErrorActionPreference = $savedEAP
+    }
 }
 
 function Get-FolderHash {
     param([string]$FolderPath)
 
     $files = Get-ChildItem -Path $FolderPath -Recurse -File |
-        Where-Object { $_.FullName -notmatch '(__pycache__|node_modules|\.git|\.(pyc|pyo|egg-info))' } |
+        Where-Object { $_.FullName -notmatch '(__pycache__|node_modules|\.venv|\.git|\.(pyc|pyo|egg-info))' } |
         Sort-Object FullName
 
     $hashInput = ""
@@ -83,25 +117,132 @@ function Invoke-AcrBuild {
     )
 
     Push-Location $SourcePath
-    $buildArgsString = ""
-    foreach ($arg in $BuildArgs) {
-        $buildArgsString += " --build-arg $arg"
-    }
+    try {
+        Write-Host "  Building $Label container in ACR $RegistryName (this may take several minutes)..."
 
-    $cmd = "az acr build --registry $RegistryName --image `"${ImageName}:${ImageTag}`" --image `"${ImageName}:latest`" --file Dockerfile . --no-logs --query runId -o tsv$buildArgsString"
-    $runId = Invoke-Expression $cmd
-    $buildExitCode = $LASTEXITCODE
-    Pop-Location
+        # Start ACR build without streaming logs (streaming can crash in PS5/cp1252).
+        # We'll poll run status and then print full build logs from log artifact URL.
+        $azArgs = @("acr", "build", "--registry", $RegistryName,
+                    "--image", "${ImageName}:${ImageTag}",
+                    "--image", "${ImageName}:latest",
+                    "--file", "Dockerfile", ".",
+                    "--no-logs", "--only-show-errors", "--output", "json")
+        foreach ($arg in $BuildArgs) {
+            $azArgs += "--build-arg"
+            $azArgs += $arg
+        }
 
-    if ($buildExitCode -ne 0 -or [string]::IsNullOrEmpty($runId)) {
-        throw "ACR build failed for $Label"
-    }
+        $savedEAP = $ErrorActionPreference
+        $ErrorActionPreference = "Continue"
+        try {
+            $buildResponse = (& az @azArgs 2>&1 | Out-String).Trim()
+            $buildExitCode = $LASTEXITCODE
+        } finally {
+            $ErrorActionPreference = $savedEAP
+        }
 
-    $safeLabel = $Label -replace '[^a-zA-Z0-9_-]', '_'
-    $logFile = Join-Path $env:TEMP "${safeLabel}-acr-build-${runId}.log"
-    cmd /c "az acr task logs --registry $RegistryName --run-id $runId > \"$logFile\" 2>&1"
-    if (Test-Path $logFile) {
-        Get-Content $logFile
+        if ($buildExitCode -ne 0) {
+            throw "ACR build failed for $Label (exit code $buildExitCode)"
+        }
+
+        $buildObj = $null
+        try {
+            $buildObj = $buildResponse | ConvertFrom-Json
+        } catch {
+            throw "Unable to parse ACR build response for $Label. Raw response: $buildResponse"
+        }
+
+        $runId = $null
+        if ($buildObj.PSObject.Properties.Name -contains "runId") {
+            $runId = $buildObj.runId
+        }
+        if ([string]::IsNullOrEmpty($runId) -and ($buildObj.PSObject.Properties.Name -contains "id")) {
+            if ($buildObj.id -match '/runs/([^/\s]+)$') {
+                $runId = $Matches[1]
+            }
+        }
+        if ([string]::IsNullOrEmpty($runId)) {
+            throw "Could not determine ACR run ID for $Label build. Response: $buildResponse"
+        }
+
+        Write-Host "  ACR build queued. Run ID: $runId"
+
+        $finalRun = $null
+        $lastStatus = ""
+        $pollCount = 0
+        $maxPollCount = 180
+        while ($true) {
+            $pollCount++
+            if ($pollCount -gt $maxPollCount) {
+                throw "Timed out waiting for ACR build run status for $Label (runId: $runId)."
+            }
+            $savedEAP = $ErrorActionPreference
+            $ErrorActionPreference = "Continue"
+            try {
+                $runJson = (& az acr task show-run --registry $RegistryName --run-id $runId --only-show-errors --output json 2>&1 | Out-String).Trim()
+                $showRunExitCode = $LASTEXITCODE
+            } finally {
+                $ErrorActionPreference = $savedEAP
+            }
+
+            if ($showRunExitCode -ne 0) {
+                if (($pollCount % 3) -eq 0) {
+                    Write-Host "  Waiting for run status... (runId: $runId)"
+                }
+                Start-Sleep -Seconds 5
+                continue
+            }
+
+            try {
+                $runObj = $runJson | ConvertFrom-Json
+            } catch {
+                if (($pollCount % 3) -eq 0) {
+                    Write-Host "  Waiting for run status... (runId: $runId)"
+                }
+                Start-Sleep -Seconds 5
+                continue
+            }
+
+            $status = [string]$runObj.status
+            if ($status -ne $lastStatus) {
+                $timeStamp = Get-Date -Format "HH:mm:ss"
+                Write-Host "  [$timeStamp] ACR build status: $status"
+                $lastStatus = $status
+            }
+
+            if ($status -in @("Succeeded", "Failed", "Canceled", "Error")) {
+                $finalRun = $runObj
+                break
+            }
+
+            Start-Sleep -Seconds 8
+        }
+
+        if ($null -ne $finalRun -and -not [string]::IsNullOrEmpty($finalRun.logArtifactLink)) {
+            Write-Host ""
+            Write-Host "  Fetching ACR build logs for $Label..."
+            try {
+                $logResponse = Invoke-WebRequest -Uri $finalRun.logArtifactLink -UseBasicParsing -TimeoutSec 180
+                $logContent = [string]$logResponse.Content
+                if (-not [string]::IsNullOrEmpty($logContent)) {
+                    Write-Host "  ----- BEGIN ACR BUILD LOG ($Label) -----"
+                    foreach ($line in ($logContent -split "`r?`n")) {
+                        Write-Host $line
+                    }
+                    Write-Host "  ----- END ACR BUILD LOG ($Label) -----"
+                }
+            } catch {
+                Write-Host "  WARNING: Could not fetch ACR log artifact for ${Label}: $($_.Exception.Message)"
+            }
+            Write-Host ""
+        }
+
+        if ($null -eq $finalRun -or $finalRun.status -ne "Succeeded") {
+            $finalStatus = if ($null -ne $finalRun) { [string]$finalRun.status } else { "Unknown" }
+            throw "ACR build failed for $Label (status: $finalStatus)"
+        }
+    } finally {
+        Pop-Location
     }
 }
 
@@ -114,7 +255,7 @@ function Wait-PostgresqlReady {
     )
 
     for ($attempt = 1; $attempt -le $MaxAttempts; $attempt++) {
-        $state = az postgres flexible-server show --resource-group $ResourceGroup --name $ServerName --query "state" -o tsv 2>$null
+        $state = Invoke-NativeCommand { az postgres flexible-server show --resource-group $ResourceGroup --name $ServerName --query "state" -o tsv 2>&1 | Where-Object { $_ -notmatch '^WARNING' } }
         if ($LASTEXITCODE -eq 0 -and $state -eq "Ready") {
             return
         }
@@ -137,7 +278,7 @@ function Ensure-PostgresqlAllowAllIps {
     }
 
     Write-Host "Opening PostgreSQL firewall to all IPs for data loading..."
-    az postgres flexible-server firewall-rule create --resource-group $ResourceGroup --name $ServerName --rule-name "AllowAllIps" --start-ip-address "0.0.0.0" --end-ip-address "255.255.255.255" | Out-Null
+    Invoke-NativeCommand { az postgres flexible-server firewall-rule create --resource-group $ResourceGroup --name $ServerName --rule-name "AllowAllIps" --start-ip-address "0.0.0.0" --end-ip-address "255.255.255.255" 2>&1 | Out-Null }
 }
 
 function Invoke-WithRetry {
@@ -183,40 +324,42 @@ function Initialize-PostgresqlAgeAndData {
     $effectiveGraphName = if (-not [string]::IsNullOrEmpty($GraphName)) { $GraphName } else { "customer_graph" }
 
     Write-Host "Configuring PostgreSQL server parameters for AGE..."
-    az postgres flexible-server parameter set --resource-group $ResourceGroup --server-name $ServerName --name azure.extensions --value AGE | Out-Null
-    az postgres flexible-server parameter set --resource-group $ResourceGroup --server-name $ServerName --name shared_preload_libraries --value age | Out-Null
+    Invoke-NativeCommand { az postgres flexible-server parameter set --resource-group $ResourceGroup --server-name $ServerName --name azure.extensions --value AGE 2>&1 | Out-Null }
+    Invoke-NativeCommand { az postgres flexible-server parameter set --resource-group $ResourceGroup --server-name $ServerName --name shared_preload_libraries --value age 2>&1 | Out-Null }
 
     Write-Host "Restarting PostgreSQL server..."
-    az postgres flexible-server restart --resource-group $ResourceGroup --name $ServerName | Out-Null
+    Invoke-NativeCommand { az postgres flexible-server restart --resource-group $ResourceGroup --name $ServerName 2>&1 | Out-Null }
     Wait-PostgresqlReady -ResourceGroup $ResourceGroup -ServerName $ServerName
 
     Write-Host "Enabling AGE extension in postgres database..."
     $scriptDir = $PSScriptRoot
     $repoRoot = Resolve-Path (Join-Path $scriptDir "../..")
-    $loaderScript = Join-Path $repoRoot "postgresql_age/load_data/load_customer_graph.py"
+    $customerGraphLoaderScript = Join-Path $repoRoot "postgresql_age/load_data/customer_graph/load_customer_graph.py"
+    $meetingsGraphLoaderScript = Join-Path $repoRoot "postgresql_age/load_data/meetings_graph/load_meetings_graph.py"
+    $cgindexScript = Join-Path $repoRoot "postgresql_age/load_data/customer_graph/build_graph_indexes.py"
+    $mgindexScript = Join-Path $repoRoot "postgresql_age/load_data/meetings_graph/build_graph_indexes.py"
     $dataDir = Join-Path $repoRoot "postgresql_age/data"
+    $testConnectionScript = Join-Path $repoRoot "postgresql_age/load_data/test_pg_connection.py"
     $venvPython = Join-Path $repoRoot ".venv/Scripts/python.exe"
     $pythonExe = if (Test-Path $venvPython) { $venvPython } else { "python" }
 
-    $initSqlScript = Join-Path $env:TEMP "init_age_${ServerName}.py"
-    @"
-import os
-import psycopg
 
-conn = psycopg.connect(
-    host=os.environ['PGHOST'],
-    port=int(os.environ.get('PGPORT', '5432')),
-    dbname=os.environ.get('PGDATABASE', 'postgres'),
-    user=os.environ['PGUSER'],
-    password=os.environ['PGPASSWORD'],
-    sslmode='require'
-)
-conn.autocommit = True
-with conn.cursor() as cur:
-    cur.execute("CREATE EXTENSION IF NOT EXISTS AGE CASCADE;")
-    cur.execute("ALTER DATABASE postgres SET search_path = ag_catalog, \"$user\", public;")
-conn.close()
-"@ | Set-Content -Path $initSqlScript -Encoding UTF8
+
+    # Reset the PostgreSQL admin password via Azure CLI to ensure it matches
+    # the stored POSTGRESQL_ADMIN_PASSWORD value.  This is necessary because
+    # on the first run azd prompts for the @secure() parameter *before* the
+    # preprovision hook generates the password, so the server may have been
+    # created with the user-entered (vault) value while the env holds a
+    # different generated value.
+    Write-Host "Resetting PostgreSQL admin password to match stored environment value..."
+    Invoke-NativeCommand {
+        az postgres flexible-server update `
+            --resource-group $ResourceGroup `
+            --name $ServerName `
+            --admin-password "$AdminPassword" `
+            --output none 2>&1 | Out-Null
+    }
+    Wait-PostgresqlReady -ResourceGroup $ResourceGroup -ServerName $ServerName
 
     Write-Host "Preparing PostgreSQL connection for AGE initialization..."
     $env:PGHOST = $ServerFqdn
@@ -226,56 +369,163 @@ conn.close()
     $env:PGPASSWORD = $AdminPassword
     $env:PGSSLMODE = "require"
     Invoke-WithRetry -Operation "AGE extension initialization" -Action {
-        & $pythonExe $initSqlScript
+        & $pythonExe $testConnectionScript
         if ($LASTEXITCODE -ne 0) {
             throw "Init SQL script exited with code $LASTEXITCODE"
         }
     } -MaxAttempts 15 -DelaySeconds 12
 
-    if (-not (Test-Path $loaderScript)) {
-        throw "Data loader script not found: $loaderScript"
+    if (-not (Test-Path $customerGraphLoaderScript)) {
+        throw "Data loader script not found: $customerGraphLoaderScript"
+    }
+
+    if (-not (Test-Path $meetingsGraphLoaderScript)) {
+        throw "Data loader script not found: $meetingsGraphLoaderScript"
     }
 
     if (-not (Test-Path $dataDir)) {
         throw "Data directory not found: $dataDir"
     }
 
-    Write-Host "Loading graph data into PostgreSQL AGE..."
+    Write-Host "Loading customer graph data into PostgreSQL AGE..."
     Invoke-WithRetry -Operation "Graph data load" -Action {
         $env:GRAPH_NAME = $effectiveGraphName
         $env:DATA_DIR = $dataDir
-        & $pythonExe $loaderScript
+        & $pythonExe $customerGraphLoaderScript
         if ($LASTEXITCODE -ne 0) {
             throw "Graph data load exited with code $LASTEXITCODE"
         }
     } -MaxAttempts 3 -DelaySeconds 20
 
-    Remove-Item -Path $initSqlScript -ErrorAction SilentlyContinue
-}
 
-function Invoke-ProvisionPhase {
-    param(
-        [string]$PhaseName,
-        [string]$DeployMcp,
-        [string]$DeployFastApi,
-        [string]$DeployWebapp
-    )
+    Write-Host "Loading meetings graph data into PostgreSQL AGE..."
+    Invoke-WithRetry -Operation "Graph data load" -Action {
+        $env:GRAPH_NAME = $effectiveGraphName
+        $env:DATA_DIR = $dataDir
+        & $pythonExe $meetingsGraphLoaderScript
+        if ($LASTEXITCODE -ne 0) {
+            throw "Graph data load exited with code $LASTEXITCODE"
+        }
+    } -MaxAttempts 3 -DelaySeconds 20
 
-    Write-Host "=========================================="
-    Write-Host "Provision phase: $PhaseName"
-    Write-Host "=========================================="
+    if (Test-Path $cgindexScript) {
+        Write-Host "Building customer graph indexes..."
+        Invoke-WithRetry -Operation "Graph index build" -Action {
+            $env:GRAPH_NAME = $effectiveGraphName
+            & $pythonExe $cgindexScript
+            if ($LASTEXITCODE -ne 0) {
+                throw "Graph index build exited with code $LASTEXITCODE"
+            }
+        } -MaxAttempts 3 -DelaySeconds 20
+    } else {
+        Write-Host "Index build script not found at $cgindexScript, skipping index creation."
+    }
 
-    Set-AzdEnvValue -Name "deployContainerApp" -Value "false"
-    Set-AzdEnvValue -Name "deployContainerAppsEnv" -Value "true"
-    Set-AzdEnvValue -Name "deployMcpServerContainerApp" -Value $DeployMcp
-    Set-AzdEnvValue -Name "deployFastApiContainerApp" -Value $DeployFastApi
-    Set-AzdEnvValue -Name "deployWebappContainerApp" -Value $DeployWebapp
-
-    cmd /c "azd provision --no-prompt 2>&1"
-    if ($LASTEXITCODE -ne 0) {
-        throw "Provision phase '$PhaseName' failed."
+    if (Test-Path $mgindexScript) {
+        Write-Host "Building meetings graph indexes..."
+        Invoke-WithRetry -Operation "Graph index build" -Action {
+            $env:GRAPH_NAME = $effectiveGraphName
+            & $pythonExe $mgindexScript
+            if ($LASTEXITCODE -ne 0) {
+                throw "Graph index build exited with code $LASTEXITCODE"
+            }
+        } -MaxAttempts 3 -DelaySeconds 20
+    } else {
+        Write-Host "Index build script not found at $mgindexScript, skipping index creation."
     }
 }
+
+# Deploy all container apps using az deployment group create directly.
+# This bypasses azd entirely, avoiding env file locking and TUI output issues.
+# All images must be built BEFORE this runs.
+function Invoke-ContainerAppsDeploy {
+    param(
+        [string]$ResourceGroup,
+        [string]$PostgresqlAdminPassword
+    )
+
+    Write-Host ""
+    Write-Host "=========================================="
+    Write-Host "DEPLOY PHASE: Deploying all container apps"
+    Write-Host "=========================================="
+
+    $infraDir = Resolve-Path (Join-Path $PSScriptRoot "..\infra")
+    $templateFile = Join-Path $infraDir "main.bicep"
+    $parametersFile = Join-Path $infraDir "main.parameters.json"
+
+    if (-not (Test-Path $templateFile)) {
+        throw "Bicep template not found: $templateFile"
+    }
+    if (-not (Test-Path $parametersFile)) {
+        throw "Parameters file not found: $parametersFile"
+    }
+
+    # Read the client IP from azd env (set by preprovision)
+    $clientIp = Get-AzdEnvValue "CLIENT_IP_ADDRESS"
+    if ([string]::IsNullOrEmpty($clientIp)) { $clientIp = "0.0.0.0" }
+
+    Write-Host "  Resource Group:   $ResourceGroup"
+    Write-Host "  Template:         $templateFile"
+    Write-Host "  Deploy flags:     MCP=true, FastAPI=true, Webapp=true"
+    Write-Host ""
+
+    # Create a resolved parameters file that replaces ${...} azd-interpolation
+    # tokens with actual values and sets all container deploy flags to true.
+    # We read the original parameters JSON, fix the azd-specific tokens,
+    # then write a temporary file for az deployment group create.
+    $paramsJson = Get-Content $parametersFile -Raw | ConvertFrom-Json
+    $paramsJson.parameters.postgresqlAdminPassword.value = $PostgresqlAdminPassword
+    $paramsJson.parameters.clientIpAddress.value = $clientIp
+    $paramsJson.parameters.deployContainerApp.value = $false
+    $paramsJson.parameters.deployContainerAppsEnv.value = $true
+    $paramsJson.parameters.deployMcpServerContainerApp.value = $true
+    $paramsJson.parameters.deployFastApiContainerApp.value = $true
+    $paramsJson.parameters.deployWebappContainerApp.value = $true
+
+    $resolvedParamsFile = Join-Path $env:TEMP "azd-deploy-params-resolved.json"
+    $paramsJson | ConvertTo-Json -Depth 10 | Set-Content -Path $resolvedParamsFile -Encoding UTF8
+    Write-Host "  Resolved parameters written to: $resolvedParamsFile"
+
+    # Run az deployment group create with the Bicep template and resolved parameters.
+    # Use the piped ForEach-Object pattern (same as ACR builds) so az sees a pipe
+    # instead of a console — avoids cp1252 Unicode crashes in colorama.
+    # --verbose shows per-resource progress lines instead of silent waiting.
+    # --output none suppresses the huge JSON blob at the end.
+    Write-Host "  Starting ARM deployment (this may take several minutes)..."
+    Write-Host ""
+    $azArgs = @("deployment", "group", "create",
+                "--resource-group", $ResourceGroup,
+                "--template-file", $templateFile,
+                "--parameters", "@$resolvedParamsFile",
+                "--name", "postprovision-containers",
+                "--no-prompt", "--verbose", "--output", "none")
+    $savedEAP = $ErrorActionPreference
+    $ErrorActionPreference = "Continue"
+    try {
+        & az @azArgs 2>&1 | ForEach-Object { "$_" }
+    } finally {
+        $ErrorActionPreference = $savedEAP
+    }
+    $deployExitCode = $LASTEXITCODE
+
+    # Clean up temp file
+    if (Test-Path $resolvedParamsFile) {
+        Remove-Item $resolvedParamsFile -Force -ErrorAction SilentlyContinue
+    }
+
+    if ($deployExitCode -ne 0) {
+        Write-Host ""
+        Write-Host "ERROR: Container app deployment failed (exit code $deployExitCode)." -ForegroundColor Red
+        throw "Container app deployment failed (exit code $deployExitCode)."
+    }
+
+    Write-Host ""
+    Write-Host "  Container app deployment completed successfully."
+}
+
+# ============================================================
+# MAIN EXECUTION
+# ============================================================
 
 $acrName = Get-AzdEnvValue "acrName"
 $acrLoginServer = Get-AzdEnvValue "acrLoginServer"
@@ -294,6 +544,7 @@ $postgresqlServerFqdn = Get-AzdEnvValue "postgresqlServerFqdn"
 $postgresqlAdminLogin = Get-AzdEnvValue "postgresqlAdminLogin"
 $postgresqlAdminPassword = Get-AzdEnvValue "POSTGRESQL_ADMIN_PASSWORD"
 $graphName = Get-AzdEnvValue "graphName"
+$initializePostgresqlAge = Get-AzdEnvValue "initializePostgresqlAge"
 
 if ([string]::IsNullOrEmpty($acrName)) {
     Write-Host "ACR not deployed, skipping container builds"
@@ -309,37 +560,54 @@ $env:PYTHONUTF8 = "1"
 $env:AZURE_CORE_NO_COLOR = "1"
 chcp 65001 | Out-Null
 
-if (-not [string]::IsNullOrEmpty($postgresqlServerName)) {
+# ---- PHASE 0: PostgreSQL AGE initialization (flag-gated) ----
+if (-not [string]::IsNullOrEmpty($postgresqlServerName) -and $initializePostgresqlAge -ne "false") {
     Wait-PostgresqlReady -ResourceGroup $resourceGroup -ServerName $postgresqlServerName
     Initialize-PostgresqlAgeAndData -ResourceGroup $resourceGroup -ServerName $postgresqlServerName -AdminUser $postgresqlAdminLogin -AdminPassword $postgresqlAdminPassword -ServerFqdn $postgresqlServerFqdn -GraphName $graphName
+    Set-AzdEnvValue -Name "initializePostgresqlAge" -Value "false"
+    Write-Host "PostgreSQL AGE initialization complete. Set initializePostgresqlAge=false to skip on next run."
+} else {
+    if ($initializePostgresqlAge -eq "false") {
+        Write-Host "Skipping PostgreSQL AGE initialization (initializePostgresqlAge=false)."
+    } elseif ([string]::IsNullOrEmpty($postgresqlServerName)) {
+        Write-Host "Skipping PostgreSQL AGE initialization (no server name)."
+    }
 }
+
+# ---- BUILD PHASE: Build all container images ----
+Write-Host "=========================================="
+Write-Host "Building container images..."
+Write-Host "=========================================="
 
 if ($buildMcpServerContainer -ne "false") {
     $mcpServerFullPath = Resolve-Path (Join-Path $scriptDir $McpServerPath)
+    Write-Host "Checking if MCP Server container needs building..."
     $mcpBuildCheck = Test-BuildNeeded -FolderPath $mcpServerFullPath -HashEnvVarName "mcpServerFolderHash"
     if ($mcpBuildCheck.Needed) {
         Invoke-AcrBuild -RegistryName $acrName -SourcePath $mcpServerFullPath -ImageName $mcpServerImageName -ImageTag $mcpServerImageTag -Label "mcp-server"
         Save-FolderHash -HashEnvVarName "mcpServerFolderHash" -Hash $mcpBuildCheck.Hash
         Write-Host "MCP Server container built: $acrLoginServer/${mcpServerImageName}:${mcpServerImageTag}"
+    } else {
+        Write-Host "MCP Server container is up-to-date, skipping build."
     }
 }
 
-Invoke-ProvisionPhase -PhaseName "MCP Server" -DeployMcp "true" -DeployFastApi "false" -DeployWebapp "false"
-
 if ($buildFastApiContainer -ne "false") {
     $fastApiFullPath = Resolve-Path (Join-Path $scriptDir $FastApiPath)
+    Write-Host "Checking if FastAPI container needs building..."
     $fastApiBuildCheck = Test-BuildNeeded -FolderPath $fastApiFullPath -HashEnvVarName "fastApiFolderHash"
     if ($fastApiBuildCheck.Needed) {
         Invoke-AcrBuild -RegistryName $acrName -SourcePath $fastApiFullPath -ImageName $fastApiImageName -ImageTag $fastApiImageTag -Label "fastapi"
         Save-FolderHash -HashEnvVarName "fastApiFolderHash" -Hash $fastApiBuildCheck.Hash
         Write-Host "FastAPI container built: $acrLoginServer/${fastApiImageName}:${fastApiImageTag}"
+    } else {
+        Write-Host "FastAPI container is up-to-date, skipping build."
     }
 }
 
-Invoke-ProvisionPhase -PhaseName "FastAPI Backend" -DeployMcp "true" -DeployFastApi "true" -DeployWebapp "false"
-
 if ($buildWebappContainer -ne "false") {
     $webappFullPath = Resolve-Path (Join-Path $scriptDir $WebappPath)
+    Write-Host "Checking if Webapp container needs building..."
     $webappBuildCheck = Test-BuildNeeded -FolderPath $webappFullPath -HashEnvVarName "webappFolderHash"
     if ($webappBuildCheck.Needed) {
         $fastApiFqdn = Get-AzdEnvValue "fastApiContainerAppFqdn"
@@ -351,11 +619,24 @@ if ($buildWebappContainer -ne "false") {
         Invoke-AcrBuild -RegistryName $acrName -SourcePath $webappFullPath -ImageName $webappImageName -ImageTag $webappImageTag -Label "webapp" -BuildArgs $buildArgs
         Save-FolderHash -HashEnvVarName "webappFolderHash" -Hash $webappBuildCheck.Hash
         Write-Host "Webapp container built: $acrLoginServer/${webappImageName}:${webappImageTag}"
+    } else {
+        Write-Host "Webapp container is up-to-date, skipping build."
     }
 }
 
-Invoke-ProvisionPhase -PhaseName "Webapp" -DeployMcp "true" -DeployFastApi "true" -DeployWebapp "true"
+# ---- DEPLOY PHASE: Single ARM deployment to deploy all container apps ----
+Invoke-ContainerAppsDeploy -ResourceGroup $resourceGroup -PostgresqlAdminPassword $postgresqlAdminPassword
 
 Write-Host "=========================================="
 Write-Host "Post-provision completed successfully."
 Write-Host "=========================================="
+
+# ---- Display webapp URL if available ----
+$webappFqdn = Get-AzdEnvValue "webappContainerAppFqdn"
+if (-not [string]::IsNullOrEmpty($webappFqdn)) {
+    Write-Host ""
+    Write-Host "=========================================="
+    Write-Host "  Webapp URL: https://$webappFqdn" -ForegroundColor Green
+    Write-Host "=========================================="
+    Write-Host ""
+}
