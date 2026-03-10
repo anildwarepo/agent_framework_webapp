@@ -563,7 +563,13 @@ chcp 65001 | Out-Null
 # ---- PHASE 0: PostgreSQL AGE initialization (flag-gated) ----
 if (-not [string]::IsNullOrEmpty($postgresqlServerName) -and $initializePostgresqlAge -ne "false") {
     Wait-PostgresqlReady -ResourceGroup $resourceGroup -ServerName $postgresqlServerName
+    # Open PostgreSQL firewall so the deployer's machine can connect.
+    # The private endpoint blocks public access when no firewall rules exist.
+    Ensure-PostgresqlAllowAllIps -ResourceGroup $resourceGroup -ServerName $postgresqlServerName
     Initialize-PostgresqlAgeAndData -ResourceGroup $resourceGroup -ServerName $postgresqlServerName -AdminUser $postgresqlAdminLogin -AdminPassword $postgresqlAdminPassword -ServerFqdn $postgresqlServerFqdn -GraphName $graphName
+    # Remove the broad firewall rule now that initialization is complete.
+    Write-Host "Removing temporary firewall rule..."
+    Invoke-NativeCommand { az postgres flexible-server firewall-rule delete --resource-group $resourceGroup --name $postgresqlServerName --rule-name "AllowAllIps" --yes 2>&1 | Out-Null }
     Set-AzdEnvValue -Name "initializePostgresqlAge" -Value "false"
     Write-Host "PostgreSQL AGE initialization complete. Set initializePostgresqlAge=false to skip on next run."
 } else {

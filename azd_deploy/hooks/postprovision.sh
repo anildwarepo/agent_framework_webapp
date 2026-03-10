@@ -415,7 +415,17 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 # ---- PHASE 0: PostgreSQL AGE initialization (flag-gated) ----
 if [ -n "$postgres_server_name" ] && [ "$initialize_pg_age" != "false" ]; then
   wait_postgres_ready "$resource_group" "$postgres_server_name"
+  # Open PostgreSQL firewall so the deployer's machine can connect.
+  # The private endpoint blocks public access when no firewall rules exist.
+  ensure_postgres_allow_all_ips "$resource_group" "$postgres_server_name"
   initialize_postgres_age_and_data "$resource_group" "$postgres_server_name" "$postgres_admin_user" "$postgres_admin_password" "$postgres_server_fqdn" "$graph_name"
+  # Remove the broad firewall rule now that initialization is complete.
+  echo "Removing temporary firewall rule..."
+  az postgres flexible-server firewall-rule delete \
+    --resource-group "$resource_group" \
+    --name "$postgres_server_name" \
+    --rule-name "AllowAllIps" \
+    --yes >/dev/null 2>&1 || true
   set_azd_env "initializePostgresqlAge" "false"
   echo "PostgreSQL AGE initialization complete. Set initializePostgresqlAge=false to skip on next run."
 else

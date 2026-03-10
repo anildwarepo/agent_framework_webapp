@@ -26,11 +26,24 @@ fi
 # postprovision hook can read it via 'azd env get-value'.
 existing_password="$(azd env get-value POSTGRESQL_ADMIN_PASSWORD 2>/dev/null || echo "")"
 if [ -z "$existing_password" ]; then
-    echo "Generating PostgreSQL admin password..."
-    # Use shell-safe characters only (no ! @ # $ % ^ & * etc.)
-    password="$(cat /dev/urandom | LC_ALL=C tr -dc 'A-Za-z0-9._~-' | head -c 16)"
+    # Try to read PGPASSWORD from the local postgresql_age/.env file first.
+    script_dir="$(cd "$(dirname "$0")" && pwd)"
+    local_env_file="$script_dir/../../postgresql_age/.env"
+    env_password=""
+    if [ -f "$local_env_file" ]; then
+        env_password="$(grep -m1 '^PGPASSWORD=' "$local_env_file" | cut -d= -f2- | tr -d '\r')"
+    fi
+
+    if [ -n "$env_password" ]; then
+        echo "Using PGPASSWORD from postgresql_age/.env"
+        password="$env_password"
+    else
+        echo "Generating PostgreSQL admin password..."
+        # Use shell-safe characters only (no ! @ # $ % ^ & * etc.)
+        password="$(cat /dev/urandom | LC_ALL=C tr -dc 'A-Za-z0-9._~-' | head -c 16)"
+    fi
     azd env set POSTGRESQL_ADMIN_PASSWORD "$password"
-    echo "POSTGRESQL_ADMIN_PASSWORD has been generated and set."
+    echo "POSTGRESQL_ADMIN_PASSWORD has been set."
 else
     echo "POSTGRESQL_ADMIN_PASSWORD is already set."
 fi

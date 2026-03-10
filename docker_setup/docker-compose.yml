@@ -2,6 +2,7 @@ services:
   pg-age:
     image: apache/age:latest
     container_name: pg-age
+    command: ["postgres", "-c", "max_locks_per_transaction=256", "-c", "shared_buffers=256MB"]
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
@@ -47,7 +48,6 @@ services:
       context: ../mcp_server
       dockerfile: Dockerfile
     container_name: af-mcp-server
-    command: ["uvicorn", "mcp_fastapi_server:app", "--host", "0.0.0.0", "--port", "3000"]
     env_file:
       - ./.env.docker
     environment:
@@ -66,7 +66,7 @@ services:
       pg-init:
         condition: service_completed_successfully
     ports:
-      - "3000:3000"
+      - "3000:3002"
     restart: unless-stopped
     networks:
       - agent-net
@@ -80,7 +80,7 @@ services:
       - ./.env.docker
     environment:
       PYTHONUNBUFFERED: "1"
-      MCP_ENDPOINT: http://mcp-server:3000/mcp
+      MCP_ENDPOINT: http://mcp-server:3002/mcp
       PGHOST: ${PGHOST:-pg-age}
       PGPORT: ${PGPORT:-5432}
       PGUSER: ${PGUSER:-postgres}
