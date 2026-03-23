@@ -41,8 +41,11 @@ dependencies = [
     # MCP tools
     "mcp[cli]",
 
-    "openai"
+    "openai",
 
+    # Pin opentelemetry-semantic-conventions-ai to <0.5 — v0.5 removed
+    # SpanAttributes.LLM_REQUEST_MODEL which agent-framework 1.0.0b251108 uses.
+    "opentelemetry-semantic-conventions-ai>=0.4.1,<0.5.0",
 ]
 
 # Safer to omit prereleases globally. Remove this block, or set to disallow.

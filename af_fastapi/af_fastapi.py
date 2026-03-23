@@ -173,8 +173,8 @@ async def health():
 async def get_faqs(graph_name: str) -> dict:
     faq_files = {
         "customer_graph": "customer_graph_faqs.txt",
-        "meeting_graph": "meetings_graph_faqs.txt",
         "meetings_graph": "meetings_graph_faqs.txt",
+        "meetings_graph_v2": "meetings_graph_v2_faqs.txt",
     }
     selected_file = faq_files.get(graph_name)
     if not selected_file:
@@ -193,6 +193,7 @@ async def get_faqs(graph_name: str) -> dict:
 class ConversationIn(BaseModel):
     user_query: str
     graph_name: str
+    model_name: str = ""
     #client_id: str
 
 
@@ -244,7 +245,7 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
     if orchestration_mode == "magentic":
         workflow = MagenticWorkflow()
     elif orchestration_mode == "graph":
-        workflow = GraphWorkflow(normalized_graph_name)
+        workflow = GraphWorkflow(normalized_graph_name, model_name=convo.model_name or None)
     elif orchestration_mode == "singleagent":
         workflow = SingleAgent()
     else:

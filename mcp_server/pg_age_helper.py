@@ -63,6 +63,7 @@ class PGAgeHelper:
                         )
             
             # Set search path for this session
+            await cur.execute("LOAD 'age';")
             await cur.execute('SET search_path = ag_catalog, "$user", public;')
             
             # Try to set search path for the database (requires permissions)
@@ -141,7 +142,8 @@ class PGAgeHelper:
                 await self._ensure_connected()
                 
                 async with self._conn.cursor() as cur:
-                    # Ensure search path includes ag_catalog for AGE functions
+                    # Ensure AGE library is loaded and search path includes ag_catalog
+                    await cur.execute("LOAD 'age';")
                     await cur.execute('SET search_path = ag_catalog, "$user", public;')
                     await cur.execute(query)
                     rows = await cur.fetchall()

@@ -33,7 +33,8 @@ services:
       PGPASSWORD: ${PGPASSWORD:-postgres}
       PGDATABASE: ${PGDATABASE:-appdb}
       PGSSLMODE: ${PGSSLMODE:-disable}
-      GRAPH_NAME: ${GRAPH_NAME:-customer_graph}
+      GRAPH_NAME: ${GRAPH_NAME:-}
+      GRAPH_DATA_FILE: ${GRAPH_DATA_FILE:-}
       DATA_DIR: /app/data
       PYTHONUNBUFFERED: "1"
     depends_on:
@@ -58,8 +59,8 @@ services:
       PGPASSWORD: ${PGPASSWORD:-postgres}
       PGDATABASE: ${PGDATABASE:-appdb}
       PGSSLMODE: ${PGSSLMODE:-disable}
-      GRAPH: ${GRAPH_NAME:-customer_graph}
-      GRAPH_NAME: ${GRAPH_NAME:-customer_graph}
+      GRAPH: ${GRAPH_NAME:-meetings_graph_v2}
+      GRAPH_NAME: ${GRAPH_NAME:-meetings_graph_v2}
     depends_on:
       pg-age:
         condition: service_healthy

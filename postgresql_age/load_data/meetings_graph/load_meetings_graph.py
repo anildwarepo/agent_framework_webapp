@@ -23,7 +23,7 @@ DSN = dict(
     connect_timeout=30,
 )
 
-GRAPH = "meetings_graph"
+GRAPH = os.getenv("GRAPH_NAME", os.getenv("GRAPH", "meetings_graph_v2"))
 CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "10000"))
 PARALLEL_EDGES = int(os.getenv("PARALLEL_EDGES", "10"))
 
@@ -32,7 +32,7 @@ DATA_DIR = os.getenv("DATA_DIR", "../data")
 
 GRAPH_DATA_FILE = os.getenv(
     "GRAPH_DATA_FILE",
-    os.path.join(DATA_DIR, "meetings-graph.json"),
+    os.path.join(DATA_DIR, "meetings_graph_v2.json"),
 )
 
 _VALID_LABEL_RE = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")

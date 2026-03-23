@@ -8,16 +8,26 @@ set -euo pipefail
 
 MAX_RETRIES=${PG_INIT_MAX_RETRIES:-30}
 RETRY_DELAY=${PG_INIT_RETRY_DELAY:-5}
+GRAPH_NAME=${GRAPH_NAME:-customer_graph}
+DATA_DIR=${DATA_DIR:-/app/data}
+
+# If GRAPH_DATA_FILE is set but not an absolute path, prepend DATA_DIR.
+if [ -n "${GRAPH_DATA_FILE:-}" ] && [ "${GRAPH_DATA_FILE#/}" = "${GRAPH_DATA_FILE}" ]; then
+    GRAPH_DATA_FILE="${DATA_DIR}/${GRAPH_DATA_FILE}"
+fi
+export GRAPH_DATA_FILE=${GRAPH_DATA_FILE:-}
 
 echo "=========================================="
 echo "pg-init: PostgreSQL AGE initialization"
 echo "=========================================="
-echo "  PGHOST     = ${PGHOST:-localhost}"
-echo "  PGPORT     = ${PGPORT:-5432}"
-echo "  PGDATABASE = ${PGDATABASE:-postgres}"
-echo "  PGUSER     = ${PGUSER:-postgres}"
-echo "  PGSSLMODE  = ${PGSSLMODE:-disable}"
-echo "  DATA_DIR   = ${DATA_DIR:-/app/data}"
+echo "  PGHOST          = ${PGHOST:-localhost}"
+echo "  PGPORT          = ${PGPORT:-5432}"
+echo "  PGDATABASE      = ${PGDATABASE:-postgres}"
+echo "  PGUSER          = ${PGUSER:-postgres}"
+echo "  PGSSLMODE       = ${PGSSLMODE:-disable}"
+echo "  GRAPH_NAME      = ${GRAPH_NAME}"
+echo "  DATA_DIR        = ${DATA_DIR}"
+echo "  GRAPH_DATA_FILE = ${GRAPH_DATA_FILE:-<default per loader>}"
 echo ""
 
 # ── 1. Wait for PostgreSQL to accept connections ──────────────
@@ -35,13 +45,13 @@ done
 echo "  PostgreSQL is ready."
 
 # ── Check if data is already loaded (idempotent) ─────────────
-# If the customer_graph schema already exists with tables, skip all loading.
+# If the graph named $GRAPH_NAME already exists, skip all loading.
 GRAPH_EXISTS=$(PGPASSWORD="${PGPASSWORD}" psql -h "${PGHOST:-localhost}" -p "${PGPORT:-5432}" -U "${PGUSER:-postgres}" -d "${PGDATABASE:-appdb}" -tAc \
-  "SELECT count(*) FROM ag_catalog.ag_graph WHERE name='customer_graph';" 2>/dev/null || echo "0")
+  "SELECT count(*) FROM ag_catalog.ag_graph WHERE name='${GRAPH_NAME}';" 2>/dev/null || echo "0")
 
 if [ "$GRAPH_EXISTS" = "1" ]; then
     echo ""
-    echo "Graph data already loaded (customer_graph exists). Skipping initialization."
+    echo "Graph '${GRAPH_NAME}' already loaded. Skipping initialization."
     echo "To force reload, remove the pg_age_data volume and restart."
     echo ""
     echo "=========================================="

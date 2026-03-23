@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 820" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f0f4ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8eeff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="orchGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366f1;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="genGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="valGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f59e0b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#d97706;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="mcpGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#ef4444;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#dc2626;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="userGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+    </linearGradient>
+    <marker id="arrowRed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#dc2626"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#059669"/>
+    </marker>
+    <marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowOrange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#d97706"/>
+    </marker>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#00000022"/>
+    </filter>
+    <filter id="shadowLight" x="-3%" y="-3%" width="108%" height="108%">
+      <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="#00000015"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="960" height="820" rx="12" fill="url(#bgGrad)"/>
+
+  <!-- Title -->
+  <text x="480" y="38" text-anchor="middle" font-size="22" font-weight="700" fill="#1e293b">Magentic-One Orchestration — Graph Query Workflow</text>
+  <text x="480" y="58" text-anchor="middle" font-size="13" fill="#64748b">graph_implementation_generic_ontology.py  •  MagenticBuilder + Standard Manager</text>
+
+  <!-- ==================== USER ==================== -->
+  <rect x="380" y="80" width="200" height="56" rx="28" fill="url(#userGrad)" filter="url(#shadow)"/>
+  <text x="480" y="106" text-anchor="middle" font-size="14" font-weight="600" fill="#fff">👤 User</text>
+  <text x="480" y="124" text-anchor="middle" font-size="10" fill="#dbeafe">Chat Message</text>
+
+  <!-- ==================== ORCHESTRATOR ==================== -->
+  <rect x="290" y="195" width="380" height="140" rx="14" fill="url(#orchGrad)" filter="url(#shadow)"/>
+  <text x="480" y="224" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">🎯 Orchestrator (Standard Manager)</text>
+  <text x="480" y="244" text-anchor="middle" font-size="11" fill="#c7d2fe">MagenticBuilder — Task Ledger Loop</text>
+  <line x1="315" y1="254" x2="645" y2="254" stroke="#818cf8" stroke-width="0.5"/>
+  <text x="480" y="272" text-anchor="middle" font-size="10.5" fill="#e0e7ff">Step 0: Intent Classification (conversational vs graph)</text>
+  <text x="480" y="290" text-anchor="middle" font-size="10.5" fill="#e0e7ff">Step 1: Delegate → Generator  |  Step 2: Extract SQL → Validator</text>
+  <text x="480" y="308" text-anchor="middle" font-size="10.5" fill="#e0e7ff">Step 3: Compose Final Answer from EXECUTION_RESULT</text>
+
+  <!-- ==================== GENERATOR ==================== -->
+  <rect x="50" y="435" width="330" height="130" rx="14" fill="url(#genGrad)" filter="url(#shadow)"/>
+  <text x="215" y="465" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">📝 Graph Query Generator</text>
+  <text x="215" y="485" text-anchor="middle" font-size="10" fill="#d1fae5">graph_query_generator_agent</text>
+  <line x1="75" y1="495" x2="355" y2="495" stroke="#34d399" stroke-width="0.5"/>
+  <text x="215" y="514" text-anchor="middle" font-size="10.5" fill="#ecfdf5">Step A: Raw Sample Discovery via MCP</text>
+  <text x="215" y="532" text-anchor="middle" font-size="10.5" fill="#ecfdf5">Step B: Anchor Probe via MCP</text>
+  <text x="215" y="550" text-anchor="middle" font-size="10.5" fill="#ecfdf5">Output: IDENTIFIED_NODES → EDGES → FINAL_SQL</text>
+
+  <!-- ==================== VALIDATOR ==================== -->
+  <rect x="580" y="435" width="330" height="130" rx="14" fill="url(#valGrad)" filter="url(#shadow)"/>
+  <text x="745" y="465" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">✅ Graph Query Validator</text>
+  <text x="745" y="485" text-anchor="middle" font-size="10" fill="#fef3c7">graph_query_validator</text>
+  <line x1="605" y1="495" x2="885" y2="495" stroke="#fbbf24" stroke-width="0.5"/>
+  <text x="745" y="514" text-anchor="middle" font-size="10.5" fill="#fffbeb">Preflight: Verify Property Paths via MCP</text>
+  <text x="745" y="532" text-anchor="middle" font-size="10.5" fill="#fffbeb">Rewrite AGE Incompatibilities</text>
+  <text x="745" y="550" text-anchor="middle" font-size="10.5" fill="#fffbeb">Output: STATUS / CORRECTIONS / EXECUTION_RESULT</text>
+
+  <!-- ==================== MCP SERVER ==================== -->
+  <rect x="330" y="650" width="300" height="80" rx="14" fill="url(#mcpGrad)" filter="url(#shadow)"/>
+  <text x="480" y="680" text-anchor="middle" font-size="15" font-weight="700" fill="#fff">🔧 MCP Server</text>
+  <text x="480" y="700" text-anchor="middle" font-size="10.5" fill="#fecaca">MCPStreamableHTTPTool — AGE Graph Database</text>
+  <text x="480" y="718" text-anchor="middle" font-size="10.5" fill="#fecaca">Tool: query_using_sql_cypher</text>
+
+  <!-- ==================== ARROWS ==================== -->
+
+  <!-- ① User → Orchestrator -->
+  <line x1="480" y1="136" x2="480" y2="193" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <rect x="490" y="150" width="100" height="20" rx="5" fill="#eff6ff" stroke="#bfdbfe" stroke-width="0.5"/>
+  <text x="540" y="164" text-anchor="middle" font-size="10" font-weight="600" fill="#1d4ed8">① Question</text>
+
+  <!-- ② Orchestrator → Generator (delegate) -->
+  <path d="M 370 335 C 330 380, 280 400, 250 433" fill="none" stroke="#059669" stroke-width="2.5" stroke-dasharray="7,3" marker-end="url(#arrowGreen)"/>
+  <rect x="220" y="368" width="160" height="34" rx="6" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.5" filter="url(#shadowLight)"/>
+  <text x="300" y="383" text-anchor="middle" font-size="10" font-weight="600" fill="#065f46">② Delegate:</text>
+  <text x="300" y="397" text-anchor="middle" font-size="10" fill="#065f46">"Generate Cypher query"</text>
+
+  <!-- ③ Generator → MCP (discovery tool calls) -->
+  <path d="M 215 565 C 250 610, 360 640, 400 648" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <rect x="230" y="600" width="140" height="34" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="0.5" filter="url(#shadowLight)"/>
+  <text x="300" y="615" text-anchor="middle" font-size="10" font-weight="600" fill="#991b1b">③ MCP Tool Calls:</text>
+  <text x="300" y="629" text-anchor="middle" font-size="10" fill="#991b1b">Discovery Queries</text>
+
+  <!-- ③b MCP → Generator (response) -->
+  <path d="M 390 652 C 350 640, 255 615, 220 565" fill="none" stroke="#dc2626" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#arrowRed)"/>
+
+  <!-- ④ Generator → Orchestrator (return FINAL_SQL) -->
+  <path d="M 260 435 C 290 400, 340 370, 385 335" fill="none" stroke="#059669" stroke-width="2.5" marker-end="url(#arrowGreen)"/>
+  <rect x="250" y="340" width="128" height="20" rx="5" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="0.5"/>
+  <text x="314" y="354" text-anchor="middle" font-size="10" fill="#065f46">④ FINAL_SQL</text>
+
+  <!-- ⑤ Orchestrator → Validator (delegate) -->
+  <path d="M 590 335 C 630 380, 680 400, 710 433" fill="none" stroke="#d97706" stroke-width="2.5" stroke-dasharray="7,3" marker-end="url(#arrowOrange)"/>
+  <rect x="590" y="368" width="170" height="34" rx="6" fill="#fffbeb" stroke="#fde68a" stroke-width="0.5" filter="url(#shadowLight)"/>
+  <text x="675" y="383" text-anchor="middle" font-size="10" font-weight="600" fill="#92400e">⑤ Delegate:</text>
+  <text x="675" y="397" text-anchor="middle" font-size="10" fill="#92400e">"Validate + Run FINAL_SQL"</text>
+
+  <!-- ⑥ Validator → MCP (execute) -->
+  <path d="M 745 565 C 710 610, 600 640, 560 648" fill="none" stroke="#dc2626" stroke-width="2" marker-end="url(#arrowRed)"/>
+  <rect x="600" y="600" width="140" height="34" rx="6" fill="#fef2f2" stroke="#fecaca" stroke-width="0.5" filter="url(#shadowLight)"/>
+  <text x="670" y="615" text-anchor="middle" font-size="10" font-weight="600" fill="#991b1b">⑥ MCP Tool Call:</text>
+  <text x="670" y="629" text-anchor="middle" font-size="10" fill="#991b1b">Execute SQL/Cypher</text>
+
+  <!-- ⑥b MCP → Validator (response) -->
+  <path d="M 570 652 C 610 640, 705 615, 740 565" fill="none" stroke="#dc2626" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#arrowRed)"/>
+
+  <!-- ⑦ Validator → Orchestrator (return STATUS + RESULT) -->
+  <path d="M 700 435 C 670 400, 620 370, 575 335" fill="none" stroke="#d97706" stroke-width="2.5" marker-end="url(#arrowOrange)"/>
+  <rect x="575" y="340" width="180" height="20" rx="5" fill="#fffbeb" stroke="#fde68a" stroke-width="0.5"/>
+  <text x="665" y="354" text-anchor="middle" font-size="10" fill="#92400e">⑦ STATUS + EXECUTION_RESULT</text>
+
+  <!-- ⑧ Orchestrator → User (final answer) -->
+  <path d="M 468 195 Q 468 170 468 138" fill="none" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowBlue)"/>
+  <rect x="370" y="150" width="110" height="20" rx="5" fill="#eff6ff" stroke="#bfdbfe" stroke-width="0.5"/>
+  <text x="425" y="164" text-anchor="middle" font-size="10" font-weight="600" fill="#1d4ed8">⑧ Final Answer</text>
+
+  <!-- FAIL loop: Orchestrator → Generator (regenerate) -->
+  <path d="M 340 305 C 220 330, 140 370, 140 433" fill="none" stroke="#dc2626" stroke-width="1.8" stroke-dasharray="5,4" marker-end="url(#arrowRed)"/>
+  <rect x="118" y="360" width="120" height="34" rx="6" fill="#fef2f2" stroke="#fca5a5" stroke-width="0.5" filter="url(#shadowLight)"/>
+  <text x="178" y="375" text-anchor="middle" font-size="10" font-weight="700" fill="#991b1b">↺ FAIL path:</text>
+  <text x="178" y="389" text-anchor="middle" font-size="9" fill="#991b1b">Regenerate once</text>
+
+  <!-- ==================== SEQUENCE LEGEND ==================== -->
+  <rect x="90" y="755" width="780" height="48" rx="10" fill="#fff" stroke="#cbd5e1" stroke-width="1" filter="url(#shadowLight)"/>
+  <text x="480" y="776" text-anchor="middle" font-size="11" fill="#374151">
+    <tspan font-weight="700" fill="#2563eb">①</tspan> User → Orch
+    <tspan dx="10" font-weight="700" fill="#059669">②</tspan> Orch → Gen
+    <tspan dx="10" font-weight="700" fill="#dc2626">③</tspan> Gen ↔ MCP
+    <tspan dx="10" font-weight="700" fill="#059669">④</tspan> Gen → Orch
+    <tspan dx="10" font-weight="700" fill="#d97706">⑤</tspan> Orch → Val
+    <tspan dx="10" font-weight="700" fill="#dc2626">⑥</tspan> Val ↔ MCP
+    <tspan dx="10" font-weight="700" fill="#d97706">⑦</tspan> Val → Orch
+    <tspan dx="10" font-weight="700" fill="#2563eb">⑧</tspan> Orch → User
+  </text>
+  <text x="480" y="795" text-anchor="middle" font-size="10" fill="#6b7280" font-style="italic">On STATUS: FAIL or LOW_CONFIDENCE_ZERO → loop ② – ⑦ once (regenerate)</text>
+</svg>

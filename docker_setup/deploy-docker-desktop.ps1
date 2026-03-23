@@ -36,9 +36,10 @@ $composeBase = @("compose", "--env-file", $envFile, "-f", $composeFile)
 
 switch ($Action) {
     "up" {
-        $args = $composeBase + @("up")
-        if ($Build) { $args += "--build" }
-        if ($Detached) { $args += "-d" }
+        Write-Host "Bringing down existing stack first..."
+        & docker @($composeBase + @("down", "--remove-orphans"))
+
+        $args = $composeBase + @("up", "-d", "--build")
         if ($Service) { $args += $Service }
         & docker @args
         if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

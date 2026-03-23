@@ -106,6 +106,76 @@ function Save-FolderHash {
     Set-AzdEnvValue -Name $HashEnvVarName -Value $Hash
 }
 
+function Test-DockerAvailable {
+    <#
+    .SYNOPSIS
+        Returns $true if Docker Desktop (or any local Docker daemon) is reachable.
+    #>
+    try {
+        $verOutput = & docker version --format '{{.Server.Version}}' 2>&1
+        if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrEmpty($verOutput)) {
+            Write-Host "Docker Desktop detected (server version: $verOutput)"
+            return $true
+        }
+    } catch { }
+    return $false
+}
+
+function Invoke-DockerBuild {
+    <#
+    .SYNOPSIS
+        Build a container image locally with Docker Desktop and push it to ACR.
+    #>
+    param(
+        [string]$RegistryName,
+        [string]$LoginServer,
+        [string]$SourcePath,
+        [string]$ImageName,
+        [string]$ImageTag,
+        [string]$Label,
+        [string[]]$BuildArgs = @()
+    )
+
+    Push-Location $SourcePath
+    try {
+        Write-Host "  Building $Label container locally with Docker Desktop..."
+
+        # Log in to ACR so we can push
+        Write-Host "  Logging into ACR $RegistryName..."
+        Invoke-NativeCommand { az acr login --name $RegistryName 2>&1 | Out-Null }
+
+        $fullTagged = "${LoginServer}/${ImageName}:${ImageTag}"
+        $fullLatest = "${LoginServer}/${ImageName}:latest"
+
+        $dockerArgs = @("build", "-t", $fullTagged, "-t", $fullLatest, "-f", "Dockerfile",
+                        "--provenance=false", "--sbom=false")
+        foreach ($arg in $BuildArgs) {
+            $dockerArgs += "--build-arg"
+            $dockerArgs += $arg
+        }
+        $dockerArgs += "."
+
+        & docker @dockerArgs
+        if ($LASTEXITCODE -ne 0) {
+            throw "Docker build failed for $Label (exit code $LASTEXITCODE)"
+        }
+
+        Write-Host "  Pushing $Label image to $LoginServer..."
+        & docker push $fullTagged
+        if ($LASTEXITCODE -ne 0) {
+            throw "Docker push failed for ${fullTagged} (exit code $LASTEXITCODE)"
+        }
+        & docker push $fullLatest
+        if ($LASTEXITCODE -ne 0) {
+            throw "Docker push failed for ${fullLatest} (exit code $LASTEXITCODE)"
+        }
+
+        Write-Host "  $Label image pushed successfully."
+    } finally {
+        Pop-Location
+    }
+}
+
 function Invoke-AcrBuild {
     param(
         [string]$RegistryName,
@@ -487,26 +557,52 @@ function Invoke-ContainerAppsDeploy {
     Write-Host "  Resolved parameters written to: $resolvedParamsFile"
 
     # Run az deployment group create with the Bicep template and resolved parameters.
-    # Use the piped ForEach-Object pattern (same as ACR builds) so az sees a pipe
-    # instead of a console — avoids cp1252 Unicode crashes in colorama.
-    # --verbose shows per-resource progress lines instead of silent waiting.
-    # --output none suppresses the huge JSON blob at the end.
+    # We use --only-show-errors to suppress verbose/info chatter that can buffer
+    # indefinitely in PS5.1 under azd hook redirection, making the script look hung.
+    # A background job prints a heartbeat so azd's output never goes silent.
     Write-Host "  Starting ARM deployment (this may take several minutes)..."
     Write-Host ""
+
     $azArgs = @("deployment", "group", "create",
                 "--resource-group", $ResourceGroup,
                 "--template-file", $templateFile,
                 "--parameters", "@$resolvedParamsFile",
                 "--name", "postprovision-containers",
-                "--no-prompt", "--verbose", "--output", "none")
-    $savedEAP = $ErrorActionPreference
-    $ErrorActionPreference = "Continue"
-    try {
-        & az @azArgs 2>&1 | ForEach-Object { "$_" }
-    } finally {
-        $ErrorActionPreference = $savedEAP
+                "--no-prompt", "--only-show-errors", "--output", "none")
+
+    # Run az as a background job so the foreground can print heartbeat dots
+    $deployJob = Start-Job -ScriptBlock {
+        param($azArgs)
+        & az @azArgs 2>&1
+        $LASTEXITCODE
+    } -ArgumentList (,$azArgs)
+
+    # Print a dot every 10s while the deployment runs
+    while ($deployJob.State -eq 'Running') {
+        Start-Sleep -Seconds 10
+        Write-Host -NoNewline "."
     }
-    $deployExitCode = $LASTEXITCODE
+    Write-Host ""  # newline after dots
+
+    # Collect output and exit code from the job
+    $jobOutput = Receive-Job -Job $deployJob -ErrorAction SilentlyContinue
+    Remove-Job -Job $deployJob -Force -ErrorAction SilentlyContinue
+
+    # The last line of output is $LASTEXITCODE from inside the job
+    $deployExitCode = 0
+    if ($null -ne $jobOutput -and $jobOutput.Count -gt 0) {
+        $lastLine = $jobOutput[-1]
+        if ($lastLine -match '^\d+$') {
+            $deployExitCode = [int]$lastLine
+            $jobOutput = $jobOutput[0..($jobOutput.Count - 2)]
+        }
+    }
+    # Print any az output (errors, warnings)
+    foreach ($line in $jobOutput) {
+        if (-not [string]::IsNullOrEmpty("$line")) {
+            Write-Host "  $line"
+        }
+    }
 
     # Clean up temp file
     if (Test-Path $resolvedParamsFile) {
@@ -585,12 +681,31 @@ Write-Host "=========================================="
 Write-Host "Building container images..."
 Write-Host "=========================================="
 
+# Determine build strategy: Docker Desktop (local) vs ACR build (remote)
+$useDockerDesktop = $false
+if (Test-DockerAvailable) {
+    $useDockerDesktop = $true
+    Write-Host "Build strategy: Docker Desktop (local build + push to ACR)"
+} else {
+    Write-Host "Docker Desktop is not available."
+    $userChoice = Read-Host "Use ACR remote build instead? (Y/n)"
+    if ($userChoice -match '^[Nn]') {
+        Write-Host "Container build aborted by user."
+        exit 1
+    }
+    Write-Host "Build strategy: ACR remote build"
+}
+
 if ($buildMcpServerContainer -ne "false") {
     $mcpServerFullPath = Resolve-Path (Join-Path $scriptDir $McpServerPath)
     Write-Host "Checking if MCP Server container needs building..."
     $mcpBuildCheck = Test-BuildNeeded -FolderPath $mcpServerFullPath -HashEnvVarName "mcpServerFolderHash"
     if ($mcpBuildCheck.Needed) {
-        Invoke-AcrBuild -RegistryName $acrName -SourcePath $mcpServerFullPath -ImageName $mcpServerImageName -ImageTag $mcpServerImageTag -Label "mcp-server"
+        if ($useDockerDesktop) {
+            Invoke-DockerBuild -RegistryName $acrName -LoginServer $acrLoginServer -SourcePath $mcpServerFullPath -ImageName $mcpServerImageName -ImageTag $mcpServerImageTag -Label "mcp-server"
+        } else {
+            Invoke-AcrBuild -RegistryName $acrName -SourcePath $mcpServerFullPath -ImageName $mcpServerImageName -ImageTag $mcpServerImageTag -Label "mcp-server"
+        }
         Save-FolderHash -HashEnvVarName "mcpServerFolderHash" -Hash $mcpBuildCheck.Hash
         Write-Host "MCP Server container built: $acrLoginServer/${mcpServerImageName}:${mcpServerImageTag}"
     } else {
@@ -603,7 +718,11 @@ if ($buildFastApiContainer -ne "false") {
     Write-Host "Checking if FastAPI container needs building..."
     $fastApiBuildCheck = Test-BuildNeeded -FolderPath $fastApiFullPath -HashEnvVarName "fastApiFolderHash"
     if ($fastApiBuildCheck.Needed) {
-        Invoke-AcrBuild -RegistryName $acrName -SourcePath $fastApiFullPath -ImageName $fastApiImageName -ImageTag $fastApiImageTag -Label "fastapi"
+        if ($useDockerDesktop) {
+            Invoke-DockerBuild -RegistryName $acrName -LoginServer $acrLoginServer -SourcePath $fastApiFullPath -ImageName $fastApiImageName -ImageTag $fastApiImageTag -Label "fastapi"
+        } else {
+            Invoke-AcrBuild -RegistryName $acrName -SourcePath $fastApiFullPath -ImageName $fastApiImageName -ImageTag $fastApiImageTag -Label "fastapi"
+        }
         Save-FolderHash -HashEnvVarName "fastApiFolderHash" -Hash $fastApiBuildCheck.Hash
         Write-Host "FastAPI container built: $acrLoginServer/${fastApiImageName}:${fastApiImageTag}"
     } else {
@@ -622,7 +741,11 @@ if ($buildWebappContainer -ne "false") {
             $buildArgs += "VITE_API_BASE_URL=https://${fastApiFqdn}"
         }
 
-        Invoke-AcrBuild -RegistryName $acrName -SourcePath $webappFullPath -ImageName $webappImageName -ImageTag $webappImageTag -Label "webapp" -BuildArgs $buildArgs
+        if ($useDockerDesktop) {
+            Invoke-DockerBuild -RegistryName $acrName -LoginServer $acrLoginServer -SourcePath $webappFullPath -ImageName $webappImageName -ImageTag $webappImageTag -Label "webapp" -BuildArgs $buildArgs
+        } else {
+            Invoke-AcrBuild -RegistryName $acrName -SourcePath $webappFullPath -ImageName $webappImageName -ImageTag $webappImageTag -Label "webapp" -BuildArgs $buildArgs
+        }
         Save-FolderHash -HashEnvVarName "webappFolderHash" -Hash $webappBuildCheck.Hash
         Write-Host "Webapp container built: $acrLoginServer/${webappImageName}:${webappImageTag}"
     } else {

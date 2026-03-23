@@ -60,9 +60,9 @@ def create_message_store():
 
 
 def _read_instruction_file(file_name: str, graph_name: str) -> str:
-    instructions_path = Path(__file__).resolve().parent / file_name
+    instructions_path = Path(__file__).resolve().parent / "agent_instructions" / file_name
     instructions = instructions_path.read_text(encoding="utf-8-sig")
-    return instructions.replace("{GRAPH_NAME}", graph_name)
+    return instructions.replace("{{GRAPH_NAME}}", graph_name).replace("{GRAPH_NAME}", graph_name)
 
 def _json_default(o):
     # Make dataclasses, Enums, and bytes JSON-serializable
@@ -108,7 +108,7 @@ class LoggingChatMiddleware(ChatMiddleware):
         print("[Chat Class] AI response received")
 
 class GraphWorkflow():
-    def __init__(self, graph_name: str | None = None):
+    def __init__(self, graph_name: str | None = None, model_name: str | None = None):
         # stream state
         self._last_stream_agent_id: Optional[str] = None
         self._stream_line_open: bool = False
@@ -122,6 +122,7 @@ class GraphWorkflow():
         self._response_generator_agent = None           
         self._create_message_store = create_message_store
         self._graph_name = graph_name or GRAPH_NAME
+        self._deployment_name = model_name or AZURE_DEPLOYMENT_NAME
         #self._chat_history: List[ChatMessage] = []
 
 
@@ -152,8 +153,8 @@ class GraphWorkflow():
     def _chat_client_kwargs(self, token, **extra):
         """Build kwargs for AzureOpenAIChatClient depending on auth mode."""
         if _aoai_api_key:
-            return dict(api_key=_aoai_api_key, endpoint=AZURE_OPENAI_ENDPOINT, deployment_name=AZURE_DEPLOYMENT_NAME, **extra)
-        return dict(ad_token=token.token, endpoint=AZURE_OPENAI_ENDPOINT, deployment_name=AZURE_DEPLOYMENT_NAME, **extra)
+            return dict(api_key=_aoai_api_key, endpoint=AZURE_OPENAI_ENDPOINT, deployment_name=self._deployment_name, **extra)
+        return dict(ad_token=token.token, endpoint=AZURE_OPENAI_ENDPOINT, deployment_name=self._deployment_name, **extra)
     
     async def _ensure_clients(self):
         """Create agents and the workflow exactly once (or after token refresh if you choose)."""
@@ -170,7 +171,7 @@ class GraphWorkflow():
             
             # read instructions from files
             
-            graph_query_generator_instructions = _read_instruction_file("CYPHER_QUERY_GENERATION_AGENT_GENERIC.md", self._graph_name)
+            graph_query_generator_instructions = _read_instruction_file("CYPHER_QUERY_GENERATION_AGENT_GENERIC_v1.md", self._graph_name)
 
             self._graph_query_generator_agent = ChatAgent(
                 name="graph query generator agent",
@@ -182,7 +183,7 @@ class GraphWorkflow():
             )
 
 
-            graph_query_validator_instructions = _read_instruction_file("CYPHER_QUERY_VALIDATION_AGENT_GENERIC.md", self._graph_name)
+            graph_query_validator_instructions = _read_instruction_file("CYPHER_QUERY_VALIDATION_AGENT_GENERIC_v1.md", self._graph_name)
 
             self._graph_query_validator_agent = ChatAgent(
                 name="graph_query_validator",
@@ -223,8 +224,8 @@ class GraphWorkflow():
 
             )
 
-            orchestration_manager_instructions = _read_instruction_file("ORCHESTRATION_MANAGER_INSTRUCTIONS.md", self._graph_name)
-            task_ledger_full_prompt = _read_instruction_file("TASK_LEDGER_FULL_PROMPT.md", self._graph_name)
+            orchestration_manager_instructions = _read_instruction_file("ORCHESTRATION_MANAGER_INSTRUCTIONS_v1.md", self._graph_name)
+            task_ledger_full_prompt = _read_instruction_file("TASK_LEDGER_FULL_PROMPT_v1.md", self._graph_name)
 
             logger.info("Building workflow with agents")
             self._workflow = (
@@ -238,14 +239,7 @@ class GraphWorkflow():
                 .with_standard_manager(
                     instructions=orchestration_manager_instructions,
                     task_ledger_full_prompt=task_ledger_full_prompt,
-                    final_answer_prompt=""" 
-                    Based on the EXECUTION_RESULT from graph_query_validator, compose the final answer yourself NOW.
-                    Use all available data: numeric fields (revenue, counts), and array contents.
-                    If arrays show [{{...}}], summarize using the counts and any visible field names.
-                    Format as a clear, structured summary answering the user's question.
-                    Do NOT delegate to any agent — you write this answer directly.
-                    If no results were found, state that no results were found.
-                    """,
+                    final_answer_prompt=_read_instruction_file("FINAL_ANSWER_PROMPT_v1.md", self._graph_name),
                     chat_client=AzureOpenAIChatClient(**self._chat_client_kwargs(token, temperature=0.0)),
                     max_round_count=6,
                     max_stall_count=2,
