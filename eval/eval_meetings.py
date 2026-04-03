@@ -149,6 +149,7 @@ async def run_eval(
     input_path: Path,
     output_path: Path,
     concurrency: int = DEFAULT_CONCURRENCY,
+    count_of_rows: int | None = None,
 ):
     records: list[dict] = []
     with open(input_path, "r", encoding="utf-8") as f:
@@ -156,6 +157,9 @@ async def run_eval(
             line = line.strip()
             if line:
                 records.append(json.loads(line))
+
+    if count_of_rows is not None:
+        records = records[:count_of_rows]
 
     total = len(records)
     print(f"Loaded {total} questions from {input_path}")
@@ -197,6 +201,7 @@ def main():
     parser.add_argument("--input", type=Path, default=INPUT_FILE, help="Input JSONL path")
     parser.add_argument("--output", type=Path, default=None, help="Output CSV path (auto-generated if omitted)")
     parser.add_argument("--concurrency", type=int, default=DEFAULT_CONCURRENCY, help="Max parallel API calls")
+    parser.add_argument("--count-of-rows", type=int, default=None, help="Only evaluate the first N rows")
     args = parser.parse_args()
 
     if args.output is None:
@@ -206,7 +211,7 @@ def main():
         args.output = args.input.parent / f"{stem}_{graph_tag}_{model_tag}_eval.csv"
 
     asyncio.run(
-        run_eval(args.base_url, args.user_id, args.graph_name, args.model_name, args.mode, args.input, args.output, args.concurrency)
+        run_eval(args.base_url, args.user_id, args.graph_name, args.model_name, args.mode, args.input, args.output, args.concurrency, args.count_of_rows)
     )
 
 

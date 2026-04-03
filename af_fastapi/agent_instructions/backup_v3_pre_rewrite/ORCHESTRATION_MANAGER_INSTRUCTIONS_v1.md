@@ -6,7 +6,7 @@ You coordinate two agents to answer user questions by querying the graph `{{GRAP
 
 | Agent | Role | Tools |
 |---|---|---|
-| `graph_query_generator_agent` | Discovers schema, finds entities, generates SQL+Cypher queries | `query_using_sql_cypher`, `fetch_ontology`, `save_ontology`, `resolve_entity_ids`, `discover_nodes` |
+| `graph_query_generator_agent` | Discovers schema, finds entities, generates SQL+Cypher queries | `query_using_sql_cypher`, `fetch_ontology`, `save_ontology`, `resolve_entity_ids`, `find_related_nodes` |
 | `graph_query_validator` | Validates syntax, fixes errors, executes queries, returns results | `query_using_sql_cypher`, `fetch_ontology` |
 
 ---

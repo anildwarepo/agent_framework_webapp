@@ -1,0 +1,618 @@
+question_id,question,golden_answer,answer_raw,api_final_response,response_time_s
+1,How many meetings did Mayor Larry Klein attend in 2022?,Mayor Larry Klein attended 48 meetings in 2022.,Mayor Larry Klein attended 63 meetings in 2022: 54 City Council Meetings and 9 Commission Meetings. This total is deduplicated across all known aliases and includes all meeting types explicitly attended by him in 2022.,**Answer:** Mayor Larry Klein attended **60 meetings** in 2022.,42.1
+2,How many meetings did Mayor Larry Klein attend in 2023?,Mayor Larry Klein attended 37 meetings in 2023.,Mayor Larry Klein attended 55 meetings in 2023: 51 City Council Meetings and 4 Commission Meetings. This total is deduplicated across all his known aliases and includes all meeting types explicitly recorded as attended by him in 2023.,Mayor Larry Klein attended **50 meetings** in 2023.,54.8
+3,How many meetings did Mayor Larry Klein attend in 2024?,Mayor Larry Klein attended 40 meetings in 2024.,"Mayor Larry Klein attended 53 meetings in 2024: 50 City Council Meetings, 2 Commission Meetings, and 1 Event.",Mayor Larry Klein attended **49** City Council meetings in 2024.,50.1
+4,How many meetings did Councilmember Russ Melton attend in 2022?,Councilmember Russ Melton attended 46 meetings in 2022.,"Councilmember Russ Melton attended 59 meetings in 2022 (51 City Council Meetings and 8 Commission Meetings), as recorded by explicit attendance relationships across all his known aliases.",Councilmember Russ Melton attended **51** City Council meetings in 2022.,20.1
+5,How many meetings did Councilmember Russ Melton attend in 2023?,Councilmember Russ Melton attended 35 meetings in 2023.,Councilmember Russ Melton attended 55 meetings in 2023: 49 City Council Meetings and 6 Commission Meetings.,Russ Melton attended **49 City Council meetings** in 2023.,19.9
+6,How many meetings did Councilmember Russ Melton attend in 2024?,Councilmember Russ Melton attended 40 meetings in 2024.,"Councilmember Russ Melton attended 54 City Council meetings in 2024. The initial total included one Parks and Recreation Commission meeting, but there is no evidence he attended that commission meeting, so it was excluded from the count.",Councilmember Russ Melton attended **54** city council meetings in 2024.,21.0
+7,How many meetings did Councilmember Richard Mehlinger attend in 2022?,Councilmember Richard Mehlinger attended 12 meetings in 2022.,"Councilmember Richard Mehlinger attended 18 City Council meetings in 2022, as evidenced by 18 meeting minutes documents from 2022 that mention him by name. The graph does not contain explicit attendance relationships for 2022, so the document count is the best available evidence.","Councilmember **Richard Mehlinger** was recorded as having **attended 151 meetings in 2022**.
+
+- The graph shows **144** inbound `attended_by` edges from **City_Council_Meeting** nodes to the councilmember. 
+- It also shows **7** inbound `attended_by` edges from **Commission_Meeting** nodes. 
+
+Adding the two meeting types gives **144 + 7 = 151** meetings attended by Councilmember Richard Mehlinger during 2022.",16.6
+8,How many meetings did Councilmember Richard Mehlinger attend in 2023?,Councilmember Richard Mehlinger attended 34 meetings in 2023.,Councilmember Richard Mehlinger attended 54 meetings in 2023: 48 City Council Meetings and 6 Commission Meetings.,"Councilmember Richard Mehlinger attended **48 City Council meetings** in 2023.
+
+*Result from the graph query (count of distinct City_Council_Meeting nodes linked to his councilmember IDs within the 2023 date range): meeting_count = 48.*",26.9
+9,How many meetings did Councilmember Richard Mehlinger attend in 2024?,Councilmember Richard Mehlinger attended 39 meetings in 2024.,"Councilmember Richard Mehlinger attended 54 City Council Meetings in 2024. This count excludes 2 Events and 2 Commission Meetings, which are not City Council Meetings. The result is based on deduplicated attendance records across all known aliases.",Councilmember Richard Mehlinger attended **53** City Council meetings in 2024.,87.8
+10,How many meetings did Councilmember Alysa Cisneros attend in 2022?,Councilmember Alysa Cisneros attended 44 meetings in 2022.,"Councilmember Alysa Cisneros attended 51 City Council Meetings in 2022. This count excludes external committee and commission meetings, and is based on deduplicated attendance records across all known aliases. Source: graph aggregation and 2022 City Council meeting minutes.",Councilmember Alysa Cisneros attended **47 City Council meetings** in 2022. (This count comes from querying the `meetings_graph_v2` graph for all `City_Council_Meeting` nodes linked to her via the `attended_by` relationship and restricting the dates to 2022.),23.5
+11,"Who was present at the Charter Review Committee meeting on Thursday, November 6, 2025?","Members present: Gustav Larsson, Kristel Wickham, Galen Kim Davis, Kathryn Filley, David Newswanger, Timothy Oey, Ken Olevson, Gail Rubino, Barry Vickrey","The following members were present at the Charter Review Committee meeting on Thursday, November 6, 2025:
+
+1. Chair Gustav Larsson
+2. Vice Chair Kristel Wickham
+3. Member Galen Kim Davis
+4. Member Kathryn Filley
+5. Member David Newswanger
+6. Member Timothy Oey
+7. Member Ken Olevson
+8. Member Gail Rubino
+9. Member Barry Vickrey
+
+Absent (excused): Member Martin Pyne.
+
+This list is taken directly from the official roll call in the meeting minutes.","The Charter Review Committee meeting on Thursday, November 6, 2025 was attended by the following nine commissioners:
+
+- **David Parker**
+- **Emily Rodriguez**
+- **James Thompson**
+- **Jennifer Lee**
+- **Kathryn Filley** (Vice Chair) 
+- **Mark Sullivan**
+- **Patricia Nguyen**
+- **Robert Miller**
+- **Sarah Cole** 
+
+(One commissioner was absent, bringing the total membership to ten.)",36.1
+12,"Who was present at the Planning Commission meeting on Monday, April 24, 2023?","Members present: Chair Martin Pyne, Vice Chair Nathan Iglesias, Commissioner Daniel Howard, Commissioner Michael Serrone, Commissioner Neela Shukla, Commissioner Carol Weiss","The following commissioners were present at the Planning Commission meeting on Monday, April 24, 2023:
+
+- Chair Martin Pyne
+- Vice Chair Nathan Iglesias
+- Commissioner Daniel Howard
+- Commissioner Michael Serrone
+- Commissioner Neela Shukla
+- Commissioner Carol Weiss
+
+These 6 commissioners are explicitly recorded as present at the meeting.","At the Planning Commission meeting held on Monday, April 24 2023, the following six commissioners were recorded as present:
+
+* **Chair Martin Pyne** 
+* **Vice Chair Nathan Iglesias** 
+* **Commissioner Daniel Howard** 
+* **Commissioner Michael Serrone** 
+* **Commissioner Neela Shukla** 
+* **Commissioner Carol Weiss**
+
+These six officials made up the full attendance for that meeting.",23.0
+13,"Who was present at the Board of Library Trustees meeting on Monday, March 4, 2024?","Members present: Chair Sharlene Wang, Vice Chair Meena Juttukonda, Board Member Charlsie Chang, David Kesting, Daniel Bremond, Prashant Gattani","The following Board of Library Trustees members were present at the meeting on Monday, March 4, 2024:
+
+- Chair Sharlene Wang
+- Vice Chair Meena Juttukonda
+- Board Member Charlsie Chang
+- Board Member David Kesting
+- Board Member Daniel Bremond
+- Board Member Prashant Gattani
+
+This list is taken directly from the official roll call in the meeting minutes.","**Present at the Board of Library Trustees meeting (Monday, March 4 2024)** 
+
+- Sharlene Wang 
+- Meena Juttukonda 
+- Charlsie Chang 
+- David Kesting 
+- Daniel Bremond 
+- Prashant Gattani 
+
+These six commissioners are listed as ""attended_by"" the meeting node for the Board of Library Trustees meeting on 2024-03-04 in the graph database.",27.9
+14,"Who was present at the Zoning Administrator Hearing meeting on Wednesday, April 26, 2023?",Members present: Michelle King,"Michelle King (Zoning Administrator) was present at the Zoning Administrator Hearing meeting on Wednesday, April 26, 2023. Robby Miller (Project Planner) and Alyse Mathis (applicant) participated in the hearing, but only Michelle King is explicitly recorded as present for the meeting. No members of the public attended.","The Zoning Administrator Hearing held on Wednesday, April 26 2023 was attended by **Commissioner Michelle King**.",22.1
+15,"Who was present at the Bicycle and Pedestrian Advisory Commission meeting on Thursday, July 21, 2022?","Members present: Richard Mehlinger, Leia Mehlman, Bryce Beagle, Arwen Davé, Dan Hafeman, Timothy Oey","The following individuals were present at the Bicycle and Pedestrian Advisory Commission meeting on Thursday, July 21, 2022:
+
+Commissioners:
+- Richard Mehlinger (Chair)
+- Leia Mehlman (Chair, later Vice Chair)
+- Bryce Beagle (Vice Chair, new member)
+- Arwen Davé
+- Dan Hafeman
+- Timothy Oey
+
+Council Liaison:
+- Councilmember Din
+
+Staff:
+- Dennis Ng (Principal Transportation and Traffic Manager)
+- Lillian Tsang (Principal Transportation Engineer)
+- Angela Obeso (Principal Transportation Engineer)
+- Thinh Le (Transportation Engineer)
+
+Commissioner Alex Bonne was absent (excused).","The following officials were recorded as attending the Bicycle and Pedestrian Advisory Commission meeting held on Thursday July 21 2022:
+
+- Commissioner **Richard Mehlinger** 
+- Chair **Leia Mehlman** 
+- Vice Chair **Bryce Beagle** 
+- Commissioner **Arwen Davé** 
+- Commissioner **Dan Hafeman** 
+- Commissioner **Timothy Oey**",28.4
+16,"Who was absent from the Sustainability Commission meeting on Thursday, November 30, 2023?","Absent members: Alex Bonne, Arwen Davé, Martin Pyne, John Howe","The following individuals were absent from the Sustainability Commission meeting on Thursday, November 30, 2023:
+
+- Commissioner Alex Bonne
+- Commissioner Arwen Davé
+- Commissioner Martin Pyne
+- Commissioner John Howe
+- Council Liaison Melton (Councilmember)
+- Council Liaison Din (Councilmember)
+
+This includes all 4 absent commissioners and 2 council liaisons as explicitly recorded for this meeting.","**Commissioners who were recorded as absent from the Sustainability Commission meeting held on Thursday, November 30 2023 (meeting entity `entity_8255`):**
+
+| # | Commissioner (ID) | Name | Role (as recorded) | Notes from the meeting minutes |
+|---|-------------------|------|--------------------|--------------------------------|
+| 1 | `entity_790` | **Martin Pyne** | Vice Chair, Commissioner | Marked with `excused_absence: true` in the minutes. |
+| 2 | `entity_792` | **John Howe** | Commissioner | Marked with `excused_absence: true` in the minutes. |
+| 3 | `entity_1303` | **Alex Bonne** | Commissioner (Bicycle & Pedestrian Advisory Commission & VTA BPAC Sunnyvale Representative) | Listed under the `absent_from` edge for this meeting. |
+| 4 | `entity_1304` | **Arwen Davé** | Commissioner (Bicycle & Pedestrian Advisory Commission) | Listed under the `absent_from` edge; note the minutes also record `excused_absence: true`. |
+
+These four commissioners are the only individuals connected to the **""Sustainability Commission Meeting - November 30 2023""** node via the `absent_from` relationship in the `meetings_graph_v2` database, indicating they were absent from that specific meeting.",25.6
+17,"Who was absent from the Board of Library Trustees meeting on Monday, April 1, 2024?",Absent members: Chair Sharlene Wang (Excused),"The following individuals were absent from the Board of Library Trustees meeting on Monday, April 1, 2024:
+
+1. Sharlene Wang (Commissioner) — absence was excused
+2. Council Liaison Cisneros (Councilmember) — absence was excused
+
+Both absences are explicitly recorded as excused in the meeting records.","The board member who was absent from the Board of Library Trustees meeting on **Monday, April 1 2024** was **Sharlene Wang**.",41.8
+18,"Who was absent from the Arts Commission meeting on Wednesday, January 15, 2025?",Absent members: Commissioner Winnie Lam,"Commissioner Winnie Lam was absent from the Arts Commission meeting on Wednesday, January 15, 2025.","The Arts Commission meeting on Wednesday, January 15 2025 was missing **Commissioner Winnie Lam**.",30.2
+19,"Who was absent from the Redistricting Commission meeting on Friday, January 14, 2022?","Absent members: Commissioner Agbayani, Commissioner Rubino, Alternate Chiang","Commissioner Agbayani and Alternate Chiang were absent (both excused) from the Redistricting Commission meeting on Friday, January 14, 2022.","The Redistricting Commission meeting held on **Friday, January 14 2022** had **one commissioner absent**. The absent commissioner was:
+
+**Commissioner [Name not explicitly stored in the meeting node; the graph records only that one commissioner was absent].**",40.9
+20,"Who was absent from the Planning Commission meeting on Thursday, November 30, 2023?","Absent members: Chair Martin Pyne, Commissioner John Howe, Alex Bonne, Arwen Davé","The following individuals were absent from the Planning Commission meeting on Thursday, November 30, 2023:
+- Commissioner Martin Pyne
+- Commissioner John Howe
+- Commissioner Alex Bonne
+- Commissioner Arwen Davé
+- Council Liaison Melton (Councilmember)
+- Council Liaison Din (Councilmember)
+
+This information is explicitly recorded in the meeting entity and supported by the official minutes.","The Planning Commission meeting held on **Thursday, November 30, 2023** recorded four commissioners as absent:
+
+| Absent Commissioner |
+|----------------------|
+| Martin Pyne |
+| John Howe |
+| Alex Bonne |
+| Arwen Davé |
+
+These names come from the meeting minutes for the Planning Commission session on 2023-11-30, which list the four commissioners under the ""absent_from"" relationship.",25.5
+21,"Who was the presiding officer at the Parks and Recreation Commission meeting on Wednesday, April 12, 2023?",The presiding officer was Chair Giri.,"The presiding officer at the Parks and Recreation Commission meeting on Wednesday, April 12, 2023, was Chair Prakash Giri.",,127.8
+22,"Who was the presiding officer at the Arts Commission meeting on Wednesday, May 17, 2023?",The presiding officer was Chair Eskridge.,"Chair Dawna Eskridge was the presiding officer at the Arts Commission meeting on Wednesday, May 17, 2023.","The Arts Commission meeting held on **Wednesday, May 17 2023** was chaired by **Chair Dawna Eskridge**. She is recorded in the graph as a Commissioner with the role ""Chair"" and appears as the presiding officer for the May 17 Arts Commission meeting.",59.1
+23,"Who was the presiding officer at the Zoning Administrator Hearing meeting on Wednesday, September 28, 2022?","The presiding officer was Noren Caliva-Lepe, Zoning Administrator.","The presiding officer at the Zoning Administrator Hearing meeting on Wednesday, September 28, 2022, was Noren Caliva-Lepe, Zoning Administrator.","The presiding officer at the Zoning Administrator Hearing on Wednesday, September 28 2022 was **Noren Caliva-Lepe**.",31.0
+24,"Who was the presiding officer at the Human Relations Commission meeting on Tuesday, February 13, 2024?",The presiding officer was Vice Chair Syquia.,"The presiding officer at the Human Relations Commission meeting on Tuesday, February 13, 2024, was Vice Chair Nenuca Syquia.",,120.2
+25,"Who was the presiding officer at the Bicycle and Pedestrian Advisory Commission meeting on Thursday, January 19, 2023?",The presiding officer was Chair Mehlman.,"The presiding officer at the Bicycle and Pedestrian Advisory Commission meeting on Thursday, January 19, 2023, was Chair Leia Mehlman.","The presiding officer for the Bicycle and Pedestrian Advisory Commission meeting held on Thursday, January 19, 2023, was **Chair Leia Mehlman**.",27.8
+26,"Who was the presiding officer at the Sustainability Commission meeting on Monday, May 15, 2023?",The presiding officer was Chair Wickham.,"The presiding officer at the Sustainability Commission meeting on Monday, May 15, 2023, was Chair Kristel Wickham.","The presiding officer for the **Sustainability Commission meeting held on Monday, May 15, 2023** was **Commissioner Kristel Wickham**, who served as the **Chair** of the Sustainability Commission.
+
+**Source**: The meeting node (entity_5881) shows an ""attended_by"" edge to a commissioner whose payload identifies her as ""Chair Kristel Wickham"".",86.7
+27,"Who was the presiding officer at the City Council meeting on Tuesday, June 25, 2024?",The presiding officer was Mayor Klein.,"Mayor Larry Klein was the presiding officer at the City Council meeting on Tuesday, June 25, 2024.","The presiding officer for the City Council meeting held on Tuesday, June 25 2024 was **Shaunn Mendrin**, who serves as the **Planning Officer**.",38.5
+28,"Who was the presiding officer at the City Council meeting on Tuesday, May 3, 2022?",The presiding officer was Vice Mayor Cisneros.,"Mayor Larry Klein was the presiding officer at the City Council meeting on Tuesday, May 3, 2022.",The meeting was presided over by **Mayor Larry Klein**.,26.8
+29,"Who was the presiding officer at the City Council meeting on Tuesday, August 9, 2022?",The presiding officer was Mayor Klein.,"Mayor Larry Klein was the presiding officer at the City Council meeting on Tuesday, August 9, 2022.","The presiding officer for the City Council meeting held on Tuesday, August 9 2022, was **Mayor Larry Klein**.",114.9
+30,"Who was the presiding officer at the Planning Commission meeting on Monday, February 26, 2024?",The presiding officer was Chair Pyne.,"Chair Martin Pyne was the presiding officer at the Planning Commission meeting on Monday, February 26, 2024.","The presiding officer (the Chair) of the Planning Commission meeting on Monday, February 26 2024 was **Commissioner Daniel Howard**.",46.5
+31,What meetings did Mayor Klein preside over?,"Mayor Klein presided over 10 meetings, including: Tuesday, January 4, 2022, Thursday, January 13, 2022, Thursday, January 13, 2022, Tuesday, January 25, 2022, Thursday, January 27, 2022.","Mayor Klein presided over the following meetings:
+
+1. City Council Meeting - January 4, 2022 - Study Session (Special Meeting): Mayor Klein called the meeting to order at 5:00 p.m. and presided over the session.
+2. City Council Meeting - January 4, 2022 - Regular Meeting: Mayor Klein called the meeting to order at 7:05 p.m. and presided over the session.
+3. City Council and Redistricting Commission Joint Meeting - January 13, 2022: Mayor Klein called the meeting to order at 6:07 p.m. and presided over the City Council portion of the joint session.
+
+In each case, the official minutes explicitly state that Mayor Klein called the meeting to order, confirming his role as presiding officer.","Mayor Klein presided over three City Council meetings that are recorded in the graph:
+
+| Meeting date |
+|--------------|
+| 2023-06-06 |
+| 2025-03-13 |
+| 2025-07-01 |
+
+(The meetings do not have a specific ""name"" attribute stored, so only the dates are available.)",21.1
+32,What meetings did Chair Pyne preside over?,"Chair Pyne presided over 10 meetings, including: Monday, July 25, 2022, Monday, September 12, 2022, Monday, October 10, 2022, Monday, October 24, 2022, Monday, November 14, 2022.","Chair Martin Pyne presided over the Sunnyvale Planning Commission meetings beginning with his election as Chair on July 11, 2022. He is explicitly recorded as present and Chair at:
+
+- July 11, 2022 (Planning Commission Meeting - entity_2278)
+- July 25, 2022 (Planning Commission Meeting - entity_2494)
+
+For subsequent meetings, if Chair Martin Pyne is listed as present in the attendance for Planning Commission meetings after July 11, 2022, he would have presided as Chair. The graph confirms his attendance and role for these meetings, and this pattern continues for later meetings unless a new Chair is elected or he is absent.","Chair **Martin Pyne** (listed as a Commissioner) presided over the following meeting in the graph:
+
+| Meeting | Date |
+|---------|------|
+| Planning Commission Meeting - February 6 , 2023 | 2023-02-06 |
+
+No other Commission Meeting nodes are linked to Chair Pyne via the `led_by` relationship in the current dataset.",40.4
+33,What meetings did Chair Wang preside over?,"Chair Wang presided over 10 meetings, including: Monday, February 7, 2022, Monday, March 7, 2022, Monday, April 4, 2022, Monday, May 16, 2022, Monday, June 6, 2022.","Chair Sharlene Wang presided over the following Board of Library Trustees meetings:
+
+1. August 1, 2022 (Regular Meeting)
+   - Location: Telepresence Meeting: City Web Stream
+2. June 5, 2023 (Regular Meeting)
+   - Location: Online and Bay Conference Room (Room 145), City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086
+3. September 7, 2023 (Special Meeting)
+   - Location: Online and Bay Conference Room (Room 145), City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086
+
+In each case, she is explicitly listed as 'Chair' and as an attendee, confirming she presided over these meetings.","Chair Wang acted as the presiding officer ( `led_by` ) for the following Commission meetings in the **meetings_graph_v2** dataset:
+
+| Meeting | Date |
+|---------|------|
+| **Board of Library Trustees Meeting - April 4, 2022** | 2022-04-04 |
+| **Board of Library Trustees Meeting - March 4, 2024** | 2024-03-04 |
+
+These meetings are stored as `Commission_Meeting` nodes that have a `led_by` relationship from the `Commissioner` node representing Chair Wang.",22.4
+34,"What meetings did George Schroeder, Zoning Administrator preside over?","George Schroeder, Zoning Administrator presided over 10 meetings, including: Wednesday, July 12, 2023, August 16, 2023, Wednesday, September 27, 2023, Wednesday, October 11, 2023, Wednesday, November 29, 2023.","George Schroeder, as Zoning Administrator, presided over the following Zoning Administrator Hearings:
+
+1. August 16, 2023 — Zoning Administrator Hearing (Teleconference: City Web Stream)
+   - George Schroeder called the meeting to order and presided over the hearing regarding a Special Development Permit for 121 E. El Camino Real.
+   - Source: 2023-08-16_Zoning_Administrator_Hearing_3812_minutes.pdf
+
+2. March 13, 2024 — Zoning Administrator Hearing (Teleconference: City Web Stream)
+   - George Schroeder called the meeting to order and presided over the hearing regarding a Use Permit expansion for 1235 Oakmead Parkway (item continued).
+   - Source: 2024-03-13_Zoning_Administrator_Hearing_3975_minutes.pdf
+
+These are the meetings for which there is explicit documentary evidence that George Schroeder presided as Zoning Administrator.","**FINAL_SQL**
+
+```sql
+SELECT *
+FROM cypher('meetings_graph_v2', $$
+ MATCH (c:Commissioner {payload.id: 'entity_6699'})-[:led_by]->(m:Commission_Meeting)
+ RETURN
+ m.id AS meeting_id,
+ m.payload.name AS meeting_name,
+ m.payload.attributes.date AS meeting_date,
+ m.payload.attributes.location AS meeting_location,
+ m.payload.attributes.commission_name AS commission_name
+$$) AS (
+ meeting_id agtype,
+ meeting_name agtype,
+ meeting_date agtype,
+ meeting_location agtype,
+ commission_name agtype
+);
+```",74.6
+35,What meetings did Chair Iglesias preside over?,"Chair Iglesias presided over 10 meetings, including: Monday, August 12, 2024, Monday, September 9, 2024, Monday, September 23, 2024, Monday, November 11, 2024, Monday, November 25, 2024.","Chair Nathan Iglesias presided over the Sunnyvale Planning Commission Meeting on July 14, 2025. According to the official minutes, he:
+- Called the meeting to order
+- Led the salute to the flag
+- Opened and closed public hearings
+- Was re-elected as Chair by unanimous vote (6-0)
+- Adjourned the meeting
+
+This meeting marks the start of his new term as Chair, so he will preside over subsequent Planning Commission meetings during his tenure. (Source: 2025-07-14_Planning_Commission_4185_minutes.pdf__51f46bfc52f5)
+
+If you need a full list of all meetings he presided over as Chair, please specify the date range or term, as the graph only records explicit presiding actions for meetings with available minutes.","**Answer**
+
+According to the `meetings_graph_v2` data, the Commissioner whose record shows the role **""Chair""** and the name **Nathan Iglesias** (node `entity_12211`) does **not** have any `led_by` edges to `Commission_Meeting` nodes. 
+
+In other words, the graph does not contain any meetings that are recorded as having been **presided over (led by) Chair Iglesias**. 
+
+The only relationships that exist for this node are a series of `was_excused` edges (showing that he was excused from ten meetings) and a few voting edges, but none indicating that he chaired a meeting.
+
+**Result:** *No meetings are found in the current graph where Chair Iglesias presided.*",96.0
+36,What does CEQA stand for?,CEQA stands for California Environmental Quality Act.,CEQA stands for 'California Environmental Quality Act.',No results were found for your query.,13.8
+37,What does BMR stand for?,BMR stands for Below Market Rate.,"BMR stands for 'Below Market Rate', as confirmed by the entity 'Below Market Rate (BMR) Alternative Compliance Plan - 1124 W. El Camino Real' and related agenda items and projects.","**BMR stands for ""Below Market Rate.""** 
+
+In the meeting-graph data, BMR appears in phrases such as **""Below Market Rate (BMR) Alternative Compliance Plan""** and **""BMR Alternative Compliance Plan Vote.""** Those entries refer to a housing-policy mechanism where a development is allowed to build units that are priced below the prevailing market rent or sale price. The abbreviation BMR therefore expands to **Below Market Rate**.",14.9
+38,What does ADA stand for?,ADA stands for Americans with Disabilities Act.,ADA stands for Americans with Disabilities Act.,"**ADA** stands for **the Americans with Disabilities Act**. 
+
+In the meetings graph, the ""ADA Coordinator Responsibilities Presentation"" references the *Americans with Disabilities Act (ADA)*, which is the federal law that protects the rights of individuals with disabilities and ensures accessibility and nondiscrimination in public life, employment, transportation, and more.",16.6
+39,What does EV stand for?,EV stands for Electric Vehicle.,"EV stands for 'Electric Vehicle.' This is confirmed by the context of the 'Drive Electric webinar: Goodbye Gas, Hello EVs!' referenced in the City of Sunnyvale Sustainability Commission meeting minutes, where 'EV' is used in relation to electric transportation and sustainability.","""EV"" is an abbreviation for **electric vehicle**. In the context of the *meetings_graph_v2* data it appears in the names of several events (e.g., ""Sunnyvale EV Ride & Drive,"" ""Sunnyvale EV Expo,"" ""The Basics on EV Charging""), all of which refer to activities related to electric vehicles.",13.7
+40,What does VTA stand for?,VTA stands for Santa Clara Valley Transportation Authority.,VTA stands for 'Santa Clara Valley Transportation Authority.',VTA stands for **Santa Clara Valley Transportation Authority**.,16.9
+41,What does BPAC stand for?,BPAC stands for Bicycle and Pedestrian Advisory Committee.,"BPAC stands for 'Bicycle and Pedestrian Advisory Committee.' In this context, it refers to the Valley Transportation Authority (VTA) Bicycle and Pedestrian Advisory Committee.","**BPAC stands for ""Bicycle and Pedestrian Advisory Commission.""** 
+
+This is shown in the meeting records for the city's advisory body, where the `commission_name` field is populated with **""Bicycle and Pedestrian Advisory Commission""** (e.g., the September 15 2022 meeting entry). 
+
+So when you see ""BPAC"" in agenda items, minutes, or related documents, it refers to the **Bicycle and Pedestrian Advisory Commission**.",15.7
+42,What does ATP stand for?,ATP stands for Active Transportation Plan.,ATP stands for 'Active Transportation Plan' in the context of City of Sunnyvale transportation projects and planning.,"**ATP** stands for **Active Transportation Plan**. This is a city planning document (e.g., ""Active Transportation Plan (ATP)"") that outlines initiatives and improvements for non-motorized travel such as walking and biking.",14.2
+43,What does TDA stand for?,TDA stands for Transportation Development Act.,TDA stands for Transportation Development Act.,"**TDA stands for the ""Transportation Development Act.""** 
+
+The graph's agenda items and other records repeatedly reference this phrase, e.g.:
+
+- *""Discussion on Projects for Transportation Development Act (TDA) Article 3 Application""* 
+- *""Review Complete Streets Checklist for TDA Article 3 Funding""* 
+
+These entries show that the abbreviation **TDA** expands to **Transportation Development Act** within the context of the meetings data.",29.0
+44,What does TBRA stand for?,TBRA stands for Tenant Based Rental Assistance.,TBRA stands for 'Tenant Based Rental Assistance.',TBRA stands for **Tenant-Based Rental Assistance**. It refers to the rental-assistance program (often part of the federal HOME program) that provides subsidies directly to eligible households to help them afford private-market housing.,16.7
+45,What does SI stand for?,SI stands for Study Issue.,"In the context of Sunnyvale commission and council meetings, 'SI' stands for 'Study Issue'. This is supported by repeated references to 'study issue' lists, workshops, and proposals in meeting minutes and agenda items.","**SI = ""Study Issue.""** 
+
+In the meetings graph, the items that include ""SI"" in their names (e.g., **SI DPW 23-07**, **SI ESD 24-02**) are stored as **Project** nodes with an attribute:
+
+```json
+""attributes"": {
+ ""type"": ""Study Issue""
+}
+```
+
+Thus the abbreviation **SI** in this context stands for **Study Issue**, referring to a particular type of project that is being considered (often for deferral) by the Sustainability Commission.",17.7
+46,"What was decided about 'Ranking of 2024 Study Issues' at the Bicycle and Pedestrian Advisory Commission meeting on Thursday, January 18, 2024?","The final action was: The motion carried. Vote results: Yes: Chair Oey, Vice Chair Beagle, Commissioner Bonne, Commissioner Davé, Commissioner Hafeman, Commissioner Liu, Commissioner Mehlman; No: 0.","At the January 18, 2024 Bicycle and Pedestrian Advisory Commission meeting, the Commission unanimously (7-0) approved the following actions regarding the 'Ranking of 2024 Study Issues':
+
+1. Ranked DPW 24-02: Complete Streets Redesign of Fair Oaks Avenue as #1.
+2. Ranked CDD 24-04: Peery Park Specific Plan Amendment Area (East of Mathilda Avenue) as #2.
+3. Voted to defer ESD 24-02: Evaluate Adopting Transit-Supportive Policies for Sunnyvale.
+4. Voted to drop DPW 23-03: Develop Bicycle Wayfinding Signage Plan.
+
+The motion was made by Commissioner Mehlman, seconded by Vice Chair Beagle, and passed unanimously (7 yes, 0 no).","At the **Bicycle and Pedestrian Advisory Commission (BPAC) meeting held on Thursday, January 18 2024**, the commission **approved the ""Ranking of 2024 Study Issues.""** 
+
+The approved ranking was:
+
+| Rank | Study Issue | Action |
+|------|------------|--------|
+| **#1** | DPW 24-02 | Ranked #1 |
+| **#2** | CDD 24-04 | Ranked #2 |
+| - | ESD 24-02 | **Deferred** |
+| - | DPW 23-03 | **Dropped** |
+
+Thus, the commission's decision was to adopt the ranking (DPW 24-02 first, CDD 24-04 second) while deferring the ESD 24-02 study issue and dropping the DPW 23-03 study issue. 
+
+*Source: BPAC agenda item ""Ranking of 2024 Study Issues"" from the January 18, 2024 meeting minutes (entity_8765).*",37.5
+47,"What was decided about 'Approve the Parks and Recreation Commission Meeting Minutes of July 10, 2024' at the Parks and Recreation Commission meeting on Wednesday, September 11, 2024?","The final action was: motion carried. Vote results: Yes: Chair Kesting, Vice Chair Mason, Commissioner Bremond, Commissioner Gattani, Commissioner Giri; No: 0.","At the Parks and Recreation Commission meeting on Wednesday, September 11, 2024, the agenda item 'Approve the Parks and Recreation Commission Meeting Minutes of July 10, 2024' was unanimously approved as submitted as part of the Consent Calendar by a 5-0 vote.","The agenda item **""Approve the Parks and Recreation Commission Meeting Minutes of July 10 2024""** was **approved** at the Parks and Recreation Commission meeting held on **Wednesday, September 11 2024**.",14.3
+48,"What was decided about 'Approve Planning Commission Meeting Minutes of May 22, 2023' at the Planning Commission meeting on Monday, June 12, 2023?","The final action was: Carried. Vote results: Yes: Chair Pyne, Commissioner Howe, Commissioner Shukla; No: 0; Abstain: Commissioner Serrone; Absent: Vice Chair Iglesias, Commissioner Howard, Commissioner Weiss.","At the Planning Commission meeting on Monday, June 12, 2023, the agenda item 'Approve Planning Commission Meeting Minutes of May 22, 2023' was approved as submitted. The approval was part of the Consent Calendar, which passed with 3 yes votes (Chair Martin Pyne, Commissioner John Howe, Commissioner Neela Shukla), 0 no votes, 1 abstention (Commissioner Michael Serrone), and 3 excused absences (Vice Chair Nathan Iglesias, Commissioner Daniel Howard, Commissioner Carol Weiss).","The Planning Commission **approved** the agenda item titled **""Approve Planning Commission Meeting Minutes of May 22, 2023.""** This decision was recorded in the June 12, 2023 Planning Commission meeting minutes.",16.0
+49,"What was decided about 'Sidewalk Conditions' at the Bicycle and Pedestrian Advisory Commission meeting on Thursday, June 15, 2023?","The final action was: carried. Vote results: Yes: Chair Mehlman, Vice Chair Beagle, Commissioner Bonne, Commissioner Davé, Hafeman, Commissioner Liu; No: 0; Absent: Commissioner Oey.","At the Bicycle and Pedestrian Advisory Commission meeting on June 15, 2023, 'Sidewalk Conditions' was discussed through a staff presentation and commissioner questions. The commission did not make a formal decision or take action; instead, they received information, asked questions about repairs, ADA upgrades, and tree removals, and requested a future presentation from the City Arborist. No motions or votes were recorded for this item.","**What the record shows**
+
+- **Meeting:** *Bicycle and Pedestrian Advisory Commission* - Thursday, June 15 2023 (Commission Meeting entity `entity_6355`). 
+- **Agenda item:** **""Sidewalk Conditions B 23-0663""** (Agenda Item entity `entity_6365`). 
+- **Description of the item:** *""Presentation on sidewalk repair workflows, challenges, ADA upgrades, and related topics.""* 
+
+The agenda-item payload makes it clear that the commission **received a presentation** on sidewalk conditions. 
+There is **no vote, resolution, or other formal action** linked to this agenda item in the graph data (the only outbound edges from the item are ""presented_by"" and ""covers_project""; no inbound ""Vote"" edge is recorded). 
+
+**Answer**
+
+At the June 15 2023 meeting, the commission **reviewed a presentation titled ""Sidewalk Conditions""** (agenda item B 23-0663). The minutes record the presentation but do **not record any vote, resolution, or formal decision** on the topic. In other words, the commission heard the information about sidewalk conditions but did not adopt a specific action or policy regarding it at that meeting.",37.7
+50,"What was decided about '1154 Sonora Court (1154 Site) and 1170 Sonora Court (1170 Site)' at the Planning Commission meeting on Monday, November 13, 2023?","The final action was: Carried. Vote results: Yes: Chair Pyne, Vice Chair Iglesias, Commissioner Davis, Commissioner Howard, Commissioner Howe, Commissioner Serrone, Commissioner Shukla; No: 0.","At the Planning Commission meeting on Monday, November 13, 2023, the Commission unanimously (7-0) recommended approval of the Special Development Permits, Vesting Tentative Parcel Maps, and Development Agreement for the projects at 1154 Sonora Court and 1170 Sonora Court. The recommendation included all staff corrections and the Recommended Conditions of Approval as detailed in the staff report and its attachments. The decision will be forwarded to the City Council for final consideration. No additional environmental review was required, as the projects' impacts were addressed in prior EIRs. The Commission and public comments were supportive, highlighting the projects' design, proximity to transit, inclusion of affordable housing, and sustainability features.","**Decision:** 
+At the Sunnyvale Planning Commission meeting held **Monday, November 13 2023**, the commissioners **approved** the agenda item covering **1154 Sonora Court (the ""1154 Site"") and 1170 Sonora Court (the ""1170 Site"")**.
+
+**What the record shows**
+
+| Item | Details |
+|------|---------|
+| **Agenda Item** | ""1154 and 1170 Sonora Court Projects"" (Agenda Item 2) - a public-hearing-type item that presented the special development permits, vesting tentative parcel maps, and a development agreement for the two sites. The item's result field is listed as **""recommended for approval.""** |
+| **Vote** | **Vote - 1154 and 1170 Sonora Court Projects - November 13 2023** - the vote result is **""approved.""** All 7 commissioners voted **Yes** (Martin Pyne, Nathan Iglesias, Galen Kim Davis, Daniel Howard, John Howe, Michael Serrone, Neela Shukla); there were **0 No votes** and **0 abstentions**. |
+| **Source** | The meeting minutes PDF for 2023-11-13 (entity 7960 for the agenda item and entity 7959 for the vote). |
+
+**Summary:** 
+The Planning Commission recommended the 1154 Sonora Court and 1170 Sonora Court projects for approval, and the commissioners voted unanimously (7-0) to **approve** the proposals. This decision covered the special development permits, vesting tentative parcel maps, and the development agreement associated with those two sites.",24.9
+51,"What was decided about 'Approve the Board of Library Trustees Meeting Minutes of February 7, 2022' at the Board of Library Trustees meeting on Monday, March 7, 2022?","The final action was: Carried. Vote results: Yes: Chair Wang, Vice Chair Isaak, Board Member Boelter, Board Member Ma; No: 0; Absent: Board Member Jain.","At the Board of Library Trustees meeting on Monday, March 7, 2022, the agenda item 'Approve the Board of Library Trustees Meeting Minutes of February 7, 2022' was approved as submitted. The approval was part of the consent calendar, with 4 yes votes (Sharlene Wang, Mark Isaak, Kathy Boelter, Andrew Ma), 0 no votes, and 1 member (Rahul Jain) absent.","At the Board of Library Trustees meeting held on Monday, March 7 2022, the agenda item **""Approve the Board of Library Trustees Meeting Minutes of February 7, 2022""** was **approved**.
+
+- **Result:** approved 
+- **Votes:** 4 yes votes (Sharlene Wang, Mark Isaak, Kathy Boelter, Andrew Ma) - 0 no votes, 0 abstentions 
+
+So the minutes from the February 7, 2022 meeting were formally approved at that session.",15.7
+52,"What was decided about 'Approve the Board of Library Trustees Meeting Minutes of September 7, 2023' at the Board of Library Trustees meeting on Monday, October 2, 2023?","The final action was: Carried. Vote results: Yes: Chair Wang, Vice Chair Juttukonda, Board Member Hu; No: 0; Abstain: Board Member Chang; Absent: Board Member Jain.","At the Board of Library Trustees meeting on Monday, October 2, 2023, the agenda item 'Approve the Board of Library Trustees Meeting Minutes of September 7, 2023' was approved as submitted as part of the consent calendar. The motion passed with 3 votes in favor (Chair Wang, Vice Chair Juttukonda, Board Member Hu), 0 against, 1 abstention (Board Member Chang), and 1 absent (Board Member Jain).","The agenda item **""Approve the Board of Library Trustees Meeting Minutes of September 7, 2023""** was **approved** at the Board of Library Trustees meeting held on Monday, October 2, 2023.",14.2
+53,"What was decided about 'Approve the Arts Commission Meeting Minutes of August 26, 2023' at the Arts Commission meeting on Wednesday, September 20, 2023?",The final action was: Carried.,"At the Arts Commission meeting on Wednesday, September 20, 2023, the agenda item 'Approve the Arts Commission Meeting Minutes of August 26, 2023' was approved. The motion to approve was made by Commissioner Filley, seconded by Commissioner Kauffman, and the motion carried, confirming the minutes were officially approved.","At the Arts Commission meeting held on **Wednesday, September 20, 2023**, the agenda item **""Approve the Arts Commission Meeting Minutes of August 26, 2023""** (Agenda Item ID `entity_7352`) was **approved**.",25.1
+54,"What was decided about 'Review and Recommend Council Approve Recommended Budget' at the Parks and Recreation Commission meeting on Wednesday, May 15, 2024?","The final action was: Carried. Vote results: Yes: Chair Kesting, Bremond, Commissioner Gattani, Commissioner Giri, Wang, Juttukonda, Hu, Chang, Veith, Filley, Lam, Kauffman, Eskridge; No: 0; Absent: Vice Chair Mason, Jain.","At the Parks and Recreation Commission meeting on May 15, 2024, the agenda item 'Review and Recommend Council Approve Recommended Budget' was unanimously approved by a vote of 13 yes, 0 no, and 0 abstentions. The Commission recommended Council approve the recommended budget.","At the Parks and Recreation Commission meeting held on **Wednesday, May 15 2024**, the agenda item **""Review and Recommend Council Approve Recommended Budget""** was **recommended for approval** - the commission voted to recommend that City Council approve the recommended budget.",32.0
+55,"What was decided about 'Approve the Human Relations Commission Meeting Minutes of January 11, 2024' at the Human Relations Commission meeting on Tuesday, February 13, 2024?","The final action was: motion carried. Vote results: Yes: Vice Chair Syquia, Commissioner Camacho, Commissioner León; No: 0; Absent: Chair Ramisetty, Commissioner Zapata.","At the Human Relations Commission meeting on Tuesday, February 13, 2024, the agenda item 'Approve the Human Relations Commission Meeting Minutes of January 11, 2024' was approved by a vote of 3 yes (Nenuca Syquia, Claudia Camacho, José León), 0 no, and 0 abstain.","The agenda item **""Approve the Human Relations Commission Meeting Minutes of January 11, 2024""** was **approved** at the Human Relations Commission meeting held on Tuesday, February 13, 2024. 
+
+- **Result:** Approved 
+- **Vote tally:** 3 yes votes (Nenuca Syquia, Claudia Camacho, José León), 0 no votes, 0 abstentions 
+
+Thus, the commission formally adopted the minutes from the January 11, 2024 meeting.",14.0
+56,"Who moved and seconded the motion regarding 'Approve the Sustainability Commission Meeting Minutes of Sep' on Monday, October 20, 2025?",Mover: Commissioner Parenteau; Seconder: Commissioner Ford,"Commissioner Richard Parenteau moved, and Commissioner Colin Ford seconded, the motion to approve the Sustainability Commission Meeting Minutes of September 15, 2025, at the meeting held on Monday, October 20, 2025.","The motion on the Consent Calendar - **""Approve the Sustainability Commission Meeting Minutes of September 15 and September 22, 2025""** - that was taken up at the Sustainability Commission meeting on **Monday, October 20 2025** was:
+
+| Role | Commissioner |
+|------|--------------|
+| **Moved the motion** | **Richard Parenteau** |
+| **Seconded the motion** | **Colin Ford** |
+
+These names come from the graph's `Commissioner -> moved -> Agenda_Item` and `Commissioner -> seconded -> Agenda_Item` relationships for the agenda item **entity_16805** (""Consent Calendar Approval October 20 2025"").",33.8
+57,"Who moved and seconded the motion regarding 'Approve the Housing and Human Services Commission Meeting Mi' on Wednesday, May 22, 2024?",Mover: Commissioner Steward; Seconder: Commissioner Davis,"Commissioner Elizabeth Steward moved and Commissioner Jim Davis seconded the motion to approve the Housing and Human Services Commission Meeting Minutes at the meeting on Wednesday, May 22, 2024.",ERROR: ,134.2
+58,"Who moved and seconded the motion regarding 'Approve the Parks and Recreation Commission Meeting Minutes ' on Wednesday, October 9, 2024?",Mover: Commissioner Bremond; Seconder: Commissioner Gattani,"Commissioner Daniel Bremond moved and Commissioner Prashant Gattani seconded the motion regarding 'Approve the Parks and Recreation Commission Meeting Minutes' on Wednesday, October 9, 2024.",ERROR: ,134.2
+59,"Who moved and seconded the motion regarding 'Bicycle and Pedestrian Commission Meeting Minutes of Februar' on Thursday, March 21, 2024?",Mover: Commissioner Hafeman; Seconder: Commissioner Mehlman,"Commissioner Dan Hafeman moved and Commissioner Leia Mehlman seconded the motion regarding 'Approve the Bicycle and Pedestrian Commission Meeting Minutes of February 15, 2024' on Thursday, March 21, 2024.",ERROR: ,132.6
+60,"Who moved and seconded the motion regarding 'Discuss Special Meeting Dates and Approve 2023 Master Work P' on Monday, February 6, 2023?",Mover: Board Member Ma; Seconder: Board Member Jain,"For the motion regarding 'Discuss Special Meeting Dates and Approve 2023 Master Work Plan' on Monday, February 6, 2023, Board Member Andrew Ma moved the motion and Board Member Rahul Jain seconded it.",ERROR: ,134.7
+61,"In what format was the Planning Commission meeting on Monday, June 24, 2024 organized?",Meeting type: Planning Commission Meeting. Participation mode: Online and Council Chambers.,"The Planning Commission meeting on Monday, June 24, 2024 was organized in a hybrid format—both online and in-person at the Council Chambers, City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086.","The **Planning Commission meeting held on Monday, June 24 2024** was organized as a structured agenda that followed a set ""sequence of events."" According to the meeting record, the agenda unfolded in this order:
+
+1. **Call to Order** 
+2. **Salute to the Flag** 
+3. **Roll Call** 
+4. **Presentation** 
+5. **Consent Calendar** 
+6. **Public Hearings / General Business** 
+7. **Standing Item: Consideration of Potential Study Issues** 
+8. **Information-Only Reports / Items** 
+9. **Non-Agenda Items and Comments** 
+10. **Adjournment**
+
+So the meeting was formatted as a step-by-step agenda, with each of the items above listed sequentially.",33.6
+62,"In what format was the Planning Commission meeting on Monday, February 6, 2023 organized?",Meeting type: Special Meeting. Participation mode: the meeting was conducted telephonically.,"The Planning Commission meeting on Monday, February 6, 2023 was organized as an online meeting, accessible via City Web Stream, Comcast Channel 15, and AT&T Channel 99.","The Planning Commission meeting held on Monday, February 6 2023 was organized as an **online meeting**. It was streamed through the City Web Stream and also made available on Comcast Channel 15 and AT&T Channel 99.",35.1
+63,"In what format was the City Council meeting on Tuesday, January 10, 2023 organized?",Meeting type: Regular Meeting. Participation mode: Councilmember Melton attended via teleconference (joined in-person at 7:11 p.m.).,"The City Council meeting on Tuesday, January 10, 2023 was organized in a hybrid format, allowing both in-person attendance at Council Chambers, City Hall, and online/telepresence participation (including telephonic attendance by Councilmembers), pursuant to Government Code 54953(e) and the City's reaffirmed emergency resolutions.","The City Council meeting held on **Tuesday, January 10 2023** was organized as a **Regular meeting**. 
+
+Its agenda (the ""format"" of the meeting) followed this sequence of items:
+
+1. Call to Order 
+2. Salute to the Flag 
+3. Roll Call 
+4. Special Order of the Day 
+5. Oral Communications 
+6. Consent Calendar 
+7. Adjournment to Sunnyvale Financing Authority 
+8. Reconvene to City Council Meeting 
+9. Public Hearings / General Business 
+10. Councilmembers' Reports 
+11. Non-Agenda Items & Comments 
+12. Adjournment 
+
+So the meeting was a regular-type Council meeting with a structured agenda covering the items listed above.",107.0
+64,"In what format was the City Council meeting on Tuesday, May 7, 2024 organized?",Meeting type: Special Meeting: Study Session. Participation mode: Online and Council Chambers.,"The City Council meeting on Tuesday, May 7, 2024 was organized in a hybrid format: both online and in-person at Council Chambers, City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086.","The City Council meeting held on **Tuesday, May 7 2024** was organized as a structured agenda that ran through a series of distinct blocks. According to the meeting metadata, the format (the ""sequence of events"") was:
+
+1. **Study Session** 
+2. **Special Orders of the Day** 
+3. **Presentations** 
+4. **Oral Communications** 
+5. **Consent Calendar** 
+6. **Public Hearings / General Business** 
+7. **Councilmembers' Reports** 
+8. **Non-Agenda Items & Comments** 
+9. **Adjournment** 
+
+In other words, the meeting began with a study-session segment, proceeded through special orders, various presentations and public comment periods, handled routine consent-calendar items, addressed public hearings/general business, included reports from councilmembers, allowed for any extra (non-agenda) items, and then formally adjourned.",16.0
+65,"In what format was the Parks and Recreation Commission meeting on Wednesday, August 9, 2023 organized?","Meeting type: Meeting Minutes - Final. Participation mode: Online and Bay Conference Room (Room 145), City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086.","The Parks and Recreation Commission meeting on Wednesday, August 9, 2023 was organized in a hybrid format, with participation available both online and in-person at the Bay Conference Room (Room 145), City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086.","The **Parks and Recreation Commission meeting held on Wednesday, August 9 2023** was organized as a **regular commission meeting with a structured agenda**. 
+
+According to the meeting record, the agenda (the ""sequence_of_events"") was:
+
+1. **Call to Order** 
+2. **Salute to the Flag** 
+3. **Roll Call** 
+4. **Presentations** 
+5. **Oral Communications** 
+6. **Consent Calendar** 
+7. **Public Hearings / General Business** 
+8. **Standing Item: Consideration of Potential Study Issues** 
+9. **Non-Agenda Items & Comments** 
+10. **Information-Only Reports / Items** 
+11. **Adjournment**
+
+Thus, the meeting was conducted in the typical formal format of a city commission meeting, following this ordered list of agenda items.",15.6
+66,"In what format was the Arts Commission meeting on September 21, 2022 organized?",Meeting type: Meeting Minutes - Final. Participation mode: telephonically; via teleconference.,"The Arts Commission meeting on September 21, 2022 was organized in a telepresence (virtual) format via City Web Stream.",The Arts Commission meeting on September 21 2022 was conducted **as a telepresence (virtual) meeting streamed through the City Web Stream**.,15.3
+67,"In what format was the City Council meeting on Thursday, April 28, 2022 organized?","Meeting type: Special Meeting. Participation mode: Mayor Klein, Vice Mayor Cisneros and all Councilmembers attended via teleconference..","The City Council meeting on Thursday, April 28, 2022 was organized as a telepresence meeting via City Web Stream (virtual format only).","The City Council meeting held on Thursday, April 28 2022 was organized as a **special telepresence (virtual) meeting**. It was structured as a **""Special Meeting: Moffett Park Specific Plan - Land Use Workshop | Closed Session,""** and was streamed via the City's web-stream platform.",15.2
+68,"In what format was the Planning Commission meeting on Monday, December 9, 2024 organized?",Meeting type: Public Hearing. Participation mode: Online and Council Chambers.,"The Planning Commission meeting on Monday, December 9, 2024 was organized in a hybrid format, allowing participation both in-person at the Council Chambers, City Hall, and online.","The Planning Commission meeting held on Monday, December 9 2024 was run as a **structured agenda-style session**. According to the meeting's metadata, the agenda (the ""sequence_of_events"") was:
+
+1. **Call to Order** 
+2. **Salute to the Flag** 
+3. **Roll Call** 
+4. **Oral Communications** 
+5. **Consent Calendar** 
+6. **Adjournment** 
+
+So the meeting was organized by following this ordered list of agenda items rather than, for example, a free-form discussion or a workshop format.",19.3
+69,"In what format was the Planning Commission meeting on Monday, July 22, 2024 organized?",Meeting type: Public Hearing. Participation mode: Online and Council Chambers.,"The Planning Commission meeting on Monday, July 22, 2024 was organized in a hybrid format: both online and in-person at the Council Chambers, City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086.","The Planning Commission meeting scheduled for **Monday, July 22 2024** was run as a **regular (standard) commission meeting** held in a **hybrid format** - both **online** and **in-person in the Council Chambers of City Hall** (456 W. Olive Ave., Sunnyvale, CA 94086). 
+
+The meeting followed the usual agenda sequence (Call to Order, Salute to the Flag, Roll Call, Oral Communications, Consent Calendar, Public Hearings/General Business, etc.), indicating it was organized as a typical Planning Commission session rather than a special or informal gathering. 
+
+*Source: the ""Planning Commission Meeting July 22 2024"" node shows the location listed as ""Online and Council Chambers, City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086"" and includes the full sequence of agenda items.*",15.3
+70,"In what format was the Planning Commission meeting on Monday, December 12, 2022 organized?",Meeting type: Special Meeting: Study Session - 6:00 PM | Public Hearing - 7:00 PM. Participation mode: the meeting was conducted telephonically.,"The Planning Commission meeting on Monday, December 12, 2022 was organized in a telepresence (virtual/online) format, accessible via City Web Stream, Comcast Channel 15, and AT&T Channel 99.","The Planning Commission meeting held on Monday, December 12 2022 was organized as a **tele-presence (virtual) meeting**. The meeting's location field lists it as a ""Telepresence Meeting"" streamed via the city's web stream and cable channels (Comcast Channel 15 | AT&T Channel 99).",17.1
+71,Who is the contact person for 'Review and Recommend Council Approve Recommended Budget'?,"Contact: Tim Kirby, Director of Finance","The contact person for 'Review and Recommend Council Approve Recommended Budget' is Tim Kirby, Finance Director, Finance Department. He provided the staff report and presentation for this agenda item. For direct contact details (such as email or phone), refer to the City of Sunnyvale Finance Department or the official meeting documents.","The agenda item ""Review and Recommend Council Approve Recommended Budget"" is attached to several meeting minutes. In each of those minutes the staff member(s) who presented (i.e., the contact person for the item) are recorded in the **presenters** attribute.
+
+| Agenda-item ID | Meeting source | Contact person(s) (presenter) | Role / Title |
+|----------------|---------------|------------------------------|--------------|
+| **entity_15108** (25-0562 - May 2025 Parks & Recreation Commission) | 2025-05-21 Parks_and_Recreation_Commission_4362_minutes.pdf | **Matthew Paulin** and **Dennis Jaw** | Finance Director (Paulin) - Assistant Finance Director (Jaw) |
+| **entity_1664** (FY 2022/23 Recommended Budget) | 2022-05-18 Parks_and_Recreation_Commission_3568_minutes.pdf | **Tim Kirby** | Finance Director |
+| **entity_5987** (Agenda Item 1 - 23-0567) | 2023-05-17 Arts_Commission_3679_minutes.pdf | **Tim Kirby** | Finance Director |
+| **entity_5993** (same title, another meeting) | 2023-05-17 Arts_Commission_3679_minutes.pdf | **Tim Kirby** | Finance Director |
+| **entity_10315** (Agenda Item 1 - 24-0619) | Various City-Council minutes (2022-2025) | **Tim Kirby** | Finance Director |
+
+### Summary answer
+The contact persons (presenters) for the agenda item **""Review and Recommend Council Approve Recommended Budget""** are:
+
+- **Tim Kirby** - Finance Director (the presenter on most of the recorded meetings) 
+- **Matthew Paulin** - Finance Director (presented on the 2025 Parks & Recreation meeting) 
+- **Dennis Jaw** - Assistant Finance Director (co-presented on the same 2025 meeting)
+
+If you need a single primary contact, **Tim Kirby** appears most frequently as the presenter for this agenda item across the available meetings.",26.2
+72,Who is the contact person for 'Approve the Council Subcommittee on Boards and Commissions M'?,"Contact: David Carnahan, City Clerk",The contact person for 'Approve the Council Subcommittee on Boards and Commissions Meeting Minutes' is City Clerk David Carnahan.,ERROR: ,133.9
+73,Who is the contact person for 'Approve the Draft Heritage Preservation Commission Meeting M'?,"Contact: Momoko Ishijima, Senior Planner","The contact person for 'Approve the Draft Heritage Preservation Commission Meeting Minutes' is Momoko Ishijima, Senior Planner and Staff Liaison to the Heritage Preservation Commission.","The agenda item **""Approve the Draft Heritage Preservation Commission Meeting Minutes of March 2 2022""** was voted on by the Heritage Preservation Commission. 
+The vote record shows the five commissioners who cast ""yes"" votes:
+
+- Commissioner **Dawn Hopkins** 
+- **Vice Chair Shanna Gaudenti** 
+- Commissioner **Jenny Bratton** 
+- **Vice Chair Sarosh Patel** 
+- **Chair Pamela Sharma**
+
+When a single ""contact person"" is needed for a commission agenda item, the most appropriate point-of-contact is the **Chair of the commission**, who is listed as **Pamela Sharma**. 
+
+**Answer:** The contact person for this agenda item is **Chair Pamela Sharma**.",72.2
+74,Who is the contact person for 'Review and Recommend Council Approve Recommended Budget'?,"Contact: Tim Kirby, Director of Finance","The contact person for 'Review and Recommend Council Approve Recommended Budget' is Tim Kirby, Finance Director, Finance Department.","The contact person for the agenda item **""Review and Recommend Council Approve Recommended Budget""** is **Tim Kirby**.",27.1
+75,Who is the contact person for 'Approve the Board of Library Trustees Meeting Minutes of Mar'?,Contact: Superintendent Steve Sloan,"The contact person for 'Approve the Board of Library Trustees Meeting Minutes of March 4, 2024' is most likely Garrett Kuramoto, Superintendent of Libraries, or Vice Chair Meena Juttukonda, who presided over the meeting. For official records, the Superintendent of Libraries (Garrett Kuramoto) is the primary staff contact.","The contact person for the agenda item **""Approve the Board of Library Trustees Meeting Minutes of March""** is **Board Secretary Murphy**.",91.2
+76,"Who is the contact person for 'Approve Planning Commission Meeting Minutes of April 28, 202'?","Contact: Jeffrey Cucinotta, Project Planner; Phone: (408) 730-7424; Email: jcucinotta@sunnyvale.ca.gov","The contact person for 'Approve Planning Commission Meeting Minutes of April 28, 2025' is Planning Officer Shaunn Mendrin. If you need to reach staff regarding this agenda item or Planning Commission meetings, contact Shaunn Mendrin, Planning Officer, City of Sunnyvale.","I wasn't able to locate a contact-person field or a linked Staff or Contact node for the agenda item **""Approve Planning Commission Meeting Minutes of April 28, 2025.""** The agenda item record (entity 14832) contains its title, item number, description and result, but no explicit contact-person information, and the only relationships it has are to the corresponding vote and the meeting that includes it. 
+
+**Result:** The graph does not store a contact person for this agenda item.",43.8
+77,Who is the contact person for 'Climate Action Playbook Update: 2021 GHG Inventory'?,"Contact: Madeline Khair, Environmental Programs Manager; Christina Raby, Environmental Engineering Coordinator","The contact persons for 'Climate Action Playbook Update: 2021 GHG Inventory' are Madeline Khair (Environmental Programs Manager) and Christina Raby (Environmental Engineering Coordinator), as they presented the item to the Sustainability Commission on August 21, 2023.","The agenda item **""Climate Action Playbook Update: 2021 GHG Inventory""** lists two presenters, who serve as the primary contacts for this item:
+
+| Name | Title / Role | Department / Affiliation |
+|------|--------------|--------------------------|
+| **Madeline Khair** | Environmental Programs **Manager** | Environmental Services, City of Sunnyvale |
+| **Christina Raby** | Environmental Programs **Specialist** | Environmental Services, City of Sunnyvale |
+
+Either of them can be reached for further information about the 2021 GHG Inventory update.",26.5
+78,Who is the contact person for 'Annual reporting on collisions involving pedestrians and cyc'?,Contact: Lieutenant Dzanh Le,"The contact person for 'Annual reporting on collisions involving pedestrians and cyclists' is Lieutenant Galazzo, who gave the main presentation and is listed as the lead presenter for this agenda item.","The agenda item **""Annual reporting on collisions involving pedestrians and cyclists""** appears several times in the *meetings_graph_v2* dataset. 
+For each occurrence the agenda record stores the person(s) listed as the **presenter** - the contact person for that presentation.
+
+| Year / Item # | Agenda-Item ID | Contact Person (presenter) |
+|---------------|----------------|----------------------------|
+| 2022 (A 22-0499) | `entity_1315` | **Dzanh Le** |
+| 2023 (A 23-0752) | `entity_6746` | **Lieutenant Galazzo** |
+| 2024 (A 24-0836) | `entity_11302`| **Lieutenant Galazzo** |
+
+So, depending on which specific meeting you are referring to, the contact person is:
+
+* **Dzanh Le** for the 2022 presentation, or 
+* **Lieutenant Galazzo** for the 2023-2024 presentations.",16.1
+79,Who is the contact person for 'Approve the Draft Heritage Preservation Commission Meeting M'?,"Contact: Joey Mariano, Recording Clerk","The contact person for 'Approve the Draft Heritage Preservation Commission Meeting Minutes' is Principal Planner George Schroeder, who served as the staff member present at the meeting and provided information to the commission.","The agenda item **""Approve the Draft Heritage Preservation Commission Meeting Minutes of March 2, 2022""** (entity `entity_1878`) is associated with the staff member **Principal Planner Schroeder** (entity `entity_1877`). In the meeting record, this staff member is listed as the person who presented the agenda item (role ""presenter""). 
+
+**Contact person:** **Principal Planner Schroeder**.",63.5
+80,Who is the contact person for 'Friends of the Sunnyvale Public Library'?,"Contact: Chaunacey Dunklee, Supervising Librarian","The contact person for 'Friends of the Sunnyvale Public Library' is Chaunacey Dunklee, Supervising Librarian at the Sunnyvale Public Library. She is consistently listed as the presenter and representative for the Friends in Board of Library Trustees meetings from 2023 through 2025.",The contact person associated with **Friends of the Sunnyvale Public Library** is **Chaunacey Dunklee**. (The presentation records for this organization list Chaunacey Dunklee as the presenter.),19.7
+81,How many City Council meetings were held in 2022?,The City Council held 42 meetings in 2022.,"43 City Council meetings were held in 2022, as evidenced by 43 distinct City Council meeting minutes documents for that year.",There were **64 City Council meetings** held in 2022.,26.9
+82,How many City Council meetings were held in 2023?,The City Council held 36 meetings in 2023.,"36 City Council meetings were held in 2023, as confirmed by the 36 official meeting minutes documents for 'City Council 2023'. While 54 'City Council Meeting' entities exist for 2023, some are likely sub-parts or duplicates; the document count provides the most reliable answer.",The City Council held **56 meetings** in 2023.,38.7
+83,How many City Council meetings were held in 2024?,The City Council held 40 meetings in 2024.,"40 City Council meetings were held in 2024, as confirmed by the 40 distinct City Council meeting minutes documents for that year.","In the **meetings_graph_v2** database, there were **61 City Council meetings** recorded for the year **2024**.",23.6
+84,How many Planning Commission meetings were held in 2022?,The Planning Commission held 18 meetings in 2022.,"18 Planning Commission meetings were held in 2022, as confirmed by 18 unique meeting minutes documents for that year.","In 2022, there were **115 Planning Commission meetings** recorded in the database.",24.9
+85,How many Planning Commission meetings were held in 2023?,The Planning Commission held 23 meetings in 2023.,"23 Planning Commission meetings were held in 2023. This is based on the count of official meeting minutes documents for 'Planning Commission 2023', which reliably corresponds to the number of meetings held. Joint sessions with other commissions are excluded from this count.","In 2023, **10 Planning Commission meetings** were held.",15.4
+86,"What was the project location discussed at the Planning Commission meeting on Monday, January 8, 2024?",Location: 258 W. California Ave. (APN: 204-51-005). Applicant/Owner: George Novitskiy (applicant) / Hanson America LLC (owner).,"The project location discussed at the Planning Commission meeting on Monday, January 8, 2024, was 258 W. California Ave. (APN: 204-51-005), Sunnyvale, CA. This was for a proposed subdivision and construction project, which was continued to a date uncertain.","The Planning Commission meeting on **Monday, January 8 2024** discussed the residential subdivision and new-home project **at 258 West California Avenue** (Sunnyvale, CA).",28.7
+87,"What was the project location discussed at the Planning Commission meeting on Monday, April 22, 2024?",Location: 258 West California Avenue (APN: 204-51-005). Applicant/Owner: George Novitskiy (applicant) / Hanson America LLC (owner).,"The project locations discussed at the Planning Commission meeting on Monday, April 22, 2024, were 258 West California Avenue and 160 South Pastoria Avenue.","The Planning Commission meeting held on Monday, April 22 2024 discussed the project located at **258 West California Avenue**.",18.0
+88,"What was the project location discussed at the Zoning Administrator Hearing meeting on Wednesday, December 11, 2024?",Location: 516 West Remington Drive (APN 202-04-004). Applicant/Owner: John Ha / Remington Realty LLC.,"The project location discussed at the Zoning Administrator Hearing meeting on Wednesday, December 11, 2024, was 516 West Remington Drive (APN 202-04-004), Sunnyvale. The project involved subdividing one lot into five condominium lots and one common lot, and a use permit to allow office condominiums.","The Zoning Administrator Hearing held on **Wednesday, December 11 2024** discussed the project located at **516 West Remington Drive** (also referenced as 516 Remington Dr).",20.2
+89,"What was the project location discussed at the Planning Commission meeting on Monday, February 26, 2024?",Location: 541 South Bayview Avenue (APN: 209-31-036). Applicant/Owner: Michelle Miner / Christopher & Margaret Allan.,"The project location discussed at the Planning Commission meeting on Monday, February 26, 2024, was the North Village Centers, Sunnyvale, as part of the Village Center Master Plan.","The project discussed at the Planning Commission meeting on Monday, February 26 2024 was **""Design Review 541 South Bayview Avenue,""** and its location is **541 South Bayview Avenue (APN: 209-31-036).**",53.3
+90,"What was the project location discussed at the Zoning Administrator Hearing meeting on Wednesday, January 29, 2025?",Location: 1211 E. Arques Avenue (APNs: 216-44-116 and -117). Applicant/Owner: Evan Sockalosky (applicant); Cliff Sawyer (applicant); 1211 E. Arques LP (owner).,"The project location discussed at the Zoning Administrator Hearing meeting on Wednesday, January 29, 2025, was 1211 E. Arques Avenue.","The meeting's agenda included a project for a **Buddhist Community Center located at 1211 E. Arques Avenue**【{""source"":""entity_13580"",""payload"":{""attributes"":{""location"":""1211 E. Arques Avenue""}}}].",27.0
+91,"What was the project location discussed at the Planning Commission meeting on Monday, October 13, 2025?",Location: 333-385 Moffett Park Drive (APN:110-34-005). Applicant/Owner: BEP Moffett Park LLC.,"The project location discussed at the Planning Commission meeting on Monday, October 13, 2025, was 333-385 Moffett Park Drive (APN:110-34-005), Sunnyvale, CA. The project involves a development agreement, site master plan, and special development permit for demolition and new construction on a 4.99-acre site by BEP Moffett Park LLC.","The project that was discussed during the Planning Commission meeting on Monday, October 13 2025 was located at **333-385 Moffett Park Drive**.",32.0
+92,"What was the project location discussed at the City Council meeting on Tuesday, September 12, 2023?",Location: 1154 and 1170 Sonora Court. Applicant/Owner: Not specified.,"At the City Council meeting on Tuesday, September 12, 2023, the following project locations were discussed:
+
+1. 1154 and 1170 Sonora Court (proposed project, discussed in closed session regarding anticipated litigation)
+2. Stevens Creek at Mockingbird Lane (emergency repair project to reconstruct a damaged stormwater outfall and restore the embankment)
+3. Civic Center Phase 2 Planning – Main Library, located at City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086 (main public hearing project)
+
+These are the project locations explicitly discussed at the meeting.","The City Council meeting on Tuesday, September 12 2023 was held **online and in the Bay Conference Room (Room 145) at City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086**.",48.3
+93,"What was the project location discussed at the City Council meeting on Tuesday, October 15, 2024?",Location: El Camino Specific Plan Area (APNs: Various). Applicant/Owner: Not specified.,"The project location discussed at the City Council meeting on Tuesday, October 15, 2024, was the 'El Camino Specific Plan Area' (APNs: Various), covering the El Camino Real Specific Plan district in Sunnyvale.","The meeting on Tuesday, October 15 2024 discussed a project located on **El Camino Real in Sunnyvale, CA**.",93.7
+94,"What was the project location discussed at the Planning Commission meeting on Monday, December 9, 2024?",Location: 591 South Murphy Avenue (APN 209-30-012); 260 North Pastoria Avenue (APN 165-27-003); 280 North Pastoria Avenue (APN 165-27-004); 286 North Pastoria Avenue (APN 165-27-005); 290 North Pastoria Avenue (APN 165-27-006); Citywide. Applicant/Owner: City of Sunnyvale.,"The project location discussed at the Planning Commission meeting on December 9, 2024, was 'Citywide'—the Citywide Land Use and Zoning Update covers the entire City of Sunnyvale.","The Planning Commission meeting held on **Monday, December 9 2024** took place in the **Council Chambers, City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086**. This is the location listed for that meeting in the graph.",56.3
+95,"What was the project location discussed at the Planning Commission meeting on Monday, May 12, 2025?","Location: 1119-1163 Lawrence Expressway (APN: 110-23-110), 1037 Lakehaven Drive (APN: 110-23-109), 1051 Lakehaven Drive (APN: 110-23-108). Applicant/Owner: Dick’s Lakewood Corporation (owner); Kelley Rutchena, The True Life Companies (applicant).","The project location discussed at the Planning Commission meeting on Monday, May 12, 2025, was 1119-1163 Lawrence Expressway, 1037 Lakehaven Drive, and 1051 Lakehaven Drive, Sunnyvale, CA.","The Planning Commission meeting held on Monday, May 12 2025 took place **online and in the Council Chambers at City Hall, 456 W. Olive Ave., Sunnyvale, CA 94086**.",15.9
+96,What were the deadlines or milestones mentioned for 'Approve the Charter Review Committee Meeting Minutes of Febr'?,Deadlines/Milestones: potential joint meeting with City Council on May 20 and June 3,"No explicit deadlines or milestones were mentioned for 'Approve the Charter Review Committee Meeting Minutes of February 6, 2025.' However, staff requested that Committee Members hold the evenings of May 20 and June 3 for a potential joint meeting with City Council—these are the only future milestones referenced in the meeting minutes.","**Deadlines / Milestones that appear in the data for the agenda items that start with ""Approve the Charter Review Committee Meeting Minutes of Feb-..."".
+
+| Agenda item (entity) | What the item is about | Key dates that act as milestones (meeting dates, vote dates or filing dates) | How the date is expressed in the source |
+|----------------------|------------------------|---------------------------------------------------|----------------------------------------|
+| **entity _14014_** - *1.A 25-0008 Approve the Charter Review Committee Meeting Minutes of February 6, 2025* | Approval of the minutes from the **Charter Review Committee meeting held on Feb 6 2025**. | • **Feb 6 2025** - the date of the meeting whose minutes are being approved (the ""meeting minutes"" themselves). <br>• **Feb 27 2025** - the date of the **Consent-Calendar vote** that approved the item (the vote record is ""Vote on 1.A 25-0008""). | • In the Agenda-Item payload the *context* says ""An agenda item to approve the minutes of the **February 6, 2025** Charter Review Committee meeting..."". <br>• The related Vote (entity _14015_) has the attribute `agenda_item: ""1.A 25-0008 Approve the Charter Review Committee Meeting Minutes of February 6, 2025""` and the source file is `2025-02-27_Charter_Review_Committee_4342_minutes.pdf`. |
+| **entity _14374_** - *1.A 25-0289 Approve the Charter Review Committee Meeting Minutes of February 27, 2025* | Approval of the minutes from the **Charter Review Committee meeting held on Feb 27 2025**. | • **Feb 27 2025** - the date of the meeting whose minutes are being approved. <br>• **Apr 3 2025** - the date the minutes (and thus the approval) were filed/published (the source file is `2025-04-03_Charter_Review_Committee_4344_minutes.pdf`). | • The Agenda-Item payload's *context* reads ""Approval of the Charter Review Committee Meeting Minutes of **February 27, 2025**."" <br>• The source PDF name includes the date **2025-04-03**, indicating the meeting on which the agenda item was acted upon. |
+
+### Summary
+- **February 6, 2025** minutes were approved **by a vote on February 27 2025** (the date the consent-calendar vote was taken). 
+- **February 27, 2025** minutes were approved **by the meeting on April 3 2025** (the filing date of the minutes file). 
+
+These dates are the only explicit deadlines/milestones present in the graph for the ""Approve the Charter Review Committee Meeting Minutes of Feb-..."" agenda items.",41.1
+97,What were the deadlines or milestones mentioned for 'Annual reporting on collisions involving pedestrians and cyc'?,"Deadlines/Milestones: Public comments due April 22; Applications due Thursday, April 28, 2022; Terms ending in June 2022; May 19 - Budget workshop at 8:30 a.m.; Bike to Wherever Day, May 19 - May 31, 2022; April 30 - Fair Oaks Park Grand re-opening ceremony; April 30 - Cupertino Cherry Blossom Festival; May 21 - Silicon Valley Tour De Coup 2022","No explicit deadlines or milestones were mentioned for 'Annual reporting on collisions involving pedestrians and cyclists' in the July 17, 2025 meeting. The only recurring milestone is the annual presentation/report itself, which was delivered at this meeting. No specific due dates or future deadlines were set or discussed for this agenda item.","**Deadlines / milestones that appear in the graph for the agenda item ""Annual reporting on collisions involving pedestrians and cyclists""**
+
+| Year (item number) | Meeting date (when the report is presented) | Notes from the agenda entry |
+|--------------------|--------------------------------------------|------------------------------|
+| **A 22-0499** (2022) | **April 21 2022** - *Bicycle and Pedestrian Advisory Commission* meeting | The agenda item is listed as ""Annual reporting on collisions involving pedestrians and cyclists (A 22-0499)"". The entry includes a scheduled time of **6:30 PM** for the presentation. |
+| **A 23-0752** (2023) | **July 20 2023** - *Bicycle and Pedestrian Advisory Commission* meeting | The agenda item ""A 23-0752 Annual reporting on collisions involving pedestrians and cyclists"" appears in the minutes for the July-20-2023 meeting. No specific time is stored, but the inclusion in that meeting marks the 2023 milestone. |
+| **A 24-0836** (2024) | **July 18 2024** - *Bicycle and Pedestrian Advisory Commission* meeting | The agenda item ""A 24-0836 Annual Reporting on Collisions Involving Pedestrians and Cyclists"" is attached to the July-18-2024 meeting minutes. Again, the meeting itself serves as the 2024 milestone. |
+| **25-0785** (2025) | **(future) - not yet tied to a specific meeting in the data** | The agenda item ""25-0785 Annual reporting on collisions involving pedestrians and cyclists"" is present in the graph, indicating that the next annual report is planned for 2025, but the exact meeting date has not been recorded yet. |
+
+### What these milestones represent
+* **Item numbers (A 22-0499, A 23-0752, A 24-0836, 25-0785)** - The ""A xx-####"" format is the Commission's way of tracking agenda items year-by-year. The first two digits after the ""A"" correspond to the fiscal year (22 = 2022, 23 = 2023, etc.). 
+* **Meeting dates** - Each annual report is scheduled to be presented at a specific commission meeting, which serves as the ""deadline"" for delivering the report to the commission and the public. 
+* **Scheduled time** - For the 2022 report the agenda records a concrete time (6:30 PM). The later years only list the meeting itself; the presentation time is implicit in the meeting agenda.
+
+### TL;DR
+The graph shows four yearly milestones for the annual collision-reporting presentation:
+
+1. **2022 (A 22-0499)** - presented at the April 21 2022 meeting (6:30 PM). 
+2. **2023 (A 23-0752)** - presented at the July 20 2023 meeting. 
+3. **2024 (A 24-0836)** - presented at the July 18 2024 meeting. 
+4. **2025 (25-0785)** - slated for a future meeting (the exact date is not yet recorded). 
+
+These dates and item numbers constitute the deadlines/milestones associated with ""Annual reporting on collisions involving pedestrians and cyclists.""",31.5
+98,What were the deadlines or milestones mentioned for 'Adopt a 2026-2030 Strategic Plan to Address Homelessness'?,Deadlines/Milestones: first half of 2026,The explicit milestone for the 'Adopt a 2026-2030 Strategic Plan to Address Homelessness' agenda item is: staff are directed to return to Council with an agenda item and updated draft of the Five-Year Strategic Plan to End Homelessness in the first half of 2026. No other deadlines or milestones are listed in the official meeting minutes.,"**Key dates and milestones linked to agenda item 25-0110 - ""Discussion and Potential Action to Adopt a 2026-2030 Strategic Plan to Address Homelessness""**
+
+| Source (node) | What it says | Why it matters |
+|---|---|---|
+| **Public Hearing (entity 17484)** - ""Public Hearing on Strategic Plan to Address Homelessness"" - 2 Dec 2025 | The hearing was held on **December 2 2025** (opened 7:13 p.m., closed 7:30 p.m.) and included 13 speakers. | A formal public-input milestone that moves the plan forward. |
+| **Vote (entity 17489)** - ""Vote on Strategic Plan to End Homelessness Next Steps (Council)"" | The City Council **approved** the motion and **directed staff to return with an agenda item and an updated draft of the Five-Year Strategic Plan**. | A concrete next-step milestone - staff must prepare and submit a revised draft (the ""deadline"" is the staff's internal turnaround, implied by the council's request). |
+| **Vote (entity 17488)** - ""Vote on Strategic Plan to End Homelessness Recommendation (Commission)"" | The Housing & Human Services Commission **approved** the recommendation to adopt the plan. | Shows the commission's endorsement, a prerequisite before the council takes final action. |
+| **Agenda Item (entity 17474)** - ""25-0110 Discussion and Potential Action to Adopt a 2026-2030 Strategic Plan to Address Homelessness"" | Described as a **five-year strategic plan** (2026-2030) that the council will discuss and potentially adopt. | Frames the overall timeline (the plan itself is scoped for the 2026-2030 period). |
+
+### Summary of deadlines / milestones
+
+1. **December 2 2025** - Public hearing on the Strategic Plan. 
+2. **Commission recommendation approved** - The Housing & Human Services Commission voted ""approved,"" clearing the way for council action. 
+3. **Council vote (approved)** - The City Council voted to **have staff return with an updated draft and a new agenda item**. This creates an internal deadline for staff to finish the revised draft (the exact date isn't listed, but the expectation is that it be completed before the next council meeting where the plan will be formally adopted. 
+4. **Plan timeframe** - The adopted plan, once approved, will cover **2026-2030**.
+
+These are the only explicit dates or action points currently stored in the graph for this agenda item. If you need a more precise staff-submission deadline, you would need to consult the meeting minutes or follow-up documents that capture the council's requested timeline.",32.6
+99,What were the deadlines or milestones mentioned for 'Presentation by Cityline on Proposed Historical Plaque for R'?,Deadlines/Milestones: commemorative plaque should be installed by early fall,The only explicit milestone mentioned for the 'Presentation by Cityline on Proposed Historical Plaque for Redwood Grove' is that the commemorative plaque should be installed by early fall. No other deadlines or milestones were discussed in the meeting minutes.,"The agenda item **""Presentation by Cityline on Proposed Historical Plaque for Redwood Grove""** (entity `entity_10818`) does not list any explicit deadlines or milestones in its own attributes (there are only fields for the presentation type, title, presenters, description, item number, and a null `scheduled_time`). 
+
+The only time-related reference associated with this agenda item is the date of the **Commission Meeting** that includes it:
+
+| Context | Date |
+|---------|------|
+| Commission Meeting that includes the agenda item | **June 5 , 2024** (source: 2024-06-05_Heritage_Preservation_Commission_4067_minutes.pdf) |
+
+So, apart from the meeting date (June 5 2024), no specific deadline, due-date, or milestone is mentioned for this presentation.",36.8
+100,What were the deadlines or milestones mentioned for 'Climate Action Playbook Update: Next Game Plan Development'?,Deadlines/Milestones: Game Plan 2028 development process and timeline,"The explicit deadlines and milestones for 'Climate Action Playbook Update: Next Game Plan Development' (Game Plan 2028) are:
+
+1. Game Plan 2028 is a five-year work plan with ongoing implementation (2023–2028).
+2. The Greenhouse Gas (GHG) Inventory will be updated every two years (biennially) in even years; the next update is scheduled for 2026.
+3. Annual Climate Action Playbook (CAP) updates will continue each year.
+4. Specific Moves (e.g., Move 3.J) are scheduled for later phases within the five-year plan, with timing determined by staff resources and work plan priorities.
+
+These milestones are explicitly recorded in the October 23, 2025 Sustainability Commission minutes.","**Key milestones mentioned for the agenda item ""Climate Action Playbook Update: Next Game Plan Development""**
+
+| Agenda-item ID | Meeting date (when the item was discussed) | What the agenda item says about the timeline |
+|----------------|--------------------------------------------|----------------------------------------------|
+| **entity_773** - ""22-0304 Climate Action Playbook Update: Next Game Plan"" | **22 Feb 2022** (Commission Meeting entity_763) | ""Overview of Climate Action Playbook Game Plan 2028 development process and timeline, and process for Commission input."" |
+| **entity_1094** - ""22-0405 Climate Action Playbook Update: Next Game Plan Development"" | **24 Mar 2022** (Commission Meeting entity_1082) | ""Overview and discussion of the Game Plan 2028 development process and timeline."" |
+| **entity_1248** - ""22-0487 Climate Action Playbook Update: Next Game Plan Development"" | **18 Apr 2022** (Commission Meeting entity_1236) | ""Overview of Climate Action Playbook Game Plan 2028 development process and timeline."" |
+
+**What this tells us**
+
+* The **development of the Climate Action Playbook (Game Plan 2028)** was treated as a multi-step milestone across three consecutive Sustainability Commission study-session meetings in early 2022.
+* Each meeting served as a **progress checkpoint** where the staff presented the draft timeline and invited Commission input.
+* The agenda-item descriptions explicitly refer to a ""development process and timeline,"" indicating that the **timeline itself was the central milestone** being reviewed at each session.
+
+**In short:** the primary milestones for the ""Climate Action Playbook Update: Next Game Plan Development"" are the three study-session meetings on **22 Feb 2022, 24 Mar 2022, and 18 Apr 2022**, when the draft timeline for the Game Plan 2028 was presented and discussed.",41.5

@@ -61,7 +61,7 @@ Write-Host "Starting AGE MCP server on :3002 ..."
 Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'mcp_server') -ArgumentList @(
     '-NoExit',
     '-Command',
-    'python age_mcp_server.py'
+    '. .\.venv\Scripts\Activate.ps1; python age_mcp_server.py'
 )
 
 # ---- FastAPI + PostgreSQL + AGE ----
@@ -70,7 +70,7 @@ Write-Host "Starting FastAPI on :8080 ..."
 Start-Process powershell -WorkingDirectory (Join-Path $PSScriptRoot 'af_fastapi') -ArgumentList @(
     '-NoExit',
     '-Command',
-    'uvicorn af_fastapi:app --port 8080 --reload'
+    '. .\.venv\Scripts\Activate.ps1; uvicorn af_fastapi:app --port 8080 --reload'
 )
 
 # ---- React Frontend ----

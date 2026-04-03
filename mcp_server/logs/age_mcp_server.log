@@ -1,0 +1,1625 @@
+2026-03-31 17:35:40,920 INFO     Created new transport with session ID: 32b63e19d70440b4a3b64798d595a9a0
+2026-03-31 17:35:40,939 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:35:40,957 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:35:42,536 INFO     Processing request of type CallToolRequest
+2026-03-31 17:35:45,688 INFO     Processing request of type CallToolRequest
+2026-03-31 17:35:47,327 INFO     Processing request of type CallToolRequest
+2026-03-31 17:35:50,365 INFO     Processing request of type CallToolRequest
+2026-03-31 17:35:54,737 INFO     Processing request of type CallToolRequest
+2026-03-31 17:35:59,690 INFO     Processing request of type CallToolRequest
+2026-03-31 17:35:59,790 ERROR    Error executing query: a column definition list is required for functions returning "record"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATC...
+                      ^
+2026-03-31 17:35:59,792 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m)-[:attended_by]->(p) WHERE p.payload.id IN ['entity_6494','entity_15534'] AND m.payload.attributes.date >= '2022-01-01' AND m.payload.attributes.date < '2023-01-01' RETURN m$$) AS sub;
+2026-03-31 17:35:59,794 INFO     Attempting to rollback transaction...
+2026-03-31 17:35:59,901 INFO     Rollback successful.
+2026-03-31 17:36:02,811 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:04,831 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:10,806 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:25,068 INFO     Created new transport with session ID: c392eb01e27a4b29877df4a4128ab8f8
+2026-03-31 17:36:25,078 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:36:25,086 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:36:26,583 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:36,774 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:43,201 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:44,404 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:46,054 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:48,405 INFO     Processing request of type CallToolRequest
+2026-03-31 17:36:58,979 INFO     Processing request of type CallToolRequest
+2026-03-31 17:37:19,208 INFO     Created new transport with session ID: e1524c3233e34bff8c70de0494a9eb44
+2026-03-31 17:37:19,225 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:37:19,235 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:37:21,523 INFO     Processing request of type CallToolRequest
+2026-03-31 17:37:25,435 INFO     Processing request of type CallToolRequest
+2026-03-31 17:37:28,636 INFO     Processing request of type CallToolRequest
+2026-03-31 17:37:32,588 INFO     Processing request of type CallToolRequest
+2026-03-31 17:37:41,035 INFO     Processing request of type CallToolRequest
+2026-03-31 17:37:51,707 INFO     Processing request of type CallToolRequest
+2026-03-31 17:38:07,775 INFO     Created new transport with session ID: 7318447f12a240c4a1b2c83473c46a40
+2026-03-31 17:38:07,795 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:38:07,824 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:38:11,115 INFO     Processing request of type CallToolRequest
+2026-03-31 17:38:15,743 INFO     Processing request of type CallToolRequest
+2026-03-31 17:38:29,407 INFO     Created new transport with session ID: 1d010a1cb1f4405abf2c2cd2d012da5c
+2026-03-31 17:38:29,417 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:38:29,424 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:38:30,789 INFO     Processing request of type CallToolRequest
+2026-03-31 17:38:35,643 INFO     Processing request of type CallToolRequest
+2026-03-31 17:38:46,625 INFO     Created new transport with session ID: d118d4974f9a4c19a307d42274a2bc4a
+2026-03-31 17:38:46,653 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:38:46,668 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:38:48,375 INFO     Processing request of type CallToolRequest
+2026-03-31 17:38:53,273 INFO     Processing request of type CallToolRequest
+2026-03-31 17:38:53,391 ERROR    Error executing query: a column definition list is required for functions returning "record"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATC...
+                      ^
+2026-03-31 17:38:53,391 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (c:Councilmember) WHERE c.payload.id IN ['entity_1995','entity_2642','entity_107','entity_13166','entity_2868'] MATCH (c)-[:attended_by]->(m:City_Council_Meeting) WHERE m.payload.attributes.date >= '2024-01-01' AND m.payload.attributes.date < '2025-01-01' RETURN m$$) AS t;
+2026-03-31 17:38:53,392 INFO     Attempting to rollback transaction...
+2026-03-31 17:38:53,497 INFO     Rollback successful.
+2026-03-31 17:38:56,750 INFO     Processing request of type CallToolRequest
+2026-03-31 17:39:08,729 INFO     Created new transport with session ID: c1ef88b0677e4a5db24b7ac448f59a94
+2026-03-31 17:39:08,764 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:39:08,774 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:39:10,448 INFO     Processing request of type CallToolRequest
+2026-03-31 17:39:25,992 INFO     Created new transport with session ID: 75d157b6504f46abaaf90652161cee98
+2026-03-31 17:39:26,009 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:39:26,022 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:39:27,679 INFO     Processing request of type CallToolRequest
+2026-03-31 17:39:30,381 INFO     Processing request of type CallToolRequest
+2026-03-31 17:39:35,047 INFO     Processing request of type CallToolRequest
+2026-03-31 17:39:37,184 INFO     Processing request of type CallToolRequest
+2026-03-31 17:39:39,883 INFO     Processing request of type CallToolRequest
+2026-03-31 17:39:51,884 INFO     Created new transport with session ID: 238e91ab86da4a439df3195f8de8f6ef
+2026-03-31 17:39:51,924 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:39:51,938 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:39:54,090 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:05,071 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:05,185 ERROR    Error executing query: a column definition list is required for functions returning "record"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+                      ^
+2026-03-31 17:40:05,185 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+    MATCH (c:Councilmember)-[:attended_by]->(m:City_Council_Meeting)
+    WHERE c.payload.id IN ['entity_4466','entity_4212','entity_7325','entity_16869']
+      AND m.payload.attributes.date >= '2024-01-01'
+      AND m.payload.attributes.date <  '2025-01-01'
+    RETURN m$$) AS sub;
+2026-03-31 17:40:05,186 INFO     Attempting to rollback transaction...
+2026-03-31 17:40:05,300 INFO     Rollback successful.
+2026-03-31 17:40:08,624 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:18,700 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:28,981 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:29,122 ERROR    Error executing query: a column definition list is required for functions returning "record"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+                      ^
+2026-03-31 17:40:29,124 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+    MATCH (n)
+    WHERE toLower(coalesce(n.payload.name, '')) CONTAINS toLower('Richard Mehlinger')
+    RETURN n$$) AS sub;
+2026-03-31 17:40:29,125 INFO     Attempting to rollback transaction...
+2026-03-31 17:40:29,236 INFO     Rollback successful.
+2026-03-31 17:40:31,953 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:40,051 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:43,436 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:50,551 INFO     Processing request of type CallToolRequest
+2026-03-31 17:40:50,643 ERROR    Error executing query: a column definition list is required for functions returning "record"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+                      ^
+2026-03-31 17:40:50,644 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+    MATCH (m:City_Council_Meeting)-[:attended_by]->(c:Councilmember)
+    WHERE c.payload.id IN ['entity_4466','entity_4212','entity_7325','entity_16869']
+      AND m.payload.attributes.date >= '2024-01-01'
+      AND m.payload.attributes.date < '2025-01-01'
+    RETURN m$$) AS sub;
+2026-03-31 17:40:50,644 INFO     Attempting to rollback transaction...
+2026-03-31 17:40:50,692 INFO     Rollback successful.
+2026-03-31 17:40:53,401 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:03,485 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:19,989 INFO     Created new transport with session ID: 89f040519f714f78b648fed29255d76b
+2026-03-31 17:41:20,008 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:41:20,036 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:41:21,543 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:26,942 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:29,746 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:43,512 INFO     Created new transport with session ID: 8f5b33ebc576442ba79cd85e20dd0c5f
+2026-03-31 17:41:43,521 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:41:43,528 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:41:45,158 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:46,789 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:49,214 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:52,817 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:56,153 INFO     Processing request of type CallToolRequest
+2026-03-31 17:41:56,273 ERROR    Error executing query: could not find rte for name
+LINE 4: ORDER BY name$$) AS (name ag_catalog.agtype);
+                 ^
+2026-03-31 17:41:56,274 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+MATCH (m:Commission_Meeting {payload:{id:'entity_17185'}})<-[:attended_by]-(c:Commissioner)
+RETURN c.payload.attributes.name AS name
+ORDER BY name$$) AS (name ag_catalog.agtype);
+2026-03-31 17:41:56,274 INFO     Attempting to rollback transaction...
+2026-03-31 17:41:56,368 INFO     Rollback successful.
+2026-03-31 17:41:58,522 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:00,782 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:03,192 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:03,283 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 3: RETURN c.payload->'attributes'->>'name' AS name$$) AS (name ...
+                                       ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:42:03,284 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+MATCH (m:Commission_Meeting {payload:{id:'entity_17185'}})<-[:attended_by]-(c:Commissioner)
+RETURN c.payload->'attributes'->>'name' AS name$$) AS (name ag_catalog.agtype) ORDER BY name;
+2026-03-31 17:42:03,284 INFO     Attempting to rollback transaction...
+2026-03-31 17:42:03,337 INFO     Rollback successful.
+2026-03-31 17:42:05,174 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:05,398 ERROR    Error executing query: operator does not exist: jsonb -> agtype
+LINE 3: RETURN c.payload::jsonb->'attributes'->>'name' AS name$$) AS...
+                               ^
+HINT:  No operator matches the given name and argument types. You might need to add explicit type casts.
+2026-03-31 17:42:05,400 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+MATCH (m:Commission_Meeting {payload:{id:'entity_17185'}})<-[:attended_by]-(c:Commissioner)
+RETURN c.payload::jsonb->'attributes'->>'name' AS name$$) AS (name ag_catalog.agtype) ORDER BY name;
+2026-03-31 17:42:05,402 INFO     Attempting to rollback transaction...
+2026-03-31 17:42:05,455 INFO     Rollback successful.
+2026-03-31 17:42:07,160 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:19,686 INFO     Created new transport with session ID: f74cc3d78b7546d7b0df1f343da2b2a9
+2026-03-31 17:42:19,707 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:42:19,735 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:42:21,000 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:22,846 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:24,912 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:29,709 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:45,085 INFO     Created new transport with session ID: c7a0d7a4b49e4c7ea390331180adfc0d
+2026-03-31 17:42:45,115 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:42:45,129 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:42:46,748 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:48,273 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:51,109 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:53,526 INFO     Processing request of type CallToolRequest
+2026-03-31 17:42:57,457 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:10,032 INFO     Created new transport with session ID: 15ee5557f9a44707b6edaef6b4b1208f
+2026-03-31 17:43:10,048 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:43:10,071 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:43:12,026 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:13,795 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:16,351 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:20,481 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:33,354 INFO     Created new transport with session ID: f69791372d444fb88559a6083344bf20
+2026-03-31 17:43:33,372 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:43:33,398 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:43:35,103 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:36,272 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:37,929 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:39,946 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:42,725 INFO     Processing request of type CallToolRequest
+2026-03-31 17:43:48,210 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:01,348 INFO     Created new transport with session ID: c567f554daef4ec0aee7a100b6987890
+2026-03-31 17:44:01,396 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:44:01,403 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:44:03,224 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:05,019 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:07,303 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:10,978 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:27,963 INFO     Created new transport with session ID: eda9d9fee3144b5da486d0aa4cb2c42c
+2026-03-31 17:44:27,988 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:44:28,010 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:44:30,037 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:31,117 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:33,030 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:34,581 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:36,532 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:38,834 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:42,152 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:47,489 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:51,101 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:53,899 INFO     Processing request of type CallToolRequest
+2026-03-31 17:44:56,281 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:08,949 INFO     Created new transport with session ID: 0f33513e8f6a49f8a75f5cc42a689052
+2026-03-31 17:45:08,975 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:45:09,000 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:45:10,336 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:11,966 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:13,591 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:15,664 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:17,908 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:21,973 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:22,095 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...TURN c.payload.name AS name, c.payload.attributes->>'name' A...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:45:22,096 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting) WHERE m.payload.id = 'entity_13327' MATCH (m)-[:absent_from]->(c:Commissioner) RETURN c.payload.name AS name, c.payload.attributes->>'name' AS attr_name$$) AS (name ag_catalog.agtype, attr_name ag_catalog.agtype);
+2026-03-31 17:45:22,096 INFO     Attempting to rollback transaction...
+2026-03-31 17:45:22,197 INFO     Rollback successful.
+2026-03-31 17:45:23,859 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:26,460 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:40,872 INFO     Created new transport with session ID: 115c45dca9a44636836c79ab56485923
+2026-03-31 17:45:40,899 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:45:40,912 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:45:42,263 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:43,946 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:46,617 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:48,598 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:51,084 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:51,188 ERROR    Error executing query: syntax error at or near "|"
+LINE 1: ...mmission_Meeting {id: 'entity_187'})-[:attended_by|absent_fr...
+                                                             ^
+2026-03-31 17:45:51,189 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_187'})-[:attended_by|absent_from]->(c:Commissioner) RETURN c.payload.id AS commissioner_id, c.payload.name AS commissioner_name, type( (m)-[r]->(c) ) AS rel_type$$) AS (commissioner_id ag_catalog.agtype, commissioner_name ag_catalog.agtype, rel_type ag_catalog.agtype);
+2026-03-31 17:45:51,190 INFO     Attempting to rollback transaction...
+2026-03-31 17:45:51,299 INFO     Rollback successful.
+2026-03-31 17:45:53,219 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:57,081 INFO     Processing request of type CallToolRequest
+2026-03-31 17:45:59,706 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:01,683 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:04,985 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:07,526 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:19,284 INFO     Created new transport with session ID: 2397cc4197b8403082385db771974974
+2026-03-31 17:46:19,318 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:46:19,329 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:46:20,645 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:22,368 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:23,725 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:25,449 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:27,862 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:32,413 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:47,372 INFO     Created new transport with session ID: c342382f379f4ed29820e9ccaace8fbf
+2026-03-31 17:46:47,403 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:46:47,412 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:46:49,089 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:50,883 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:53,225 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:56,842 INFO     Processing request of type CallToolRequest
+2026-03-31 17:46:59,256 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:02,841 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:05,277 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:08,146 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:09,585 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:13,375 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:15,679 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:19,150 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:21,940 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:24,316 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:26,972 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:29,126 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:29,226 ERROR    Error executing query: syntax error at or near "|"
+LINE 1: ...ission_Meeting {id: 'entity_5472'})<-[:attended_by|presided_...
+                                                             ^
+2026-03-31 17:47:29,227 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_5472'})<-[:attended_by|presided_by|was_presided_by|presiding_officer]-(p:Commissioner) RETURN type(r) AS rel, p.payload.name AS name, p.payload.attributes AS attrs$$) AS (rel ag_catalog.agtype, name ag_catalog.agtype, attrs ag_catalog.agtype);
+2026-03-31 17:47:29,227 INFO     Attempting to rollback transaction...
+2026-03-31 17:47:29,321 INFO     Rollback successful.
+2026-03-31 17:47:30,914 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:34,123 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:36,685 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:39,518 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:42,033 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:44,232 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:46,517 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:50,539 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:52,439 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:55,531 INFO     Processing request of type CallToolRequest
+2026-03-31 17:47:59,501 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:03,340 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:06,654 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:09,885 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:13,149 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:16,081 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:21,538 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:24,419 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:26,750 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:29,534 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:31,308 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:31,412 ERROR    Error executing query: function jsonb_object_keys does not exist
+LINE 1: ...CT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m...
+                                                             ^
+HINT:  If the function is from an external extension, make sure the extension is installed and the function is in the search path.
+2026-03-31 17:48:31,414 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_5472'}) RETURN jsonb_object_keys(m.payload.attributes) AS keys$$) AS (keys ag_catalog.agtype);
+2026-03-31 17:48:31,414 INFO     Attempting to rollback transaction...
+2026-03-31 17:48:31,513 INFO     Rollback successful.
+2026-03-31 17:48:34,208 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:37,191 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:39,070 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:53,378 INFO     Created new transport with session ID: 3546e59d39b84e289fa2edf464abc3c7
+2026-03-31 17:48:53,414 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:48:53,424 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:48:54,709 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:56,682 INFO     Processing request of type CallToolRequest
+2026-03-31 17:48:58,450 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:01,299 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:05,221 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:09,223 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:11,626 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:13,559 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:15,801 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:19,138 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:21,811 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:27,742 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:30,667 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:33,053 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:36,009 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:38,010 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:52,404 INFO     Created new transport with session ID: a7443ebae3d94d46a659ebd419f758df
+2026-03-31 17:49:52,431 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:49:52,499 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:49:54,194 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:56,107 INFO     Processing request of type CallToolRequest
+2026-03-31 17:49:57,822 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:00,392 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:04,269 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:07,177 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:11,109 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:26,187 INFO     Created new transport with session ID: 7a1688f84f224a5d93652a122a805092
+2026-03-31 17:50:26,214 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:50:26,239 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:50:28,922 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:30,592 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:33,026 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:35,411 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:37,057 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:39,478 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:39,590 ERROR    Error executing query: cannot cast type agtype to text[] for column "labels"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATC...
+                      ^
+2026-03-31 17:50:39,591 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_9081'})-[r]->(p) RETURN type(r) AS rel, p.payload.id AS id, p.payload.name AS name, labels(p) AS labels$$) as (rel text, id text, name text, labels text[]);
+2026-03-31 17:50:39,593 INFO     Attempting to rollback transaction...
+2026-03-31 17:50:39,691 INFO     Rollback successful.
+2026-03-31 17:50:41,778 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:43,615 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:45,389 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:45,488 ERROR    Error executing query: cannot cast type agtype to jsonb for column "attrs"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATC...
+                      ^
+2026-03-31 17:50:45,488 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_9081'}) RETURN m.payload.attributes$$) as (attrs jsonb);
+2026-03-31 17:50:45,488 INFO     Attempting to rollback transaction...
+2026-03-31 17:50:45,538 INFO     Rollback successful.
+2026-03-31 17:50:47,719 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:50,281 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:52,763 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:52,866 ERROR    Error executing query: cannot cast type agtype to text[] for column "labels"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATC...
+                      ^
+2026-03-31 17:50:52,867 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_9081'})-[r]->(p) RETURN type(r) AS rel, labels(p) AS labels, p.payload.name AS name, p.payload.id AS pid$$) as (rel text, labels text[], name text, pid text);
+2026-03-31 17:50:52,867 INFO     Attempting to rollback transaction...
+2026-03-31 17:50:52,917 INFO     Rollback successful.
+2026-03-31 17:50:54,820 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:56,970 INFO     Processing request of type CallToolRequest
+2026-03-31 17:50:59,240 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:02,226 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:04,921 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:05,021 ERROR    Error executing query: cannot cast type agtype to text[] for column "labels"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATC...
+                      ^
+2026-03-31 17:51:05,022 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_9081'})-[r]->(p) RETURN type(r) AS rel, labels(p) AS labels, p.payload.name AS name$$) as (rel text, labels text[], name text);
+2026-03-31 17:51:05,022 INFO     Attempting to rollback transaction...
+2026-03-31 17:51:05,072 INFO     Rollback successful.
+2026-03-31 17:51:08,421 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:11,305 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:13,387 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:15,902 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:16,006 ERROR    Error executing query: syntax error at or near "|"
+LINE 1: ...mission_Meeting {id: 'entity_9081'})-[:presided_by|presides|...
+                                                             ^
+2026-03-31 17:51:16,006 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_9081'})-[:presided_by|presides|presiding_officer]->(c:Commissioner) RETURN c.payload.name AS name$$) as (name text);
+2026-03-31 17:51:16,007 INFO     Attempting to rollback transaction...
+2026-03-31 17:51:16,055 INFO     Rollback successful.
+2026-03-31 17:51:19,718 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:22,569 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:25,417 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:28,279 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:30,934 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:34,145 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:36,353 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:38,385 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:41,034 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:43,318 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:45,680 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:45,771 ERROR    Error executing query: cannot cast type agtype to text[] for column "labels"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATC...
+                      ^
+2026-03-31 17:51:45,771 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_9081'})-[r]->(n) RETURN type(r) AS rel, labels(n) AS labels, n.payload.name AS name, n.payload.id AS nid$$) as (rel text, labels text[], name text, nid text);
+2026-03-31 17:51:45,772 INFO     Attempting to rollback transaction...
+2026-03-31 17:51:45,862 INFO     Rollback successful.
+2026-03-31 17:51:48,188 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:50,808 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:54,015 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:56,367 INFO     Processing request of type CallToolRequest
+2026-03-31 17:51:59,635 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:02,808 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:05,924 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:08,587 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:08,704 ERROR    Error executing query: syntax error at or near "*"
+LINE 1: ...TCH (m:Commission_Meeting {id: 'entity_9081'})<-[:*]-(c) RET...
+                                                             ^
+2026-03-31 17:52:08,706 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {id: 'entity_9081'})<-[:*]-(c) RETURN r$$) as (rel text);
+2026-03-31 17:52:08,707 INFO     Attempting to rollback transaction...
+2026-03-31 17:52:08,803 INFO     Rollback successful.
+2026-03-31 17:52:23,210 INFO     Created new transport with session ID: 92408ca2da414aca9823a6eaedab791e
+2026-03-31 17:52:23,248 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:52:23,265 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:52:24,702 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:26,396 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:28,340 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:30,101 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:32,632 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:35,398 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:35,513 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...ole FROM ag_catalog.age_graph('meetings_graph_v2').v AS c WH...
+                                                             ^
+2026-03-31 17:52:35,514 ERROR    Failed query: SELECT c.payload.id AS commissioner_id, c.payload.attributes.name AS name, c.payload.attributes.role AS role FROM ag_catalog.age_graph('meetings_graph_v2').v AS c WHERE c.payload.id IN (SELECT UNNEST(a.payload->'attended_by') FROM ag_catalog.age_graph('meetings_graph_v2').v AS a WHERE a.payload.id = 'entity_4427');
+2026-03-31 17:52:35,514 INFO     Attempting to rollback transaction...
+2026-03-31 17:52:35,609 INFO     Rollback successful.
+2026-03-31 17:52:38,542 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:53,448 INFO     Created new transport with session ID: a5e4dddf8d4043639459e5834f0dfe69
+2026-03-31 17:52:53,475 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:52:53,489 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:52:54,910 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:56,528 INFO     Processing request of type CallToolRequest
+2026-03-31 17:52:58,665 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:00,734 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:03,083 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:05,261 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:10,409 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:12,060 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:15,615 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:17,613 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:20,902 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:23,030 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:25,236 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:28,504 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:30,137 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:32,202 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:35,104 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:39,284 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:41,128 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:43,203 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:46,566 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:50,193 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:52,447 INFO     Processing request of type CallToolRequest
+2026-03-31 17:53:56,085 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:00,655 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:03,660 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:17,523 INFO     Created new transport with session ID: daf0cab0b9e7425a8e9d1326d211a9ed
+2026-03-31 17:54:17,563 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:54:17,579 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:54:19,446 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:21,532 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:23,310 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:26,069 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:28,270 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:30,461 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:33,808 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:36,820 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:39,586 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:44,194 INFO     Processing request of type CallToolRequest
+2026-03-31 17:54:56,954 INFO     Created new transport with session ID: 1a937f220ce740fe85c048f27d369400
+2026-03-31 17:54:56,978 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:54:56,986 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:54:58,926 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:00,757 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:02,879 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:06,827 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:10,761 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:23,199 INFO     Created new transport with session ID: 725affb6d9a346c5bbfe6093a39d9970
+2026-03-31 17:55:23,210 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:55:23,219 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:55:24,523 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:27,168 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:29,666 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:31,896 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:34,674 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:38,833 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:38,938 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...N s.payload.name AS name, s.payload->'attributes'->>'title' ...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:55:38,939 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:City_Council_Meeting {payload: {id: 'entity_2657'}})-[:was_administered_by]->(s:Staff_Member) RETURN s.payload.name AS name, s.payload->'attributes'->>'title' AS title$$) AS (name ag_catalog.agtype, title ag_catalog.agtype);
+2026-03-31 17:55:38,939 INFO     Attempting to rollback transaction...
+2026-03-31 17:55:39,049 INFO     Rollback successful.
+2026-03-31 17:55:41,310 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:45,546 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:47,222 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:50,289 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:50,391 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...->(s:Staff_Member) RETURN s.payload->'attributes'->>'title' ...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:55:50,392 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:City_Council_Meeting {payload: {id: 'entity_2657'}})-[:was_administered_by]->(s:Staff_Member) RETURN s.payload->'attributes'->>'title' AS title, s.payload.name AS name$$) AS (title ag_catalog.agtype, name ag_catalog.agtype);
+2026-03-31 17:55:50,393 INFO     Attempting to rollback transaction...
+2026-03-31 17:55:50,447 INFO     Rollback successful.
+2026-03-31 17:55:52,798 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:55,241 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:58,458 INFO     Processing request of type CallToolRequest
+2026-03-31 17:55:58,559 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...rel_type, n.node_label AS target_label, n.payload->>'name' A...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:55:58,560 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:City_Council_Meeting {payload: {id: 'entity_2657'}})-[r]->(n) RETURN type(r) AS rel_type, n.node_label AS target_label, n.payload->>'name' AS target_name$$) AS (rel_type ag_catalog.agtype, target_label ag_catalog.agtype, target_name ag_catalog.agtype);
+2026-03-31 17:55:58,561 INFO     Attempting to rollback transaction...
+2026-03-31 17:55:58,615 INFO     Rollback successful.
+2026-03-31 17:56:01,316 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:04,123 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:04,234 ERROR    Error executing query: function ag_catalog.age_startnode(agtype) does not exist
+LINE 1: ..._2657'}})-[r]-(n) RETURN type(r) AS rel, startnode(r)=m AS o...
+                                                             ^
+HINT:  No function matches the given name and argument types. You might need to add explicit type casts.
+2026-03-31 17:56:04,235 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:City_Council_Meeting {payload: {id: 'entity_2657'}})-[r]-(n) RETURN type(r) AS rel, startnode(r)=m AS outgoing, n.node_label AS label, n.payload->>'name' AS name$$) AS (rel ag_catalog.agtype, outgoing ag_catalog.agtype, label ag_catalog.agtype, name ag_catalog.agtype);
+2026-03-31 17:56:04,235 INFO     Attempting to rollback transaction...
+2026-03-31 17:56:04,290 INFO     Rollback successful.
+2026-03-31 17:56:08,522 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:08,730 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...URN type(r) AS rel, labels(n) AS label, n.payload->>'name' A...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:56:08,731 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:City_Council_Meeting {payload: {id: 'entity_2657'}})-[r]->(n) RETURN type(r) AS rel, labels(n) AS label, n.payload->>'name' AS name$$) AS (rel ag_catalog.agtype, label ag_catalog.agtype, name ag_catalog.agtype);
+2026-03-31 17:56:08,731 INFO     Attempting to rollback transaction...
+2026-03-31 17:56:08,775 INFO     Rollback successful.
+2026-03-31 17:56:10,815 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:14,412 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:14,514 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...657'}})-[r]->(n) RETURN type(r) AS rel, n.payload->>'name' A...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:56:14,515 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:City_Council_Meeting {payload: {id: 'entity_2657'}})-[r]->(n) RETURN type(r) AS rel, n.payload->>'name' AS name$$) AS (rel ag_catalog.agtype, name ag_catalog.agtype);
+2026-03-31 17:56:14,516 INFO     Attempting to rollback transaction...
+2026-03-31 17:56:14,599 INFO     Rollback successful.
+2026-03-31 17:56:18,339 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:21,043 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:23,083 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:26,836 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:31,903 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:35,082 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:39,829 INFO     Processing request of type CallToolRequest
+2026-03-31 17:56:59,256 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:03,897 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:04,076 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...->(c:Councilmember) WHERE c.payload->'attributes'->>'role' =...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:57:04,092 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:City_Council_Meeting {payload: {id: 'entity_2657'}})-[:attended_by]->(c:Councilmember) WHERE c.payload->'attributes'->>'role' = 'Mayor' RETURN c.payload.name AS mayor_name$$) AS (mayor_name ag_catalog.agtype);
+2026-03-31 17:57:04,096 INFO     Attempting to rollback transaction...
+2026-03-31 17:57:04,218 INFO     Rollback successful.
+2026-03-31 17:57:18,839 INFO     Created new transport with session ID: a2e852e8cfee4818b35f9737f1014ab6
+2026-03-31 17:57:18,866 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:57:18,882 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:57:20,279 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:22,099 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:23,881 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:25,790 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:28,089 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:30,263 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:33,170 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:35,451 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:37,740 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:41,044 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:44,322 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:47,250 INFO     Processing request of type CallToolRequest
+2026-03-31 17:57:51,904 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:04,973 INFO     Created new transport with session ID: c71ecb0dee4b415d8f9401759600ef9d
+2026-03-31 17:58:05,002 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:58:05,010 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:58:07,064 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:13,261 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:26,550 INFO     Created new transport with session ID: 503d9592d03a4069b4d3ca3d11ff055a
+2026-03-31 17:58:26,585 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:58:26,593 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:58:28,192 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:29,978 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:32,051 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:35,432 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:39,301 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:39,416 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...oad.name AS meeting_name, m.payload->'attributes'->>'date' A...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:58:39,417 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (c:Commissioner)-[:led_by]->(m:Commission_Meeting) WHERE c.payload.id IN ['entity_790','entity_15975'] RETURN m.payload.name AS meeting_name, m.payload->'attributes'->>'date' AS meeting_date$$) AS (meeting_name ag_catalog.agtype, meeting_date ag_catalog.agtype);
+2026-03-31 17:58:39,417 INFO     Attempting to rollback transaction...
+2026-03-31 17:58:39,512 INFO     Rollback successful.
+2026-03-31 17:58:42,434 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:42,582 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...oad.name AS meeting_name, m.payload->'attributes'->>'date' A...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:58:42,584 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting)-[:led_by]->(c:Commissioner) WHERE c.payload.id IN ['entity_790','entity_15975'] RETURN m.payload.name AS meeting_name, m.payload->'attributes'->>'date' AS meeting_date$$) AS (meeting_name ag_catalog.agtype, meeting_date ag_catalog.agtype);
+2026-03-31 17:58:42,585 INFO     Attempting to rollback transaction...
+2026-03-31 17:58:42,635 INFO     Rollback successful.
+2026-03-31 17:58:45,328 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:48,959 INFO     Processing request of type CallToolRequest
+2026-03-31 17:58:49,066 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...oad.name AS meeting_name, m.payload->'attributes'->>'date' A...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 17:58:49,067 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (c:Commissioner)-[:led_by]->(m:Commission_Meeting) WHERE c.payload.id IN ['entity_790','entity_15975'] RETURN m.payload.name AS meeting_name, m.payload->'attributes'->>'date' AS meeting_date$$) AS (meeting_name ag_catalog.agtype, meeting_date ag_catalog.agtype);
+2026-03-31 17:58:49,067 INFO     Attempting to rollback transaction...
+2026-03-31 17:58:49,117 INFO     Rollback successful.
+2026-03-31 17:58:52,564 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:07,510 INFO     Created new transport with session ID: 62ffa68424594d77b11636e18349f4b6
+2026-03-31 17:59:07,534 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:59:07,552 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:59:09,214 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:13,081 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:15,761 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:27,972 INFO     Created new transport with session ID: 00de9a4ff071474ca330030b0d986102
+2026-03-31 17:59:28,009 INFO     Processing request of type ListToolsRequest
+2026-03-31 17:59:28,016 INFO     Processing request of type ListPromptsRequest
+2026-03-31 17:59:29,298 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:31,452 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:33,869 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:43,824 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:49,746 INFO     Processing request of type CallToolRequest
+2026-03-31 17:59:59,228 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:06,442 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:08,105 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:10,344 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:20,000 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:21,162 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:23,006 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:24,653 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:27,274 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:29,625 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:41,859 INFO     Created new transport with session ID: 67e5d249a49b43d895aa6e896eac0615
+2026-03-31 18:00:41,896 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:00:41,906 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:00:43,390 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:45,338 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:48,421 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:53,914 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:56,556 INFO     Processing request of type CallToolRequest
+2026-03-31 18:00:59,601 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:03,506 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:05,576 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:09,049 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:12,579 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:16,313 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:19,018 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:22,696 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:25,885 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:28,259 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:32,069 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:35,973 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:39,454 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:42,925 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:45,471 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:49,040 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:51,469 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:55,096 INFO     Processing request of type CallToolRequest
+2026-03-31 18:01:58,268 INFO     Processing request of type CallToolRequest
+2026-03-31 18:02:01,817 INFO     Processing request of type CallToolRequest
+2026-03-31 18:02:34,322 INFO     Created new transport with session ID: 1221939d683a407a89ab86e9cc2979e0
+2026-03-31 18:02:34,354 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:02:34,371 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:02:35,633 INFO     Processing request of type CallToolRequest
+2026-03-31 18:02:51,159 INFO     Created new transport with session ID: bbda66a46821460cb1f61f8100afd1ff
+2026-03-31 18:02:51,180 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:02:51,194 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:02:52,388 INFO     Processing request of type CallToolRequest
+2026-03-31 18:03:04,478 INFO     Created new transport with session ID: b603dd8672c5419896fcbea9999fa7d1
+2026-03-31 18:03:04,498 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:03:04,513 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:03:05,956 INFO     Processing request of type CallToolRequest
+2026-03-31 18:03:21,626 INFO     Created new transport with session ID: 935de1fd8ac147249b7fbc2cca6c18ac
+2026-03-31 18:03:21,668 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:03:21,693 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:03:23,108 INFO     Processing request of type CallToolRequest
+2026-03-31 18:03:35,259 INFO     Created new transport with session ID: b59d1a0cf3014e84bae4367446a3cd0d
+2026-03-31 18:03:35,277 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:03:35,288 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:03:36,550 INFO     Processing request of type CallToolRequest
+2026-03-31 18:03:38,045 INFO     Processing request of type CallToolRequest
+2026-03-31 18:03:51,193 INFO     Created new transport with session ID: fef8a3cb3bea479eac8ad87efc8ae3ec
+2026-03-31 18:03:51,212 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:03:51,232 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:03:52,920 INFO     Processing request of type CallToolRequest
+2026-03-31 18:04:10,131 INFO     Created new transport with session ID: 3430f87544224eaa9f5c818067cfba25
+2026-03-31 18:04:10,160 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:04:10,179 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:04:12,817 INFO     Processing request of type CallToolRequest
+2026-03-31 18:04:12,919 ERROR    Error executing query: syntax error at or near "LIKE"
+LINE 1: ...da' OR lower(coalesce(n.payload.description, '')) LIKE '%tda...
+                                                             ^
+2026-03-31 18:04:12,922 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (n) WHERE lower(coalesce(n.payload.abbreviation, '')) = 'tda' OR lower(coalesce(n.payload.description, '')) LIKE '%tda%' RETURN n$$) AS (n ag_catalog.agtype);
+2026-03-31 18:04:12,927 INFO     Attempting to rollback transaction...
+2026-03-31 18:04:13,039 INFO     Rollback successful.
+2026-03-31 18:04:15,573 INFO     Processing request of type CallToolRequest
+2026-03-31 18:04:15,761 ERROR    Error executing query: function lower does not exist
+LINE 1: ...CT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (n...
+                                                             ^
+HINT:  If the function is from an external extension, make sure the extension is installed and the function is in the search path.
+2026-03-31 18:04:15,761 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (n) WHERE lower(coalesce(n.payload.abbreviation, '')) = 'tda' OR lower(coalesce(n.payload.description, '')) =~ '.*tda.*' RETURN n$$) AS (n ag_catalog.agtype);
+2026-03-31 18:04:15,762 INFO     Attempting to rollback transaction...
+2026-03-31 18:04:15,820 INFO     Rollback successful.
+2026-03-31 18:04:18,192 INFO     Processing request of type CallToolRequest
+2026-03-31 18:04:19,987 INFO     Processing request of type CallToolRequest
+2026-03-31 18:04:21,650 INFO     Processing request of type CallToolRequest
+2026-03-31 18:04:37,342 INFO     Created new transport with session ID: 5c0bf753e09d459fb918d2299b3258e4
+2026-03-31 18:04:37,361 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:04:37,372 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:04:38,663 INFO     Processing request of type CallToolRequest
+2026-03-31 18:04:54,575 INFO     Created new transport with session ID: b4e61e6764774a34b7c50aca51a59589
+2026-03-31 18:04:54,599 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:04:54,631 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:04:56,020 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:09,725 INFO     Created new transport with session ID: fc583da9efb34905a09483ef2d25a192
+2026-03-31 18:05:09,765 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:05:09,786 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:05:11,326 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:12,931 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:14,618 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:17,544 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:20,759 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:23,265 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:26,646 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:29,755 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:32,775 INFO     Processing request of type CallToolRequest
+2026-03-31 18:05:46,010 INFO     Created new transport with session ID: ba1350bd1e714994b6c6e7ce3ddb7c7b
+2026-03-31 18:05:46,042 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:05:46,056 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:05:47,934 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:00,665 INFO     Created new transport with session ID: 9c0f22e56dd74ef29d858464021a2aa4
+2026-03-31 18:06:00,694 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:06:00,724 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:06:02,383 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:04,213 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:17,072 INFO     Created new transport with session ID: c4664b63b8214107958b15902b375b5f
+2026-03-31 18:06:17,105 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:06:17,126 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:06:18,840 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:20,398 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:21,691 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:23,446 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:25,190 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:27,180 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:30,088 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:32,061 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:34,431 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:36,752 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:38,872 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:54,005 INFO     Created new transport with session ID: 264fa43017e047ca847d8900f9bc4cfd
+2026-03-31 18:06:54,027 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:06:54,055 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:06:55,517 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:57,553 INFO     Processing request of type CallToolRequest
+2026-03-31 18:06:59,222 INFO     Processing request of type CallToolRequest
+2026-03-31 18:07:00,874 INFO     Processing request of type CallToolRequest
+2026-03-31 18:07:02,689 INFO     Processing request of type CallToolRequest
+2026-03-31 18:07:04,600 INFO     Processing request of type CallToolRequest
+2026-03-31 18:07:20,207 INFO     Created new transport with session ID: f7ab2a9b83d84180b1390a36a497d696
+2026-03-31 18:07:20,233 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:07:20,251 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:07:22,038 INFO     Processing request of type CallToolRequest
+2026-03-31 18:07:34,745 INFO     Created new transport with session ID: a66a007459754be9925b69002219a045
+2026-03-31 18:07:34,767 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:07:34,800 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:07:36,791 INFO     Processing request of type CallToolRequest
+2026-03-31 18:07:48,969 INFO     Created new transport with session ID: 20694e0797ba49d99526b6544df7fedf
+2026-03-31 18:07:48,988 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:07:49,016 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:07:54,244 INFO     Processing request of type CallToolRequest
+2026-03-31 18:07:59,554 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:01,251 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:14,081 INFO     Created new transport with session ID: 0c381aefe35444079cce5ce6f920a224
+2026-03-31 18:08:14,110 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:08:14,137 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:08:15,687 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:17,542 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:19,230 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:21,551 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:24,372 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:29,746 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:29,858 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 1: ...->(ai:Agenda_Item) WHERE cm.payload->'attributes'->>'date' =...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 18:08:29,859 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (cm:Commission_Meeting)-[:includes_agenda_item]->(ai:Agenda_Item) WHERE cm.payload->'attributes'->>'date' = '2024-05-15' AND ai.payload->>'name' CONTAINS 'Review and Recommend Council Approve Recommended Budget' RETURN ai.payload->'attributes'->>'result' AS result$$) AS (result ag_catalog.agtype);
+2026-03-31 18:08:29,859 INFO     Attempting to rollback transaction...
+2026-03-31 18:08:29,977 INFO     Rollback successful.
+2026-03-31 18:08:32,793 INFO     Processing request of type CallToolRequest
+2026-03-31 18:08:45,648 INFO     Created new transport with session ID: f092f1690e874913ba1f5818e83a8e1f
+2026-03-31 18:08:45,688 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:08:45,700 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:08:47,373 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:00,858 INFO     Created new transport with session ID: 5b43e4a2644d4996984e47842d0f6668
+2026-03-31 18:09:00,880 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:09:00,902 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:09:02,552 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:04,345 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:05,964 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:08,636 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:10,776 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:16,515 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:18,533 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:20,778 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:36,356 INFO     Created new transport with session ID: bf2bb882bb22452ab3565e7f8e83b881
+2026-03-31 18:09:36,377 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:09:36,390 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:09:37,590 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:39,398 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:41,115 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:42,806 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:45,047 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:47,790 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:50,045 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:52,318 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:54,232 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:56,164 INFO     Processing request of type CallToolRequest
+2026-03-31 18:09:58,799 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:00,973 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:03,091 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:05,313 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:07,457 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:11,148 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:13,977 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:16,057 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:18,521 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:21,242 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:24,213 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:29,883 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:33,784 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:38,217 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:40,780 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:42,799 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:44,987 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:47,554 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:50,615 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:53,511 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:55,705 INFO     Processing request of type CallToolRequest
+2026-03-31 18:10:59,281 INFO     Processing request of type CallToolRequest
+2026-03-31 18:11:02,051 INFO     Processing request of type CallToolRequest
+2026-03-31 18:11:04,550 INFO     Processing request of type CallToolRequest
+2026-03-31 18:11:07,261 INFO     Processing request of type CallToolRequest
+2026-03-31 18:11:10,385 INFO     Processing request of type CallToolRequest
+2026-03-31 18:11:12,652 INFO     Processing request of type CallToolRequest
+2026-03-31 18:11:17,463 INFO     Processing request of type CallToolRequest
+2026-03-31 18:11:40,000 INFO     Processing request of type CallToolRequest
+2026-03-31 18:11:49,807 INFO     Created new transport with session ID: 0abcb0a4ab7f4776a1ce9e48ad8edf4d
+2026-03-31 18:11:49,826 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:11:49,855 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:11:51,811 INFO     Processing request of type CallToolRequest
+2026-03-31 18:12:41,074 INFO     Processing request of type CallToolRequest
+2026-03-31 18:12:42,997 INFO     Processing request of type CallToolRequest
+2026-03-31 18:12:44,914 INFO     Processing request of type CallToolRequest
+2026-03-31 18:12:47,542 INFO     Processing request of type CallToolRequest
+2026-03-31 18:12:49,858 INFO     Processing request of type CallToolRequest
+2026-03-31 18:12:53,882 INFO     Processing request of type CallToolRequest
+2026-03-31 18:12:56,166 INFO     Processing request of type CallToolRequest
+2026-03-31 18:12:58,032 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:00,864 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:03,410 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:06,141 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:09,509 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:13,249 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:15,316 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:17,793 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:21,961 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:24,624 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:30,436 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:33,168 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:37,862 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:40,819 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:43,161 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:47,250 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:49,468 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:53,638 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:56,739 INFO     Processing request of type CallToolRequest
+2026-03-31 18:13:59,599 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:02,902 INFO     Created new transport with session ID: 08c9036718be4fdeb7bbaec6fbec4b8d
+2026-03-31 18:14:02,939 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:14:02,969 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:14:03,298 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:04,400 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:06,008 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:07,011 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:08,932 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:09,388 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:11,341 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:12,094 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:14,319 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:14,927 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:16,440 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:19,085 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:19,135 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:21,938 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:23,245 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:25,604 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:25,646 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:28,426 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:28,867 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:31,485 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:31,844 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:35,095 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:35,947 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:37,668 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:39,570 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:40,095 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:42,487 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:46,839 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:49,288 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:51,121 INFO     Processing request of type CallToolRequest
+2026-03-31 18:14:53,691 INFO     Processing request of type CallToolRequest
+2026-03-31 18:15:48,714 INFO     Processing request of type CallToolRequest
+2026-03-31 18:15:50,816 INFO     Processing request of type CallToolRequest
+2026-03-31 18:15:55,153 INFO     Processing request of type CallToolRequest
+2026-03-31 18:15:57,640 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:01,498 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:03,858 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:07,101 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:09,979 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:12,273 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:15,954 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:17,261 INFO     Created new transport with session ID: 82a3b96adc39479e927b43805f3b1790
+2026-03-31 18:16:17,294 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:16:17,320 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:16:18,028 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:19,088 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:20,874 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:22,624 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:24,446 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:25,102 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:25,209 ERROR    Error executing query: a column definition list is required for functions returning "record"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATC...
+                      ^
+2026-03-31 18:16:25,209 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload:{id:'entity_9629'}})-[:was_approved_with_vote]->(v:Vote) RETURN v$$) AS v
+2026-03-31 18:16:25,210 INFO     Attempting to rollback transaction...
+2026-03-31 18:16:25,312 INFO     Rollback successful.
+2026-03-31 18:16:26,063 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:26,848 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:27,740 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:29,984 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:30,657 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:31,809 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:34,204 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:34,395 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:36,461 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:38,227 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:50,326 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:51,369 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:53,444 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:55,517 INFO     Processing request of type CallToolRequest
+2026-03-31 18:16:58,894 INFO     Processing request of type CallToolRequest
+2026-03-31 18:17:51,666 INFO     Processing request of type CallToolRequest
+2026-03-31 18:17:53,194 INFO     Processing request of type CallToolRequest
+2026-03-31 18:17:56,180 INFO     Processing request of type CallToolRequest
+2026-03-31 18:17:56,523 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:00,292 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:12,177 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:14,224 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:17,895 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:21,302 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:24,005 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:27,096 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:31,171 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:34,429 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:38,488 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:44,891 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:45,333 INFO     Created new transport with session ID: db6e2f285a644e5a95eff6ffd455f3f0
+2026-03-31 18:18:45,365 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:18:45,380 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:18:46,924 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:47,767 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:48,388 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:49,753 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:50,424 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:54,407 INFO     Processing request of type CallToolRequest
+2026-03-31 18:18:56,881 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:01,023 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:03,320 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:06,150 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:08,982 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:13,279 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:15,863 INFO     Created new transport with session ID: 306c4b87ac714956917716c2b1f26100
+2026-03-31 18:19:15,893 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:19:16,022 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:19:16,447 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:17,504 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:18,913 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:19,176 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:21,006 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:22,054 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:23,780 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:25,094 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:25,670 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:29,343 INFO     Processing request of type CallToolRequest
+2026-03-31 18:19:32,771 INFO     Processing request of type CallToolRequest
+2026-03-31 18:20:58,256 INFO     Created new transport with session ID: 1be9fbe6130e43e9942042bf7937cba7
+2026-03-31 18:20:58,292 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:20:58,306 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:21:10,178 INFO     Processing request of type CallToolRequest
+2026-03-31 18:21:12,097 INFO     Processing request of type CallToolRequest
+2026-03-31 18:21:26,693 INFO     Created new transport with session ID: a1254972a3ff4e5196c3903f6edec380
+2026-03-31 18:21:26,726 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:21:26,739 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:21:28,212 INFO     Processing request of type CallToolRequest
+2026-03-31 18:21:42,268 INFO     Created new transport with session ID: b782e6f98ae94dc5acc32fe05c882ca9
+2026-03-31 18:21:42,303 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:21:42,318 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:21:43,798 INFO     Processing request of type CallToolRequest
+2026-03-31 18:21:57,922 INFO     Created new transport with session ID: e511d105af674555a408fe26dba846b8
+2026-03-31 18:21:57,957 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:21:57,989 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:21:59,865 INFO     Processing request of type CallToolRequest
+2026-03-31 18:22:12,736 INFO     Created new transport with session ID: 49c0daa657294b2ab40661593e423137
+2026-03-31 18:22:12,774 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:22:12,788 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:22:14,739 INFO     Processing request of type CallToolRequest
+2026-03-31 18:22:30,939 INFO     Created new transport with session ID: d82cd35f56f74194864a2b1617b0890e
+2026-03-31 18:22:30,961 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:22:30,989 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:22:32,374 INFO     Processing request of type CallToolRequest
+2026-03-31 18:22:33,961 INFO     Processing request of type CallToolRequest
+2026-03-31 18:22:46,934 INFO     Created new transport with session ID: 670a528531d54a55bddf4b5264f16938
+2026-03-31 18:22:47,058 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:22:47,067 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:22:48,478 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:03,571 INFO     Created new transport with session ID: 783617f6fd8543cbbe26de1fc413794e
+2026-03-31 18:23:03,609 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:23:03,628 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:23:05,211 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:06,779 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:19,472 INFO     Created new transport with session ID: 4c337d9ad4174602841145d999f449ad
+2026-03-31 18:23:19,492 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:23:19,508 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:23:20,972 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:22,679 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:26,292 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:28,937 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:47,593 INFO     Created new transport with session ID: 81ec48f6c77e4caf82ce4ffa6025e237
+2026-03-31 18:23:47,628 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:23:47,642 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:23:49,293 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:51,035 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:52,751 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:56,026 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:59,214 INFO     Processing request of type CallToolRequest
+2026-03-31 18:23:59,334 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:23:59,335 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_9117'}) RETURN a$$) AS (a ag_catalog.agtype);
+2026-03-31 18:23:59,336 INFO     Attempting to rollback transaction...
+2026-03-31 18:23:59,445 INFO     Rollback successful.
+2026-03-31 18:24:01,253 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:04,343 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:07,032 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:10,049 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:12,182 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:14,003 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:16,762 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:18,764 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:20,771 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:23,612 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:23,727 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:24:23,727 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_9117'})<-[:includes_agenda_item]-(m:City_Council_Meeting) RETURN m.payload AS meeting_payload$$) AS (meeting_payload ag_catalog.agtype);
+2026-03-31 18:24:23,728 INFO     Attempting to rollback transaction...
+2026-03-31 18:24:23,831 INFO     Rollback successful.
+2026-03-31 18:24:26,098 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:28,971 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:32,770 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:34,622 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:36,890 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:39,359 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:42,025 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:43,863 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:47,390 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:47,503 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:24:47,504 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_9117'})-[r]-(b) RETURN type(r) AS rel, labels(b) AS b_labels, b.payload AS b_payload$$) AS (rel ag_catalog.agtype, b_labels ag_catalog.agtype, b_payload ag_catalog.agtype);
+2026-03-31 18:24:47,505 INFO     Attempting to rollback transaction...
+2026-03-31 18:24:47,620 INFO     Rollback successful.
+2026-03-31 18:24:50,304 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:50,470 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:24:50,471 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_9117'})-[r]->(b) RETURN type(r) AS rel, labels(b) AS b_labels, b.payload AS b_payload$$) AS (rel ag_catalog.agtype, b_labels ag_catalog.agtype, b_payload ag_catalog.agtype);
+2026-03-31 18:24:50,471 INFO     Attempting to rollback transaction...
+2026-03-31 18:24:50,524 INFO     Rollback successful.
+2026-03-31 18:24:53,152 INFO     Processing request of type CallToolRequest
+2026-03-31 18:24:53,328 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:24:53,330 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_9117'})-[r]-(b) RETURN type(r) AS rel, startnode(r)=a AS out_dir, labels(b) AS b_labels, b.payload AS b_payload$$) AS (rel ag_catalog.agtype, out_dir ag_catalog.agtype, b_labels ag_catalog.agtype, b_payload ag_catalog.agtype);
+2026-03-31 18:24:53,331 INFO     Attempting to rollback transaction...
+2026-03-31 18:24:53,390 INFO     Rollback successful.
+2026-03-31 18:24:56,638 INFO     Processing request of type CallToolRequest
+2026-03-31 18:25:00,026 INFO     Processing request of type CallToolRequest
+2026-03-31 18:25:03,387 INFO     Processing request of type CallToolRequest
+2026-03-31 18:25:05,746 INFO     Processing request of type CallToolRequest
+2026-03-31 18:25:05,850 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:25:05,851 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_9117'})-[r]->(b) WHERE 'Staff_Member' IN labels(b) RETURN type(r) AS rel, b.payload AS staff_payload$$) AS (rel ag_catalog.agtype, staff_payload ag_catalog.agtype);
+2026-03-31 18:25:05,851 INFO     Attempting to rollback transaction...
+2026-03-31 18:25:05,902 INFO     Rollback successful.
+2026-03-31 18:25:08,367 INFO     Processing request of type CallToolRequest
+2026-03-31 18:25:11,464 INFO     Processing request of type CallToolRequest
+2026-03-31 18:25:14,610 INFO     Processing request of type CallToolRequest
+2026-03-31 18:25:16,613 INFO     Processing request of type CallToolRequest
+2026-03-31 18:25:19,121 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:07,157 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:11,154 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:16,813 INFO     Created new transport with session ID: 9c2265658e6840b99021652b1fc3a6ba
+2026-03-31 18:26:16,841 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:26:16,851 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:26:18,352 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:20,524 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:23,330 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:25,328 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:26,879 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:29,770 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:33,839 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:35,936 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:39,204 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:41,873 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:44,909 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:47,661 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:50,474 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:52,418 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:55,742 INFO     Processing request of type CallToolRequest
+2026-03-31 18:26:57,889 INFO     Processing request of type CallToolRequest
+2026-03-31 18:27:24,259 INFO     Created new transport with session ID: 7cb3f17800744b25a2f1320043ad50db
+2026-03-31 18:27:24,281 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:27:24,292 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:27:25,757 INFO     Processing request of type CallToolRequest
+2026-03-31 18:27:38,895 INFO     Created new transport with session ID: 066e038233754daca5ae2e24feaa3c1c
+2026-03-31 18:27:38,927 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:27:38,937 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:27:42,095 INFO     Processing request of type CallToolRequest
+2026-03-31 18:27:49,318 INFO     Processing request of type CallToolRequest
+2026-03-31 18:27:52,005 INFO     Processing request of type CallToolRequest
+2026-03-31 18:27:54,728 INFO     Processing request of type CallToolRequest
+2026-03-31 18:27:56,904 INFO     Processing request of type CallToolRequest
+2026-03-31 18:27:59,352 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:05,132 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:05,251 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:28:05,253 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_1125'})-[]-(s:Staff_Member) RETURN s.payload.name AS name$$) AS (name ag_catalog.agtype);
+2026-03-31 18:28:05,253 INFO     Attempting to rollback transaction...
+2026-03-31 18:28:05,369 INFO     Rollback successful.
+2026-03-31 18:28:07,577 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:11,747 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:11,853 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:28:11,854 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_1125'})<-[:includes_agenda_item]-(m:Commission_Meeting) OPTIONAL MATCH (m)-[:has_contact]->(s:Staff_Member) RETURN s.payload.name AS contact_name$$) AS (contact_name ag_catalog.agtype);
+2026-03-31 18:28:11,855 INFO     Attempting to rollback transaction...
+2026-03-31 18:28:11,905 INFO     Rollback successful.
+2026-03-31 18:28:14,394 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:14,554 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...etings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.i...
+                                                             ^
+2026-03-31 18:28:14,554 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item {payload.payload.id: 'entity_1125'})<-[:includes_agenda_item]-(m:Commission_Meeting) RETURN m.payload.id AS meeting_id, m.payload.name AS meeting_name$$) AS (meeting_id ag_catalog.agtype, meeting_name ag_catalog.agtype);
+2026-03-31 18:28:14,555 INFO     Attempting to rollback transaction...
+2026-03-31 18:28:14,600 INFO     Rollback successful.
+2026-03-31 18:28:18,128 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:18,303 ERROR    Error executing query: syntax error at or near ":"
+LINE 1: ...genda_Item) WHERE a.payload.id = 'entity_1125' <-[:includes_...
+                                                             ^
+2026-03-31 18:28:18,304 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (a:Agenda_Item) WHERE a.payload.id = 'entity_1125' <-[:includes_agenda_item]-(m:Commission_Meeting) OPTIONAL MATCH (m)-[:has_contact]->(s:Staff_Member) RETURN s.payload.name AS contact_name$$) AS (contact_name ag_catalog.agtype);
+2026-03-31 18:28:18,305 INFO     Attempting to rollback transaction...
+2026-03-31 18:28:18,361 INFO     Rollback successful.
+2026-03-31 18:28:21,611 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:23,918 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:25,782 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:27,836 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:32,145 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:32,249 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...graph_v2', $$ MATCH (m:Commission_Meeting {payload.payload.i...
+                                                             ^
+2026-03-31 18:28:32,250 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {payload.payload.id: 'entity_867'})$$) AS (name ag_catalog.agtype);
+2026-03-31 18:28:32,250 INFO     Attempting to rollback transaction...
+2026-03-31 18:28:32,349 INFO     Rollback successful.
+2026-03-31 18:28:34,212 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:36,391 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:39,351 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:39,450 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...graph_v2', $$ MATCH (m:Commission_Meeting {payload.payload.i...
+                                                             ^
+2026-03-31 18:28:39,451 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {payload.payload.id: 'entity_867'})-[]-(s:Staff_Member) RETURN s.payload.name AS name, s.payload.attributes.role AS role$$) AS (name ag_catalog.agtype, role ag_catalog.agtype);
+2026-03-31 18:28:39,451 INFO     Attempting to rollback transaction...
+2026-03-31 18:28:39,504 INFO     Rollback successful.
+2026-03-31 18:28:43,529 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:46,875 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:49,346 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:54,198 INFO     Processing request of type CallToolRequest
+2026-03-31 18:28:54,349 ERROR    Error executing query: syntax error at or near "."
+LINE 1: ...graph_v2', $$ MATCH (m:Commission_Meeting {payload.payload.i...
+                                                             ^
+2026-03-31 18:28:54,352 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (m:Commission_Meeting {payload.payload.id: 'entity_867'})$$) AS (labels ag_catalog.agtype, name ag_catalog.agtype);
+2026-03-31 18:28:54,354 INFO     Attempting to rollback transaction...
+2026-03-31 18:28:54,416 INFO     Rollback successful.
+2026-03-31 18:29:11,492 INFO     Created new transport with session ID: 3b19de3491c745448177a073a47d4984
+2026-03-31 18:29:11,518 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:29:11,543 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:29:12,949 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:15,207 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:17,560 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:20,778 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:23,235 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:25,791 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:28,725 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:32,022 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:35,418 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:37,615 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:53,984 INFO     Created new transport with session ID: 9e03b7ed89f24b6ba1f958265ed08a02
+2026-03-31 18:29:54,012 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:29:54,041 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:29:55,258 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:56,875 INFO     Processing request of type CallToolRequest
+2026-03-31 18:29:58,986 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:01,918 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:05,281 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:07,446 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:21,088 INFO     Created new transport with session ID: b0e8f2a480af40a7b1f958e3ce098c61
+2026-03-31 18:30:21,103 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:30:21,111 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:30:22,474 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:34,987 INFO     Created new transport with session ID: f05de7f2e66142d48ff1e6d1a1d17a09
+2026-03-31 18:30:35,021 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:30:35,044 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:30:36,446 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:38,038 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:39,545 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:41,460 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:44,252 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:47,880 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:50,606 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:53,161 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:56,952 INFO     Processing request of type CallToolRequest
+2026-03-31 18:30:57,071 ERROR    Error executing query: cypher function requires a minimum of 2 arguments
+2026-03-31 18:30:57,071 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('MATCH (a:Agenda_Item {payload: {id: ''entity_1878''}})-[:contact_person]->(p:Staff_Member) RETURN p') AS (p ag_catalog.agtype);
+2026-03-31 18:30:57,072 INFO     Attempting to rollback transaction...
+2026-03-31 18:30:57,176 INFO     Rollback successful.
+2026-03-31 18:30:59,053 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:02,671 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:05,722 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:08,701 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:11,809 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:14,619 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:16,909 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:19,737 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:22,755 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:25,924 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:26,036 ERROR    Error executing query: syntax error at or near "end"
+LINE 1: ...AS (r ag_catalog.agtype, start ag_catalog.agtype, end ag_cat...
+                                                             ^
+2026-03-31 18:31:26,037 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$ MATCH (start)-[r]-(end) WHERE start.payload.id = 'entity_1878' RETURN r, start, end$$) AS (r ag_catalog.agtype, start ag_catalog.agtype, end ag_catalog.agtype);
+2026-03-31 18:31:26,038 INFO     Attempting to rollback transaction...
+2026-03-31 18:31:26,136 INFO     Rollback successful.
+2026-03-31 18:31:40,032 INFO     Created new transport with session ID: ad9ab4aba9324613a27f7d597a79f62d
+2026-03-31 18:31:40,058 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:31:40,079 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:31:41,705 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:43,597 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:46,567 INFO     Processing request of type CallToolRequest
+2026-03-31 18:31:58,390 INFO     Created new transport with session ID: 8981d556adf1485f8770b48c65019dc1
+2026-03-31 18:31:58,417 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:31:58,445 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:31:59,836 INFO     Processing request of type CallToolRequest
+2026-03-31 18:32:01,686 INFO     Processing request of type CallToolRequest
+2026-03-31 18:32:11,200 INFO     Processing request of type CallToolRequest
+2026-03-31 18:32:27,265 INFO     Created new transport with session ID: 494d267aff504820bf7064d958d5065d
+2026-03-31 18:32:27,283 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:32:27,306 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:32:28,602 INFO     Processing request of type CallToolRequest
+2026-03-31 18:32:30,087 INFO     Processing request of type CallToolRequest
+2026-03-31 18:32:41,087 INFO     Processing request of type CallToolRequest
+2026-03-31 18:32:47,382 INFO     Processing request of type CallToolRequest
+2026-03-31 18:32:47,507 ERROR    Error executing query: a column definition list is required for functions returning "record"
+LINE 1: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+                      ^
+2026-03-31 18:32:47,510 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+    MATCH (m:City_Council_Meeting)
+    WHERE m.payload.attributes.date STARTS WITH '2023'
+    RETURN m$$) AS t;
+2026-03-31 18:32:47,511 INFO     Attempting to rollback transaction...
+2026-03-31 18:32:47,634 INFO     Rollback successful.
+2026-03-31 18:32:49,767 INFO     Processing request of type CallToolRequest
+2026-03-31 18:33:05,920 INFO     Created new transport with session ID: ca61a67a86834d61ba5d51223585b44e
+2026-03-31 18:33:05,956 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:33:05,964 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:33:07,765 INFO     Processing request of type CallToolRequest
+2026-03-31 18:33:09,849 INFO     Processing request of type CallToolRequest
+2026-03-31 18:33:12,190 INFO     Processing request of type CallToolRequest
+2026-03-31 18:33:16,081 INFO     Processing request of type CallToolRequest
+2026-03-31 18:33:34,897 INFO     Created new transport with session ID: e7d39c803cff4da7a8909e1df68236e4
+2026-03-31 18:33:34,917 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:33:34,931 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:33:36,431 INFO     Processing request of type CallToolRequest
+2026-03-31 18:33:41,783 INFO     Processing request of type CallToolRequest
+2026-03-31 18:33:53,833 INFO     Created new transport with session ID: 068502e7b58e45adbff4042c0a73dc85
+2026-03-31 18:33:53,850 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:33:53,862 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:33:55,402 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:08,761 INFO     Created new transport with session ID: 05855a0c3bae4d82bc77ec8da1f99d41
+2026-03-31 18:34:08,800 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:34:08,809 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:34:10,191 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:11,763 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:13,097 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:14,851 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:16,529 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:18,697 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:21,265 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:24,227 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:39,364 INFO     Created new transport with session ID: 6a0ab2f440ae4727b64bcf820a1503b5
+2026-03-31 18:34:39,535 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:34:39,545 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:34:41,196 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:43,145 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:56,255 INFO     Created new transport with session ID: 4206032a887c4cf29685efb4cecbe342
+2026-03-31 18:34:56,271 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:34:56,281 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:34:57,822 INFO     Processing request of type CallToolRequest
+2026-03-31 18:34:59,264 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:00,849 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:03,287 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:17,580 INFO     Created new transport with session ID: 084f9103ba71448b84f227c02471f4a2
+2026-03-31 18:35:17,614 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:35:17,623 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:35:19,157 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:20,722 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:22,539 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:24,404 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:26,651 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:29,611 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:39,220 INFO     Processing request of type CallToolRequest
+2026-03-31 18:35:53,782 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:11,171 INFO     Created new transport with session ID: 1ea7c67f892249288888bca6ece6ad3e
+2026-03-31 18:36:11,185 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:36:11,201 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:36:13,025 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:14,799 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:16,270 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:18,391 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:20,878 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:24,078 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:36,394 INFO     Created new transport with session ID: 287a86e280164791837918010ae8673f
+2026-03-31 18:36:36,421 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:36:36,432 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:36:38,130 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:40,570 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:44,293 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:48,327 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:49,771 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:51,923 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:53,932 INFO     Processing request of type CallToolRequest
+2026-03-31 18:36:55,879 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:10,015 INFO     Created new transport with session ID: 877246c56ef24370864daa6aa61e3611
+2026-03-31 18:37:10,027 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:37:10,035 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:37:12,054 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:15,579 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:18,502 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:20,684 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:22,562 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:25,226 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:29,047 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:31,968 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:34,891 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:39,418 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:41,984 INFO     Processing request of type CallToolRequest
+2026-03-31 18:37:56,695 INFO     Created new transport with session ID: ac3adc8d12174686afcf50517a3b77fd
+2026-03-31 18:37:56,723 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:37:56,749 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:37:58,537 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:00,811 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:03,692 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:05,980 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:08,380 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:10,844 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:14,819 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:20,529 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:20,636 ERROR    Error executing query: operator does not exist: >> agtype
+LINE 4: ...oad.name AS project_name, p.payload->'attributes'->>'locatio...
+                                                             ^
+HINT:  No operator matches the given name and argument type. You might need to add an explicit type cast.
+2026-03-31 18:38:20,637 ERROR    Failed query: SELECT * FROM ag_catalog.cypher('meetings_graph_v2', $$
+MATCH (m:City_Council_Meeting {payload: {id: 'entity_12237'}})
+OPTIONAL MATCH (m)-[:includes_agenda_item*1..3]->(p:Project)
+RETURN p.payload.id AS project_id, p.payload.name AS project_name, p.payload->'attributes'->>'location' AS project_location$$) AS (project_id ag_catalog.agtype, project_name ag_catalog.agtype, project_location ag_catalog.agtype);
+2026-03-31 18:38:20,638 INFO     Attempting to rollback transaction...
+2026-03-31 18:38:20,743 INFO     Rollback successful.
+2026-03-31 18:38:22,612 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:25,293 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:28,536 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:31,408 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:34,981 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:37,900 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:40,247 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:41,997 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:45,813 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:48,224 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:51,022 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:53,553 INFO     Processing request of type CallToolRequest
+2026-03-31 18:38:57,566 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:00,190 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:02,589 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:10,191 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:12,570 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:14,810 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:17,954 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:31,937 INFO     Created new transport with session ID: 868561399a7d4a1fbf8f9b4855c2d600
+2026-03-31 18:39:31,957 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:39:31,973 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:39:33,773 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:35,751 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:37,326 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:39,484 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:42,899 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:46,037 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:48,644 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:51,229 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:54,680 INFO     Processing request of type CallToolRequest
+2026-03-31 18:39:57,183 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:00,220 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:02,605 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:08,408 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:10,826 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:12,589 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:26,459 INFO     Created new transport with session ID: e8173733851345c09ac84bd3c5cc81e1
+2026-03-31 18:40:26,478 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:40:26,499 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:40:28,132 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:29,868 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:43,025 INFO     Created new transport with session ID: 5b4af595b61b40459cd6bc745a17e08d
+2026-03-31 18:40:43,060 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:40:43,078 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:40:44,421 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:46,118 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:47,973 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:49,771 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:51,980 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:54,398 INFO     Processing request of type CallToolRequest
+2026-03-31 18:40:59,453 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:01,454 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:03,748 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:06,401 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:25,208 INFO     Created new transport with session ID: b807e669c51b446abd6c0ca36599fec7
+2026-03-31 18:41:25,228 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:41:25,252 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:41:26,683 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:29,030 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:31,178 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:32,884 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:35,206 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:37,153 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:39,001 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:56,113 INFO     Created new transport with session ID: 93ea5b8414224070a07c0b8e43e03925
+2026-03-31 18:41:56,132 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:41:56,143 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:41:57,604 INFO     Processing request of type CallToolRequest
+2026-03-31 18:41:59,416 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:01,211 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:03,093 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:04,925 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:06,740 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:09,228 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:11,939 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:33,728 INFO     Created new transport with session ID: 37bc0884ce004061887cb25e85166128
+2026-03-31 18:42:33,750 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:42:33,781 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:42:35,298 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:37,011 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:38,953 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:41,637 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:47,129 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:49,096 INFO     Processing request of type CallToolRequest
+2026-03-31 18:42:51,219 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:05,174 INFO     Created new transport with session ID: 32d583acb8044a9c94a23e22a84fb210
+2026-03-31 18:43:05,212 INFO     Processing request of type ListToolsRequest
+2026-03-31 18:43:05,221 INFO     Processing request of type ListPromptsRequest
+2026-03-31 18:43:06,711 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:08,960 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:10,882 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:13,893 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:16,192 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:19,035 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:19,150 ERROR    Error executing query: relation "meetings_graph_v2.agenda_item" does not exist
+LINE 1: ...ayload.attributes.description AS description FROM meetings_g...
+                                                             ^
+2026-03-31 18:43:19,151 ERROR    Failed query: SELECT a.payload.id AS agenda_id, a.payload.attributes.title AS title, a.payload.attributes.description AS description FROM meetings_graph_v2.agenda_item AS a WHERE a.payload.id IN ('entity_773', 'entity_1094', 'entity_1248');
+2026-03-31 18:43:19,151 INFO     Attempting to rollback transaction...
+2026-03-31 18:43:19,263 INFO     Rollback successful.
+2026-03-31 18:43:22,093 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:23,888 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:26,152 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:28,579 INFO     Processing request of type CallToolRequest
+2026-03-31 18:43:31,126 INFO     Processing request of type CallToolRequest
+2026-04-02 20:30:32,253 INFO     Terminating session: db6e2f285a644e5a95eff6ffd455f3f0
+2026-04-02 20:30:32,294 INFO     Terminating session: 868561399a7d4a1fbf8f9b4855c2d600
+2026-04-02 20:30:32,299 INFO     Terminating session: b0e8f2a480af40a7b1f958e3ce098c61
+2026-04-02 20:30:32,305 INFO     Terminating session: 7a1688f84f224a5d93652a122a805092
+2026-04-02 20:30:32,308 INFO     Terminating session: a66a007459754be9925b69002219a045
+2026-04-02 20:30:32,313 INFO     Terminating session: bf2bb882bb22452ab3565e7f8e83b881
+2026-04-02 20:30:32,318 INFO     Terminating session: ac3adc8d12174686afcf50517a3b77fd
+2026-04-02 20:30:32,323 INFO     Terminating session: 92408ca2da414aca9823a6eaedab791e
+2026-04-02 20:30:32,328 INFO     Terminating session: 084f9103ba71448b84f227c02471f4a2
+2026-04-02 20:30:32,330 INFO     Terminating session: f05de7f2e66142d48ff1e6d1a1d17a09
+2026-04-02 20:30:32,335 INFO     Terminating session: f7ab2a9b83d84180b1390a36a497d696
+2026-04-02 20:30:32,341 INFO     Terminating session: b807e669c51b446abd6c0ca36599fec7
+2026-04-02 20:30:32,348 INFO     Terminating session: 1ea7c67f892249288888bca6ece6ad3e
+2026-04-02 20:30:32,354 INFO     Terminating session: 5b43e4a2644d4996984e47842d0f6668
+2026-04-02 20:30:32,359 INFO     Terminating session: e8173733851345c09ac84bd3c5cc81e1
+2026-04-02 20:30:32,364 INFO     Terminating session: e7d39c803cff4da7a8909e1df68236e4
+2026-04-02 20:30:32,369 INFO     Terminating session: 0c381aefe35444079cce5ce6f920a224
+2026-04-02 20:30:32,378 INFO     Terminating session: 20694e0797ba49d99526b6544df7fedf
+2026-04-02 20:30:32,385 INFO     Terminating session: 287a86e280164791837918010ae8673f
+2026-04-02 20:30:32,392 INFO     Terminating session: 068502e7b58e45adbff4042c0a73dc85
+2026-04-02 20:30:32,399 INFO     Terminating session: b603dd8672c5419896fcbea9999fa7d1
+2026-04-02 20:30:32,406 INFO     Terminating session: a1254972a3ff4e5196c3903f6edec380
+2026-04-02 20:30:32,414 INFO     Terminating session: b59d1a0cf3014e84bae4367446a3cd0d
+2026-04-02 20:30:32,422 INFO     Terminating session: ad9ab4aba9324613a27f7d597a79f62d
+2026-04-02 20:30:32,430 INFO     Terminating session: 5c0bf753e09d459fb918d2299b3258e4
+2026-04-02 20:30:32,435 INFO     Terminating session: 9c2265658e6840b99021652b1fc3a6ba
+2026-04-02 20:30:32,441 INFO     Terminating session: 503d9592d03a4069b4d3ca3d11ff055a
+2026-04-02 20:30:32,448 INFO     Terminating session: 3b19de3491c745448177a073a47d4984
+2026-04-02 20:30:32,454 INFO     Terminating session: fc583da9efb34905a09483ef2d25a192
+2026-04-02 20:30:32,458 INFO     Terminating session: 1221939d683a407a89ab86e9cc2979e0
+2026-04-02 20:30:32,463 INFO     Terminating session: ca61a67a86834d61ba5d51223585b44e
+2026-04-02 20:30:32,467 INFO     Terminating session: a2e852e8cfee4818b35f9737f1014ab6
+2026-04-02 20:30:32,473 INFO     Terminating session: 783617f6fd8543cbbe26de1fc413794e
+2026-04-02 20:30:32,477 INFO     Terminating session: 935de1fd8ac147249b7fbc2cca6c18ac
+2026-04-02 20:30:32,482 INFO     Terminating session: 3430f87544224eaa9f5c818067cfba25
+2026-04-02 20:30:32,485 INFO     Terminating session: 4c337d9ad4174602841145d999f449ad
+2026-04-02 20:30:32,488 INFO     Terminating session: 05855a0c3bae4d82bc77ec8da1f99d41
+2026-04-02 20:30:32,492 INFO     Terminating session: 670a528531d54a55bddf4b5264f16938
+2026-04-02 20:30:32,494 INFO     Terminating session: f092f1690e874913ba1f5818e83a8e1f
+2026-04-02 20:30:32,498 INFO     Terminating session: 7cb3f17800744b25a2f1320043ad50db
+2026-04-02 20:30:32,500 INFO     Terminating session: e511d105af674555a408fe26dba846b8
+2026-04-02 20:30:32,502 INFO     Terminating session: 93ea5b8414224070a07c0b8e43e03925
+2026-04-02 20:30:32,507 INFO     Terminating session: d82cd35f56f74194864a2b1617b0890e
+2026-04-02 20:30:32,509 INFO     Terminating session: bbda66a46821460cb1f61f8100afd1ff
+2026-04-02 20:30:32,511 INFO     Terminating session: 725affb6d9a346c5bbfe6093a39d9970
+2026-04-02 20:30:32,515 INFO     Terminating session: b4e61e6764774a34b7c50aca51a59589
+2026-04-02 20:30:32,516 INFO     Terminating session: 0abcb0a4ab7f4776a1ce9e48ad8edf4d
+2026-04-02 20:30:32,518 INFO     Terminating session: 494d267aff504820bf7064d958d5065d
+2026-04-02 20:30:32,523 INFO     Terminating session: 49c0daa657294b2ab40661593e423137
+2026-04-02 20:30:32,524 INFO     Terminating session: 81ec48f6c77e4caf82ce4ffa6025e237
+2026-04-02 20:30:32,526 INFO     Terminating session: 00de9a4ff071474ca330030b0d986102
+2026-04-02 20:30:32,528 INFO     Terminating session: 9c0f22e56dd74ef29d858464021a2aa4
+2026-04-02 20:30:32,532 INFO     Terminating session: fef8a3cb3bea479eac8ad87efc8ae3ec
+2026-04-02 20:30:32,533 INFO     Terminating session: c342382f379f4ed29820e9ccaace8fbf
+2026-04-02 20:30:32,534 INFO     Terminating session: 4206032a887c4cf29685efb4cecbe342
+2026-04-02 20:30:32,539 INFO     Terminating session: b782e6f98ae94dc5acc32fe05c882ca9
+2026-04-02 20:30:32,541 INFO     Terminating session: 5b4af595b61b40459cd6bc745a17e08d
+2026-04-02 20:30:32,544 INFO     Terminating session: 1be9fbe6130e43e9942042bf7937cba7
+2026-04-02 20:30:32,547 INFO     Terminating session: 62ffa68424594d77b11636e18349f4b6
+2026-04-02 20:30:32,549 INFO     Terminating session: ba1350bd1e714994b6c6e7ce3ddb7c7b
+2026-04-02 20:30:32,551 INFO     Terminating session: 67e5d249a49b43d895aa6e896eac0615
+2026-04-02 20:30:32,552 INFO     Terminating session: 115c45dca9a44636836c79ab56485923
+2026-04-02 20:30:32,556 INFO     Terminating session: 066e038233754daca5ae2e24feaa3c1c
+2026-04-02 20:30:32,560 INFO     Terminating session: 1a937f220ce740fe85c048f27d369400
+2026-04-02 20:30:32,564 INFO     Terminating session: daf0cab0b9e7425a8e9d1326d211a9ed
+2026-04-02 20:30:32,572 INFO     Terminating session: c4664b63b8214107958b15902b375b5f
+2026-04-02 20:30:32,576 INFO     Terminating session: f69791372d444fb88559a6083344bf20
+2026-04-02 20:30:32,581 INFO     Terminating session: c7a0d7a4b49e4c7ea390331180adfc0d
+2026-04-02 20:30:32,583 INFO     Terminating session: 15ee5557f9a44707b6edaef6b4b1208f
+2026-04-02 20:30:32,586 INFO     Terminating session: 9e03b7ed89f24b6ba1f958265ed08a02
+2026-04-02 20:30:32,591 INFO     Terminating session: a7443ebae3d94d46a659ebd419f758df
+2026-04-02 20:30:32,594 INFO     Terminating session: 264fa43017e047ca847d8900f9bc4cfd
+2026-04-02 20:30:32,596 INFO     Terminating session: c567f554daef4ec0aee7a100b6987890
+2026-04-02 20:30:32,598 INFO     Terminating session: eda9d9fee3144b5da486d0aa4cb2c42c
+2026-04-02 20:30:32,601 INFO     Terminating session: 8981d556adf1485f8770b48c65019dc1
+2026-04-02 20:30:32,602 INFO     Terminating session: f74cc3d78b7546d7b0df1f343da2b2a9
+2026-04-02 20:30:32,605 INFO     Terminating session: c71ecb0dee4b415d8f9401759600ef9d
+2026-04-02 20:30:32,606 INFO     Terminating session: 6a0ab2f440ae4727b64bcf820a1503b5
+2026-04-02 20:30:32,607 INFO     Terminating session: a5e4dddf8d4043639459e5834f0dfe69
+2026-04-02 20:30:32,608 INFO     Terminating session: 3546e59d39b84e289fa2edf464abc3c7
+2026-04-02 20:30:32,610 INFO     Terminating session: 0f33513e8f6a49f8a75f5cc42a689052
+2026-04-02 20:30:32,612 INFO     Terminating session: 08c9036718be4fdeb7bbaec6fbec4b8d
+2026-04-02 20:30:32,616 INFO     Terminating session: 2397cc4197b8403082385db771974974
+2026-04-02 20:30:32,619 INFO     Terminating session: 877246c56ef24370864daa6aa61e3611
+2026-04-02 20:30:32,624 INFO     Terminating session: 82a3b96adc39479e927b43805f3b1790
+2026-04-02 20:30:32,661 INFO     Terminating session: 7dd68fe1bcbd4f47860cef9ece1cd2c9
+2026-04-02 20:30:32,665 INFO     Terminating session: 37bc0884ce004061887cb25e85166128
+2026-04-02 20:30:32,672 INFO     Terminating session: 32d583acb8044a9c94a23e22a84fb210
+2026-04-02 20:30:32,676 INFO     Terminating session: 306c4b87ac714956917716c2b1f26100
+2026-04-02 20:30:32,680 INFO     Terminating session: 7d226b17317649ac8e526a3f71110a5a
+2026-04-02 20:30:32,687 INFO     Terminating session: 75d157b6504f46abaaf90652161cee98
+2026-04-02 20:30:32,693 INFO     Terminating session: e1524c3233e34bff8c70de0494a9eb44
+2026-04-02 20:30:32,704 INFO     Terminating session: c392eb01e27a4b29877df4a4128ab8f8
+2026-04-02 20:30:32,716 INFO     Terminating session: 7318447f12a240c4a1b2c83473c46a40
+2026-04-02 20:30:32,723 INFO     Terminating session: 1d010a1cb1f4405abf2c2cd2d012da5c
+2026-04-02 20:30:32,727 INFO     Terminating session: 89f040519f714f78b648fed29255d76b
+2026-04-02 20:30:32,735 INFO     Terminating session: 32b63e19d70440b4a3b64798d595a9a0
+2026-04-02 20:30:32,742 INFO     Terminating session: c1ef88b0677e4a5db24b7ac448f59a94
+2026-04-02 20:30:32,748 INFO     Terminating session: 8f5b33ebc576442ba79cd85e20dd0c5f
+2026-04-02 20:30:32,753 INFO     Terminating session: d118d4974f9a4c19a307d42274a2bc4a
+2026-04-02 20:30:32,759 INFO     Terminating session: 238e91ab86da4a439df3195f8de8f6ef

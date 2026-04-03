@@ -20,7 +20,7 @@ import json
 from enum import Enum
 from dataclasses import dataclass, asdict, is_dataclass
 from agent_framework import ChatMessageStore
-from typing import Awaitable, Callable, List, Optional
+from typing import Any, Awaitable, Callable, List, Optional
 import time
 import logging
 import os
@@ -28,6 +28,39 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 load_dotenv()
+
+# ---------------------------------------------------------------------------
+# Monkey-patch: sanitize empty JSON-Schema sub-schemas (`{}`) that some
+# models (e.g. gpt-oss-120b) reject.  Bare `list` fields in Pydantic
+# produce `"items": {}` which triggers:
+#   "JSON Schema not supported: could not understand the instance `{}`."
+# ---------------------------------------------------------------------------
+_SCHEMA_VALUED_KEYS = frozenset({
+    "items", "additionalProperties", "contains",
+    "if", "then", "else", "not",
+    "propertyNames", "unevaluatedItems", "unevaluatedProperties",
+})
+
+def _sanitize_schema(obj: Any, _key: str | None = None) -> Any:
+    """Recursively replace bare `{}` sub-schema values that strict endpoints reject."""
+    if isinstance(obj, dict):
+        if obj == {} and _key in _SCHEMA_VALUED_KEYS:
+            return {"type": "string"}
+        return {k: _sanitize_schema(v, _key=k) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_sanitize_schema(item, _key=_key) for item in obj]
+    return obj
+
+from agent_framework.openai._chat_client import OpenAIBaseChatClient as _OAIBase
+
+_original_chat_to_tool_spec = _OAIBase._chat_to_tool_spec
+
+def _patched_chat_to_tool_spec(self, tools):  # type: ignore[override]
+    specs = _original_chat_to_tool_spec(self, tools)
+    return [_sanitize_schema(spec) for spec in specs]
+
+_OAIBase._chat_to_tool_spec = _patched_chat_to_tool_spec  # type: ignore[assignment]
+# ---------------------------------------------------------------------------
 
 logger = logging.getLogger("uvicorn.error")
 _aoai_api_key = os.environ.get("AZURE_OPENAI_API_KEY", "").strip()
@@ -64,9 +97,75 @@ def _read_instruction_file(file_name: str, graph_name: str) -> str:
     instructions = instructions_path.read_text(encoding="utf-8-sig")
     return instructions.replace("{{GRAPH_NAME}}", graph_name).replace("{GRAPH_NAME}", graph_name)
 
+
+def _resolve_instruction_file(base_name: str, suffix: str, graph_name: str) -> str:
+    """Try domain-specific file first (e.g., *_meetings_graph_v2_OSS_v1.md), fall back to generic."""
+    instructions_dir = Path(__file__).resolve().parent / "agent_instructions"
+    # Try domain-specific: CYPHER_QUERY_GENERATION_AGENT_meetings_graph_v2_OSS_v1.md
+    domain_file = instructions_dir / f"{base_name}_{graph_name}{suffix}"
+    if domain_file.exists():
+        logger.info(f"Using domain-specific instructions: {domain_file.name}")
+        return _read_instruction_file(domain_file.name, graph_name)
+    # Fall back to generic: CYPHER_QUERY_GENERATION_AGENT_GENERIC_OSS_v1.md
+    generic_file = f"{base_name}_GENERIC{suffix}"
+    logger.info(f"Using generic instructions: {generic_file}")
+    return _read_instruction_file(generic_file, graph_name)
+
+
+import re as _re
+
+def _sanitize_output(text: str) -> str:
+    """Clean up OSS model output: fix Unicode, strip leaked metadata, remove object refs."""
+    if not text:
+        return text
+
+    # 1. Replace fancy Unicode whitespace/punctuation with ASCII
+    text = (text
+        .replace("\u202f", " ")   # narrow no-break space
+        .replace("\u00a0", " ")   # no-break space
+        .replace("\u2003", " ")   # em space
+        .replace("\u2002", " ")   # en space
+        .replace("\u2011", "-")   # non-breaking hyphen
+        .replace("\u2010", "-")   # hyphen
+        .replace("\u2013", "-")   # en dash
+        .replace("\u2014", "-")   # em dash
+        .replace("\u2018", "'")   # left single quote
+        .replace("\u2019", "'")   # right single quote
+        .replace("\u201c", '"')   # left double quote
+        .replace("\u201d", '"')   # right double quote
+        .replace("\u2026", "...")  # ellipsis
+        .replace("\u2190", "<-")  # left arrow
+        .replace("\u2192", "->")  # right arrow
+    )
+
+    # 2. Strip CJK bracket citations with JSON: 【{...}】 or 〔{...}〕 or ã€...ã€'
+    text = _re.sub(r'[\u3010\u3014]\s*\{[^}]*\}\s*[\u3011\u3015]', '', text)
+    # Also handle the garbled versions: ã€{...}ã€' ã€[...]ã€'
+    text = _re.sub(r'\u3010[^\u3011]*\u3011', '', text)
+    text = _re.sub(r'\u3014[^\u3015]*\u3015', '', text)
+    # Catch remaining ã€...ã€' patterns (entity refs, numbers, ellipsis)
+    text = _re.sub(r'\u3010[^\u3011]{0,200}\u3011', '', text)
+
+    # 3. Strip raw Python object references
+    text = _re.sub(r'<agent_framework\._types\.\w+ object at 0x[0-9a-fA-F]+>', '', text)
+
+    # 4. Strip leaked function/source metadata in parens or brackets
+    text = _re.sub(r'\{"source"\s*:\s*"functions\.[^"]*"[^}]*\}', '', text)
+
+    # 5. Clean up extra whitespace left behind
+    text = _re.sub(r'  +', ' ', text)
+    text = _re.sub(r'\n\n\n+', '\n\n', text)
+
+    return text.strip()
+
+
+# Keep backward compat alias
+_sanitize_unicode = _sanitize_output
+
+
 def _json_default(o):
     # Make dataclasses, Enums, and bytes JSON-serializable
-    if is_dataclass(o):
+    if is_dataclass(o) and not isinstance(o, type):
         return asdict(o)
     if isinstance(o, Enum):
         return o.value
@@ -169,9 +268,12 @@ class GraphWorkflow():
 
         if self._graph_query_generator_agent is None or self._graph_query_validator_agent is None or self._graph_query_executor_agent is None or self._response_generator_agent is None:
             
-            # read instructions from files
-            
-            graph_query_generator_instructions = _read_instruction_file("CYPHER_QUERY_GENERATION_AGENT_GENERIC_v1.md", self._graph_name)
+            # Select instruction files based on model capability
+            _is_oss = any(kw in (self._deployment_name or "").lower() for kw in ("oss", "llama", "phi", "mistral", "deepseek", "codestral"))
+            _instr_suffix = "_OSS_v1.md" if _is_oss else "_v1.md"
+            logger.info(f"Model '{self._deployment_name}' → instruction suffix: {_instr_suffix}")
+
+            graph_query_generator_instructions = _resolve_instruction_file("CYPHER_QUERY_GENERATION_AGENT", _instr_suffix, self._graph_name)
 
             self._graph_query_generator_agent = ChatAgent(
                 name="graph query generator agent",
@@ -183,7 +285,7 @@ class GraphWorkflow():
             )
 
 
-            graph_query_validator_instructions = _read_instruction_file("CYPHER_QUERY_VALIDATION_AGENT_GENERIC_v1.md", self._graph_name)
+            graph_query_validator_instructions = _resolve_instruction_file("CYPHER_QUERY_VALIDATION_AGENT", _instr_suffix, self._graph_name)
 
             self._graph_query_validator_agent = ChatAgent(
                 name="graph_query_validator",
@@ -259,6 +361,11 @@ class GraphWorkflow():
             self._stream_line_open = False
             self._output = None
 
+            # Prose-loop detector: track generator responses to break infinite loops
+            _generator_prose_count = 0
+            _last_generator_text = ""
+            _generator_agent_id = "graph_query_generator_agent"
+
             async for event in self._workflow.run_stream(chat_history):
                 if isinstance(event, MagenticOrchestratorMessageEvent):
                     resp = ResponseMessage(type="MagenticOrchestratorMessageEvent", delta=f"\n[ORCH:{event.kind}]\n\n{getattr(event.message, 'text', '')}\n{'-' * 26}")
@@ -282,15 +389,39 @@ class GraphWorkflow():
                     if msg is not None:
                         response_text = (msg.text or "").replace("\n", " ")
                         yield _ndjson({"response_message": ResponseMessage(type="MagenticAgentMessageEvent", delta=f"\n[AGENT:{event.agent_id}] {msg.role.value}\n\n{response_text}\n{'-' * 26}")})
+
+                        # --- Prose-loop circuit breaker ---
+                        # Detect when the generator returns prose instead of FINAL_SQL.
+                        # For OSS models this happens on EVERY call — the model interprets
+                        # execution_result and writes a natural-language answer.
+                        # Terminate immediately on first prose since it contains the correct data.
+                        if event.agent_id and _generator_agent_id in str(event.agent_id):
+                            gen_text = msg.text or ""
+                            is_prose = "SELECT" not in gen_text and "FINAL_SQL" not in gen_text
+                            if is_prose and len(gen_text.strip()) > 5:
+                                _generator_prose_count += 1
+                                logger.warning(f"Generator returned prose ({_generator_prose_count}x): {gen_text[:100]}...")
+                                # Force-terminate on first prose — the answer is already in the text
+                                logger.warning("Prose detected — force-terminating workflow with generator's answer")
+                                forced_answer = _sanitize_output(gen_text.strip())
+                                self._output = forced_answer
+                                output = forced_answer
+                                yield _ndjson({"response_message": ResponseMessage(type="WorkflowOutputEvent", delta=f"Workflow output event: {forced_answer}")})
+                                yield _ndjson({"response_message": ResponseMessage(type="done", result=forced_answer)})
+                                return
+                            else:
+                                _generator_prose_count = 0  # Reset if it returns SQL
+
                 elif isinstance(event, MagenticFinalResultEvent):
                     if event.message is not None:
-                        yield _ndjson({"response_message": ResponseMessage(type="WorkflowFinalResultEvent", delta=event.message.text)})
+                        yield _ndjson({"response_message": ResponseMessage(type="WorkflowFinalResultEvent", delta=_sanitize_output(event.message.text or ""))})
 
                 elif isinstance(event, WorkflowOutputEvent):
                     if event.data is None:
                         output = None
                     else:
-                        output = str(getattr(event.data, "text", event.data))
+                        raw = getattr(event.data, "text", None) or str(event.data)
+                        output = _sanitize_output(raw)
                     self._output = output
                     chat_history.append(ChatMessage(role="assistant", text=output or ""))
                     yield _ndjson({"response_message": ResponseMessage(type="WorkflowOutputEvent", delta=f"Workflow output event: {output}")})

@@ -53,9 +53,9 @@ export default function ChatUI() {
     
   ];
   const GRAPH_OPTIONS = [
-    { value: "customer_graph", label: "customer_graph" },
-    { value: "meetings_graph", label: "meetings_graph" },
     { value: "meetings_graph_v2", label: "meetings_graph_v2" },
+    { value: "customer_graph", label: "customer_graph" },
+    { value: "meetings_graph", label: "meetings_graph" }
   ];
   const [mode, setMode] = useState<string>(MODE_OPTIONS[0].value);
   const [selectedGraph, setSelectedGraph] = useState<string>(GRAPH_OPTIONS[0].value);
@@ -68,7 +68,7 @@ export default function ChatUI() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [faqs, setFaqs] = useState<string[]>([]);
   const [selectedFaq, setSelectedFaq] = useState("");
-  const [selectedModel, setSelectedModel] = useState("gpt-4.1");
+  const [selectedModel, setSelectedModel] = useState("FW-GPT-OSS-120B");
   const [agentSettings, setAgentSettings] = useState<AgentSetting[]>([
     { id: crypto.randomUUID(), agent_name: "", agent_instructions: "" },
   ]);
@@ -452,6 +452,7 @@ function appendToAssistantStream(text: string) {
               aria-label="Model"
               disabled={isTyping}
             >
+              <option value="FW-GPT-OSS-120B">FW-GPT-OSS-120B</option>
               <option value="gpt-4.1">gpt-4.1</option>
               <option value="gpt-4.1-mini">gpt-4.1-mini</option>
               <option value="gpt-5.4-mini">gpt-5.4-mini</option>

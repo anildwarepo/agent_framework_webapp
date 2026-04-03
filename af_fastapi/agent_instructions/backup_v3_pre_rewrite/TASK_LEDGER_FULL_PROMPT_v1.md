@@ -38,11 +38,7 @@ The generator will:
 3. Explore neighborhood relationships
 4. Build the query using only discovered schema
 
-**Check the generator's response:**
-- If it contains `FINAL_SQL:` with a `SELECT` statement ending in `);` → proceed to Phase 3
-- If it is truncated (no `);`) → ask generator to re-emit just the FINAL_SQL
-- **If it contains prose/natural language answer** (e.g., "X attended Y meetings", "the answer is", no SQL at all) → **REJECT.** Send: `"Output only FINAL_SQL. No prose. Call build_query_context and emit the suggested_query."`
-- If rejected once and generator STILL returns prose → answer: "Unable to generate query for this question."
+**Check:** Does the FINAL_SQL end with `);`? If truncated, ask generator to re-emit just the FINAL_SQL.
 
 ---
 
@@ -105,7 +101,6 @@ $$) AS (lbl ag_catalog.agtype, id ag_catalog.agtype, name ag_catalog.agtype);
 - **Stall = agent returns same output twice.** Stop delegating, compose answer.
 - **Never same input twice** to same agent. Always add new context on retry.
 - **After any PASS → workflow is done.** Answer immediately.
-- **Prose detection (CRITICAL):** If the generator returns prose instead of FINAL_SQL (no `SELECT` in the response, or it says "X attended Y meetings" or "the answer is"), **do NOT re-send the same question.** Instead, reject ONCE with exactly: `"Output only FINAL_SQL. No prose. Call build_query_context and emit the suggested_query."` If it returns prose a second time → **STOP delegating.** Check if the generator's tool calls returned data you can use (the `build_query_context` tool returns `execution_result` with query results). If the prose contains a number that matches tool data, use it to answer. Otherwise answer: "Unable to generate query for this question."
 
 ---
 
