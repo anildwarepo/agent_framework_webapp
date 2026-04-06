@@ -1623,3 +1623,4 @@ LINE 1: ...ayload.attributes.description AS description FROM meetings_g...
 2026-04-02 20:30:32,748 INFO     Terminating session: 8f5b33ebc576442ba79cd85e20dd0c5f
 2026-04-02 20:30:32,753 INFO     Terminating session: d118d4974f9a4c19a307d42274a2bc4a
 2026-04-02 20:30:32,759 INFO     Terminating session: 238e91ab86da4a439df3195f8de8f6ef
+2026-04-03 15:27:02,406 INFO     Logging to C:\repos\agent_framework_webapp\mcp_server\logs\age_mcp_server.log

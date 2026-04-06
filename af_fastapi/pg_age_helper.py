@@ -29,7 +29,7 @@ class PGAgeHelper:
 
     @classmethod
     async def create(cls, dsn: dict, graph: str) -> "PGAgeHelper":
-        conn = await psycopg.AsyncConnection.connect(**dsn)
+        conn = await psycopg.AsyncConnection.connect(**dsn, row_factory=dict_row)
         async with conn.cursor() as cur:
             await cur.execute("SELECT 1 FROM pg_extension WHERE extname='age';")
             if not await cur.fetchone():
@@ -38,6 +38,10 @@ class PGAgeHelper:
                     "AGE extension is not installed in this database. "
                     "Run as superuser: CREATE EXTENSION age;"
                 )
+            try:
+                await cur.execute("LOAD 'age';")
+            except psycopg.errors.InsufficientPrivilege:
+                await conn.rollback()
             await cur.execute('SET search_path = ag_catalog, "$user", public;')
         return cls(conn, graph)
 
@@ -222,6 +226,292 @@ class PGAgeHelper:
 
 
 
+    async def get_node_neighborhood(self, node_id: int | str) -> list[dict]:
+        """Return the clicked node + all its direct neighbors (both directions) and connecting edges.
+        If the node has no edges, return other nodes sharing the same label instead."""
+        results: list[dict] = []
+        node_label_raw: str | None = None
+
+        # 1) Fetch the clicked node itself
+        node_cypher = """
+            MATCH (n) WHERE id(n) = toInteger($node_id)
+            RETURN id(n) AS id, labels(n) AS label, n.payload AS properties
+        """
+        node_q = (
+            sql.SQL("SELECT * FROM ag_catalog.cypher(")
+            + sql.Literal(self.graph)
+            + sql.SQL("::name, $cypher$\n") + sql.SQL(node_cypher)
+            + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+            + sql.SQL("AS (id ag_catalog.agtype, label ag_catalog.agtype, properties ag_catalog.agtype);")
+        )
+        params = json.dumps({"node_id": int(node_id)})
+        async with self._conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(node_q, (params,))
+            for r in await cur.fetchall():
+                results.append({
+                    "id": r["id"], "label": r["label"], "properties": r["properties"],
+                    "kind": "node", "src": None, "dst": None,
+                })
+                node_label_raw = r["label"]
+
+        if not results:
+            return results
+
+        # 2) Fetch outgoing neighbors + edges
+        out_cypher = """
+            MATCH (n)-[e]->(t) WHERE id(n) = toInteger($node_id)
+            RETURN id(t) AS tid, labels(t) AS tlabel, t.payload AS tprops,
+                   id(e) AS eid, type(e) AS elabel, properties(e) AS eprops,
+                   id(n) AS src, id(t) AS dst
+        """
+        out_q = (
+            sql.SQL("SELECT * FROM ag_catalog.cypher(")
+            + sql.Literal(self.graph)
+            + sql.SQL("::name, $cypher$\n") + sql.SQL(out_cypher)
+            + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+            + sql.SQL("AS (tid ag_catalog.agtype, tlabel ag_catalog.agtype, tprops ag_catalog.agtype, eid ag_catalog.agtype, elabel ag_catalog.agtype, eprops ag_catalog.agtype, src ag_catalog.agtype, dst ag_catalog.agtype);")
+        )
+        seen_nodes: set[str] = {str(node_id)}
+        async with self._conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(out_q, (params,))
+            for r in await cur.fetchall():
+                nid = str(r["tid"]).strip('"')
+                if nid not in seen_nodes:
+                    seen_nodes.add(nid)
+                    results.append({
+                        "id": r["tid"], "label": r["tlabel"], "properties": r["tprops"],
+                        "kind": "node", "src": None, "dst": None,
+                    })
+                results.append({
+                    "id": r["eid"], "label": r["elabel"], "properties": r["eprops"],
+                    "kind": "edge", "src": r["src"], "dst": r["dst"],
+                })
+
+        # 3) Fetch incoming neighbors + edges
+        in_cypher = """
+            MATCH (n)<-[e]-(s) WHERE id(n) = toInteger($node_id)
+            RETURN id(s) AS sid, labels(s) AS slabel, s.payload AS sprops,
+                   id(e) AS eid, type(e) AS elabel, properties(e) AS eprops,
+                   id(s) AS src, id(n) AS dst
+        """
+        in_q = (
+            sql.SQL("SELECT * FROM ag_catalog.cypher(")
+            + sql.Literal(self.graph)
+            + sql.SQL("::name, $cypher$\n") + sql.SQL(in_cypher)
+            + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+            + sql.SQL("AS (sid ag_catalog.agtype, slabel ag_catalog.agtype, sprops ag_catalog.agtype, eid ag_catalog.agtype, elabel ag_catalog.agtype, eprops ag_catalog.agtype, src ag_catalog.agtype, dst ag_catalog.agtype);")
+        )
+        async with self._conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(in_q, (params,))
+            for r in await cur.fetchall():
+                nid = str(r["sid"]).strip('"')
+                if nid not in seen_nodes:
+                    seen_nodes.add(nid)
+                    results.append({
+                        "id": r["sid"], "label": r["slabel"], "properties": r["sprops"],
+                        "kind": "node", "src": None, "dst": None,
+                    })
+                results.append({
+                    "id": r["eid"], "label": r["elabel"], "properties": r["eprops"],
+                    "kind": "edge", "src": r["src"], "dst": r["dst"],
+                })
+
+        # 4) Fallback: if no edges found, show other nodes with the same label
+        has_neighbors = len(results) > 1
+        if not has_neighbors and node_label_raw:
+            # Parse the label (AGE returns '["LabelName"]')
+            lbl = str(node_label_raw).strip('"')
+            try:
+                parsed = json.loads(lbl)
+                if isinstance(parsed, list) and parsed:
+                    lbl = str(parsed[0])
+            except (json.JSONDecodeError, TypeError):
+                lbl = re.sub(r'^[\["]+|[\]"]+$', '', lbl)
+
+            if re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', lbl):
+                sibling_cypher = f"""
+                    MATCH (m:{lbl})
+                    WHERE id(m) <> toInteger($node_id)
+                    RETURN id(m) AS id, labels(m) AS label, m.payload AS properties
+                    LIMIT 50
+                """
+                sib_q = (
+                    sql.SQL("SELECT * FROM ag_catalog.cypher(")
+                    + sql.Literal(self.graph)
+                    + sql.SQL("::name, $cypher$\n") + sql.SQL(sibling_cypher)
+                    + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+                    + sql.SQL("AS (id ag_catalog.agtype, label ag_catalog.agtype, properties ag_catalog.agtype);")
+                )
+                async with self._conn.cursor(row_factory=dict_row) as cur:
+                    await cur.execute(sib_q, (params,))
+                    for r in await cur.fetchall():
+                        results.append({
+                            "id": r["id"], "label": r["label"], "properties": r["properties"],
+                            "kind": "node", "src": None, "dst": None,
+                        })
+
+        return results
+
+
+    async def discover_labels(self) -> list[dict]:
+        """Return distinct node labels with counts and a sample payload."""
+        cypher_text = """
+            MATCH (n) WHERE n.payload IS NOT NULL
+            RETURN labels(n) AS label, count(n) AS cnt, head(collect(n.payload)) AS sample_payload
+        """
+        q = (
+            sql.SQL("SELECT * FROM ag_catalog.cypher(")
+            + sql.Literal(self.graph)
+            + sql.SQL("::name, $cypher$\n") + sql.SQL(cypher_text)
+            + sql.SQL("\n$cypher$) AS (label ag_catalog.agtype, cnt ag_catalog.agtype, sample_payload ag_catalog.agtype);")
+        )
+        async with self._conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(q)
+            rows = await cur.fetchall()
+        return rows
+
+    async def get_nodes_by_label(self, label: str, limit: int = 50) -> list[dict]:
+        """Return nodes of a specific label + edges between them."""
+        # Validate label to prevent injection
+        if not re.match(r'^[A-Za-z_][A-Za-z0-9_]*$', label):
+            return []
+
+        # 1) Nodes
+        node_cypher = f"""
+            MATCH (n:{label})
+            RETURN id(n) AS id, labels(n) AS label, n.payload AS properties
+            ORDER BY id(n)
+            LIMIT toInteger($lim)
+        """
+        node_q = (
+            sql.SQL("SELECT * FROM ag_catalog.cypher(")
+            + sql.Literal(self.graph)
+            + sql.SQL("::name, $cypher$\n") + sql.SQL(node_cypher)
+            + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+            + sql.SQL("AS (id ag_catalog.agtype, label ag_catalog.agtype, properties ag_catalog.agtype);")
+        )
+        results: list[dict] = []
+        async with self._conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(node_q, (json.dumps({"lim": int(limit)}),))
+            node_rows = await cur.fetchall()
+        node_ids = []
+        for r in node_rows:
+            results.append({
+                "id": r["id"], "label": r["label"], "properties": r["properties"],
+                "kind": "node", "src": None, "dst": None,
+            })
+            node_ids.append(r["id"])
+
+        # 2) Edges between these nodes
+        if node_ids:
+            edge_cypher = f"""
+                MATCH (n:{label})-[e]->(t:{label})
+                RETURN id(e) AS id, type(e) AS label, properties(e) AS properties,
+                       id(n) AS src, id(t) AS dst
+                LIMIT toInteger($lim)
+            """
+            edge_q = (
+                sql.SQL("SELECT * FROM ag_catalog.cypher(")
+                + sql.Literal(self.graph)
+                + sql.SQL("::name, $cypher$\n") + sql.SQL(edge_cypher)
+                + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+                + sql.SQL("AS (id ag_catalog.agtype, label ag_catalog.agtype, properties ag_catalog.agtype, src ag_catalog.agtype, dst ag_catalog.agtype);")
+            )
+            node_id_set = set(str(nid).strip('"') for nid in node_ids)
+            async with self._conn.cursor(row_factory=dict_row) as cur:
+                await cur.execute(edge_q, (json.dumps({"lim": int(limit) * 3}),))
+                for r in await cur.fetchall():
+                    s = str(r["src"]).strip('"')
+                    d = str(r["dst"]).strip('"')
+                    if s in node_id_set and d in node_id_set:
+                        results.append({
+                            "id": r["id"], "label": r["label"], "properties": r["properties"],
+                            "kind": "edge", "src": r["src"], "dst": r["dst"],
+                        })
+
+        return results
+
+
+    async def get_graph_overview(self, node_limit: int = 100) -> list[dict]:
+        """Return nodes + their connecting edges using two simple queries (AGE-safe)."""
+        # 1) Fetch nodes
+        node_cypher = """
+            MATCH (n)
+            RETURN id(n) AS id, labels(n) AS label, n.payload AS properties
+            ORDER BY id(n)
+            LIMIT toInteger($lim)
+        """
+        node_q = (
+            sql.SQL("SELECT * FROM ag_catalog.cypher(")
+            + sql.Literal(self.graph)
+            + sql.SQL("::name, $cypher$\n")
+            + sql.SQL(node_cypher)
+            + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+            + sql.SQL("AS (id ag_catalog.agtype, label ag_catalog.agtype, properties ag_catalog.agtype);")
+        )
+        async with self._conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(node_q, (json.dumps({"lim": int(node_limit)}),))
+            node_rows = await cur.fetchall()
+
+        # Collect node IDs for edge filtering
+        node_ids = [r["id"] for r in node_rows]
+        results: list[dict] = []
+        for r in node_rows:
+            results.append({
+                "id": r["id"], "label": r["label"], "properties": r["properties"],
+                "kind": "node", "src": None, "dst": None,
+            })
+
+        if not node_ids:
+            return results
+
+        # 2) Fetch edges between the selected nodes
+        edge_cypher = """
+            MATCH (n)-[e]->(t)
+            WHERE id(n) = ANY($ids) AND id(t) = ANY($ids)
+            RETURN id(e) AS id, type(e) AS label, properties(e) AS properties,
+                   id(n) AS src, id(t) AS dst
+        """
+        # AGE doesn't support ANY() on an array param directly; use a simpler approach
+        # Fetch all edges from the limited nodes and filter in Python
+        edge_cypher2 = """
+            MATCH (n)-[e]->(t)
+            WHERE id(n) >= toInteger($min_id) AND id(n) <= toInteger($max_id)
+            RETURN id(e) AS id, type(e) AS label, properties(e) AS properties,
+                   id(n) AS src, id(t) AS dst
+        """
+        # Even simpler: just get edges from our node set
+        edge_cypher3 = """
+            MATCH (n)-[e]->(t)
+            RETURN id(e) AS id, type(e) AS label, properties(e) AS properties,
+                   id(n) AS src, id(t) AS dst
+            LIMIT toInteger($lim)
+        """
+        edge_q = (
+            sql.SQL("SELECT * FROM ag_catalog.cypher(")
+            + sql.Literal(self.graph)
+            + sql.SQL("::name, $cypher$\n")
+            + sql.SQL(edge_cypher3)
+            + sql.SQL("\n$cypher$, %s::ag_catalog.agtype)\n")
+            + sql.SQL("AS (id ag_catalog.agtype, label ag_catalog.agtype, properties ag_catalog.agtype, src ag_catalog.agtype, dst ag_catalog.agtype);")
+        )
+        edge_limit = node_limit * 3
+        async with self._conn.cursor(row_factory=dict_row) as cur:
+            await cur.execute(edge_q, (json.dumps({"lim": edge_limit}),))
+            edge_rows = await cur.fetchall()
+
+        # Filter to edges where both endpoints are in our node set
+        node_id_set = set(str(nid).strip('"') for nid in node_ids)
+        for r in edge_rows:
+            s = str(r["src"]).strip('"')
+            d = str(r["dst"]).strip('"')
+            if s in node_id_set and d in node_id_set:
+                results.append({
+                    "id": r["id"], "label": r["label"], "properties": r["properties"],
+                    "kind": "edge", "src": r["src"], "dst": r["dst"],
+                })
+
+        return results
 
 
     async def get_all_nodes_and_edges(self, limit: int | None) -> list[dict]:

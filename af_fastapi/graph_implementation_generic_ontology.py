@@ -16,6 +16,7 @@ from agent_framework import (
 )
 from agent_framework.azure import AzureOpenAIChatClient, AzureOpenAIResponsesClient
 from azure.identity.aio import DefaultAzureCredential
+from mcp_client import LoggingMCPStreamableHTTPTool
 import json
 from enum import Enum
 from dataclasses import dataclass, asdict, is_dataclass
@@ -207,7 +208,7 @@ class LoggingChatMiddleware(ChatMiddleware):
         print("[Chat Class] AI response received")
 
 class GraphWorkflow():
-    def __init__(self, graph_name: str | None = None, model_name: str | None = None):
+    def __init__(self, graph_name: str | None = None, model_name: str | None = None, session_id: str | None = None):
         # stream state
         self._last_stream_agent_id: Optional[str] = None
         self._stream_line_open: bool = False
@@ -222,7 +223,7 @@ class GraphWorkflow():
         self._create_message_store = create_message_store
         self._graph_name = graph_name or GRAPH_NAME
         self._deployment_name = model_name or AZURE_DEPLOYMENT_NAME
-        #self._chat_history: List[ChatMessage] = []
+        self._session_id = session_id
 
 
     async def logging_chat_middleware(
@@ -259,10 +260,10 @@ class GraphWorkflow():
         """Create agents and the workflow exactly once (or after token refresh if you choose)."""
         logger.info("Ensuring clients are created or refreshed")
         token = await self._get_fresh_token()
-        graph_age_mcp_server = MCPStreamableHTTPTool(
+        graph_age_mcp_server = LoggingMCPStreamableHTTPTool(
             name="graph age mcp server",
             url=MCP_ENDPOINT,
-            #headers={"Authorization": "Bearer your-token"},
+            broadcast_session_id=self._session_id,
         ) 
         
 

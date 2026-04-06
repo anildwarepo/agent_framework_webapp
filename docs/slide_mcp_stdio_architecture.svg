@@ -1,0 +1,198 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 620" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <filter id="sh" x="-3%" y="-3%" width="106%" height="106%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="gHost" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8f5e9"/><stop offset="100%" stop-color="#c8e6c9"/>
+    </linearGradient>
+    <linearGradient id="gMcp" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff3e0"/><stop offset="100%" stop-color="#ffe0b2"/>
+    </linearGradient>
+    <linearGradient id="gSvc" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f3e5f5"/><stop offset="100%" stop-color="#e1bee7"/>
+    </linearGradient>
+    <linearGradient id="gPipe" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e3f2fd"/><stop offset="100%" stop-color="#bbdefb"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1060" height="620" rx="12" fill="#fafafa"/>
+  <text x="530" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#263238">MCP Stdio Transport — Architecture</text>
+  <text x="530" y="52" text-anchor="middle" font-size="11" fill="#78909c">Host Process spawns MCP Server as child process · JSON-RPC over stdin/stdout</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  HOST PROCESS (IDE / CLI / Agent)                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="30" y="74" width="380" height="480" rx="14" fill="url(#gHost)" stroke="#66bb6a" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="220" y="98" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e7d32">Host Process</text>
+  <text x="220" y="114" text-anchor="middle" font-size="10" fill="#558b2f">VS Code · Claude Desktop · CLI Agent · IDE Extension</text>
+
+  <!-- LLM / Application -->
+  <rect x="48" y="128" width="344" height="58" rx="8" fill="#fff" stroke="#81c784"/>
+  <text x="220" y="148" text-anchor="middle" font-size="12" font-weight="600" fill="#33691e">LLM / Application Logic</text>
+  <text x="220" y="164" text-anchor="middle" font-size="9" fill="#558b2f">User prompt → LLM decides tool calls → renders response</text>
+  <text x="220" y="178" text-anchor="middle" font-size="9" fill="#558b2f">Uses tools/list schema to know which MCP tools are available</text>
+
+  <!-- Embedded MCP Client -->
+  <rect x="48" y="200" width="344" height="260" rx="10" fill="#fff" stroke="#2e7d32" stroke-width="2.5" stroke-dasharray="8,4"/>
+  <rect x="128" y="189" width="184" height="22" rx="4" fill="#2e7d32"/>
+  <text x="220" y="204" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">Embedded MCP Client (SDK)</text>
+  <text x="220" y="226" text-anchor="middle" font-size="10" fill="#558b2f">MCP SDK · stdio transport</text>
+
+  <!-- Client methods -->
+  <rect x="62" y="240" width="156" height="32" rx="6" fill="#c8e6c9" stroke="#81c784"/>
+  <text x="140" y="255" text-anchor="middle" font-size="10" font-weight="600" fill="#1b5e20">session.initialize()</text>
+  <text x="140" y="267" text-anchor="middle" font-size="7" fill="#33691e">open JSON-RPC channel</text>
+
+  <rect x="226" y="240" width="156" height="32" rx="6" fill="#c8e6c9" stroke="#81c784"/>
+  <text x="304" y="255" text-anchor="middle" font-size="10" font-weight="600" fill="#1b5e20">session.list_tools()</text>
+  <text x="304" y="267" text-anchor="middle" font-size="7" fill="#33691e">discover available tools</text>
+
+  <rect x="62" y="280" width="156" height="32" rx="6" fill="#c8e6c9" stroke="#81c784"/>
+  <text x="140" y="295" text-anchor="middle" font-size="10" font-weight="600" fill="#1b5e20">session.call_tool()</text>
+  <text x="140" y="307" text-anchor="middle" font-size="7" fill="#33691e">invoke MCP tool by name</text>
+
+  <rect x="226" y="280" width="156" height="32" rx="6" fill="#c8e6c9" stroke="#81c784"/>
+  <text x="304" y="295" text-anchor="middle" font-size="10" font-weight="600" fill="#1b5e20">notification handler</text>
+  <text x="304" y="307" text-anchor="middle" font-size="7" fill="#33691e">progress / log callbacks</text>
+
+  <!-- Transport detail -->
+  <rect x="62" y="324" width="320" height="56" rx="6" fill="#e8f5e9" stroke="#a5d6a7"/>
+  <text x="222" y="342" text-anchor="middle" font-size="10" font-weight="600" fill="#2e7d32">Transport: stdio (stdin / stdout)</text>
+  <text x="222" y="358" text-anchor="middle" font-size="9" fill="#558b2f">Write JSON-RPC to child's stdin → read results from stdout</text>
+  <text x="222" y="372" text-anchor="middle" font-size="9" fill="#558b2f">stderr reserved for logging (not part of protocol)</text>
+
+  <!-- Process management -->
+  <rect x="62" y="390" width="320" height="56" rx="6" fill="#dcedc8" stroke="#aed581"/>
+  <text x="222" y="408" text-anchor="middle" font-size="10" font-weight="600" fill="#33691e">Process Management</text>
+  <text x="222" y="424" text-anchor="middle" font-size="9" fill="#558b2f">subprocess.Popen() / spawn child process with stdio pipes</text>
+  <text x="222" y="438" text-anchor="middle" font-size="9" fill="#558b2f">1:1 process lifecycle — host starts &amp; stops the MCP server</text>
+
+  <!-- Lifecycle note -->
+  <rect x="48" y="472" width="344" height="46" rx="8" fill="#fff8e1" stroke="#ffd54f"/>
+  <text x="220" y="490" text-anchor="middle" font-size="10" font-weight="600" fill="#f57f17">Lifecycle: Tightly Coupled</text>
+  <text x="220" y="506" text-anchor="middle" font-size="9" fill="#f9a825">Host spawns server → server dies when host exits · No network needed</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  STDIO PIPE (the transport)                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- stdin arrow: Host → Server (solid, horizontal) -->
+  <line x1="410" y1="340" x2="498" y2="340" stroke="#1565c0" stroke-width="2.5"/>
+  <polygon points="494,335 506,340 494,345" fill="#1565c0"/>
+  <rect x="420" y="316" width="80" height="18" rx="3" fill="url(#gPipe)" stroke="#90caf9"/>
+  <text x="460" y="329" text-anchor="middle" font-size="9" font-weight="bold" fill="#1565c0">stdin →</text>
+  <text x="460" y="352" text-anchor="middle" font-size="7" fill="#1976d2">JSON-RPC requests</text>
+
+  <!-- stdout arrow: Server → Host (dashed, horizontal) -->
+  <line x1="500" y1="380" x2="414" y2="380" stroke="#e65100" stroke-width="2.5" stroke-dasharray="6,3"/>
+  <polygon points="418,375 406,380 418,385" fill="#e65100"/>
+  <rect x="420" y="388" width="80" height="18" rx="3" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="460" y="401" text-anchor="middle" font-size="9" font-weight="bold" fill="#e65100">← stdout</text>
+  <text x="460" y="416" text-anchor="middle" font-size="7" fill="#bf360c">JSON-RPC responses</text>
+
+  <!-- stderr label -->
+  <rect x="426" y="432" width="68" height="16" rx="3" fill="#ffebee" stroke="#ef9a9a"/>
+  <text x="460" y="444" text-anchor="middle" font-size="8" fill="#c62828">stderr → logs</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  MCP SERVER (child process)                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="504" y="74" width="320" height="480" rx="14" fill="url(#gMcp)" stroke="#ffa726" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="664" y="98" text-anchor="middle" font-size="15" font-weight="bold" fill="#e65100">MCP Server (Child Process)</text>
+  <text x="664" y="114" text-anchor="middle" font-size="10" fill="#ef6c00">Python / Node.js / Any executable</text>
+
+  <!-- Protocol layer -->
+  <rect x="522" y="128" width="284" height="80" rx="8" fill="#fff" stroke="#ffb74d"/>
+  <text x="664" y="148" text-anchor="middle" font-size="12" font-weight="600" fill="#bf360c">MCP Protocol (JSON-RPC 2.0)</text>
+  <rect x="532" y="156" width="84" height="22" rx="5" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="574" y="172" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">initialize</text>
+  <rect x="624" y="156" width="84" height="22" rx="5" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="666" y="172" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">tools/list</text>
+  <rect x="716" y="156" width="84" height="22" rx="5" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="758" y="172" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">tools/call</text>
+  <text x="664" y="200" text-anchor="middle" font-size="9" fill="#bf360c">Reads stdin line-by-line → dispatches JSON-RPC → writes to stdout</text>
+
+  <!-- Registered Tools -->
+  <rect x="522" y="222" width="284" height="224" rx="8" fill="#fff" stroke="#ffb74d"/>
+  <text x="664" y="242" text-anchor="middle" font-size="12" font-weight="600" fill="#bf360c">@mcp.tool — Registered Tools</text>
+  <text x="664" y="258" text-anchor="middle" font-size="9" fill="#e65100">Auto-registered via decorator · JSON Schema from type hints</text>
+
+  <rect x="534" y="270" width="260" height="28" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="544" y="282" font-size="9" font-weight="bold" fill="#e65100">read_file</text>
+  <text x="544" y="294" font-size="8" fill="#795548">(path) → file contents from local filesystem</text>
+
+  <rect x="534" y="304" width="260" height="28" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="544" y="316" font-size="9" font-weight="bold" fill="#e65100">query_database</text>
+  <text x="544" y="328" font-size="8" fill="#795548">(sql, params) → rows from local database</text>
+
+  <rect x="534" y="338" width="260" height="28" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="544" y="350" font-size="9" font-weight="bold" fill="#e65100">search_codebase</text>
+  <text x="544" y="362" font-size="8" fill="#795548">(query) → grep / AST search results</text>
+
+  <rect x="534" y="372" width="260" height="28" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="544" y="384" font-size="9" font-weight="bold" fill="#e65100">run_terminal_command</text>
+  <text x="544" y="396" font-size="8" fill="#795548">(cmd) → execute shell command, return output</text>
+
+  <rect x="534" y="406" width="260" height="28" rx="5" fill="#ede7f6" stroke="#b39ddb"/>
+  <text x="544" y="418" font-size="9" font-weight="bold" fill="#4527a0">... your custom tools</text>
+  <text x="544" y="430" font-size="8" fill="#7e57c2">Add @mcp.tool → auto-discovered by host</text>
+
+  <!-- Notifications -->
+  <rect x="522" y="458" width="284" height="46" rx="8" fill="#e8f5e9" stroke="#66bb6a"/>
+  <text x="664" y="476" text-anchor="middle" font-size="10" font-weight="600" fill="#2e7d32">ctx.info() / ctx.warning()</text>
+  <text x="664" y="492" text-anchor="middle" font-size="9" fill="#388e3c">Notifications written to stdout as JSON-RPC notifications</text>
+
+  <!-- Lifecycle note -->
+  <rect x="522" y="514" width="284" height="30" rx="6" fill="#fff8e1" stroke="#ffd54f"/>
+  <text x="664" y="534" text-anchor="middle" font-size="9" fill="#f57f17">Process exits when stdin closes (host terminates)</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  LOCAL RESOURCES                                            -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="868" y="120" width="172" height="340" rx="12" fill="url(#gSvc)" stroke="#7e57c2" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="954" y="146" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527a0">Local Resources</text>
+  <text x="954" y="162" text-anchor="middle" font-size="9" fill="#6a1b9a">Same machine as server</text>
+
+  <rect x="880" y="178" width="148" height="44" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="954" y="198" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Filesystem</text>
+  <text x="954" y="212" text-anchor="middle" font-size="8" fill="#7e57c2">Read / write local files</text>
+
+  <rect x="880" y="230" width="148" height="44" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="954" y="250" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Local Database</text>
+  <text x="954" y="264" text-anchor="middle" font-size="8" fill="#7e57c2">SQLite · PostgreSQL · etc.</text>
+
+  <rect x="880" y="282" width="148" height="44" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="954" y="302" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Git / Source Code</text>
+  <text x="954" y="316" text-anchor="middle" font-size="8" fill="#7e57c2">Repo operations · diffs</text>
+
+  <rect x="880" y="334" width="148" height="44" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="954" y="354" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Shell / Terminal</text>
+  <text x="954" y="368" text-anchor="middle" font-size="8" fill="#7e57c2">Run commands · scripts</text>
+
+  <rect x="880" y="386" width="148" height="44" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="954" y="406" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">System APIs</text>
+  <text x="954" y="420" text-anchor="middle" font-size="8" fill="#7e57c2">Clipboard · env vars · OS</text>
+
+  <!-- MCP Server → Local Resources: tool calls (solid, horizontal) -->
+  <line x1="806" y1="310" x2="874" y2="310" stroke="#6a1b9a" stroke-width="2"/>
+  <polygon points="870,305 882,310 870,315" fill="#6a1b9a"/>
+  <text x="844" y="303" text-anchor="middle" font-size="8" font-weight="bold" fill="#6a1b9a">tool calls</text>
+
+  <!-- Local Resources → MCP Server: results (dashed, horizontal) -->
+  <line x1="880" y1="340" x2="806" y2="340" stroke="#9575cd" stroke-width="2" stroke-dasharray="5,3"/>
+  <polygon points="810,335 798,340 810,345" fill="#9575cd"/>
+  <text x="844" y="355" text-anchor="middle" font-size="8" fill="#9575cd">results</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  COMPARISON CALLOUT                                         -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="868" y="480" width="172" height="74" rx="10" fill="#fff" stroke="#bdbdbd" filter="url(#sh)"/>
+  <text x="954" y="500" text-anchor="middle" font-size="10" font-weight="bold" fill="#37474f">stdio vs HTTP</text>
+  <text x="954" y="516" text-anchor="middle" font-size="8" fill="#546e7a">stdio: local, 1:1, no network</text>
+  <text x="954" y="530" text-anchor="middle" font-size="8" fill="#546e7a">HTTP: remote, N:1, scalable</text>
+  <text x="954" y="544" text-anchor="middle" font-size="8" fill="#546e7a">Same protocol (JSON-RPC 2.0)</text>
+
+</svg>

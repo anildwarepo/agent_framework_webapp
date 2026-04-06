@@ -1,0 +1,219 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 740" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <filter id="sh" x="-3%" y="-3%" width="106%" height="106%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="gBrowser" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8f5e9"/><stop offset="100%" stop-color="#c8e6c9"/>
+    </linearGradient>
+    <linearGradient id="gBackend" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e3f2fd"/><stop offset="100%" stop-color="#bbdefb"/>
+    </linearGradient>
+    <linearGradient id="gMcp" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff3e0"/><stop offset="100%" stop-color="#ffe0b2"/>
+    </linearGradient>
+    <linearGradient id="gSvc" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f3e5f5"/><stop offset="100%" stop-color="#e1bee7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1120" height="740" rx="12" fill="#fafafa"/>
+  <text x="560" y="32" text-anchor="middle" font-size="20" font-weight="bold" fill="#263238">MCP Elicitation Pattern — User Confirmation Flow</text>
+  <text x="560" y="52" text-anchor="middle" font-size="11" fill="#78909c">Server requests user input mid-tool-execution · elicitation/create → SSE → Browser → POST → Future resolves</text>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- COLUMN 1: BROWSER                                        -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <rect x="30" y="74" width="220" height="400" rx="14" fill="url(#gBrowser)" stroke="#66bb6a" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="140" y="98" text-anchor="middle" font-size="14" font-weight="bold" fill="#2e7d32">Browser</text>
+  <text x="140" y="114" text-anchor="middle" font-size="9" fill="#558b2f">React · EventSource · Modal UI</text>
+
+  <rect x="44" y="130" width="192" height="40" rx="8" fill="#fff" stroke="#81c784"/>
+  <text x="140" y="148" text-anchor="middle" font-size="10" font-weight="600" fill="#1b5e20">SSE EventSource</text>
+  <text x="140" y="162" text-anchor="middle" font-size="8" fill="#2e7d32">GET /events?sid={user_id}</text>
+
+  <rect x="44" y="184" width="192" height="60" rx="8" fill="#a5d6a7" stroke="#66bb6a" stroke-width="1.5"/>
+  <text x="140" y="204" text-anchor="middle" font-size="11" font-weight="700" fill="#1b5e20">Elicitation Modal</text>
+  <text x="140" y="220" text-anchor="middle" font-size="8" fill="#2e7d32">Dropdown of available options</text>
+  <text x="140" y="234" text-anchor="middle" font-size="8" fill="#388e3c">Provided value highlighted · Cancel button</text>
+
+  <rect x="44" y="258" width="192" height="36" rx="8" fill="#fff" stroke="#81c784"/>
+  <text x="140" y="276" text-anchor="middle" font-size="10" font-weight="600" fill="#1b5e20">POST /elicitation/{id}/respond</text>
+  <text x="140" y="288" text-anchor="middle" font-size="8" fill="#2e7d32">{ "value": "selected_option" }</text>
+
+  <rect x="44" y="308" width="192" height="36" rx="8" fill="#c8e6c9" stroke="#81c784"/>
+  <text x="140" y="326" text-anchor="middle" font-size="10" font-weight="600" fill="#1b5e20">MCP Log Panel</text>
+  <text x="140" y="338" text-anchor="middle" font-size="8" fill="#2e7d32">[elicitation] User confirmed: ...</text>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- COLUMN 2: AGENT BACKEND                                  -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <rect x="290" y="74" width="240" height="400" rx="14" fill="url(#gBackend)" stroke="#42a5f5" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="410" y="98" text-anchor="middle" font-size="14" font-weight="bold" fill="#1565c0">Agent Backend</text>
+  <text x="410" y="114" text-anchor="middle" font-size="9" fill="#1976d2">FastAPI · MCP Client · SSE Bus</text>
+
+  <rect x="304" y="130" width="212" height="50" rx="8" fill="#fff8e1" stroke="#ffca28"/>
+  <text x="410" y="148" text-anchor="middle" font-size="10" font-weight="600" fill="#f57f17">SSE Bus (Redis Pub/Sub)</text>
+  <text x="410" y="164" text-anchor="middle" font-size="8" fill="#f9a825">publish_elicitation() → SSE event</text>
+  <text x="410" y="174" text-anchor="middle" font-size="8" fill="#f9a825">resolve_elicitation() ← POST value</text>
+
+  <rect x="304" y="194" width="212" height="60" rx="8" fill="#fff" stroke="#64b5f6"/>
+  <text x="410" y="212" text-anchor="middle" font-size="10" font-weight="600" fill="#0d47a1">Elicitation Callback</text>
+  <text x="410" y="228" text-anchor="middle" font-size="8" fill="#1976d2">_handle_elicitation(context, params)</text>
+  <text x="410" y="240" text-anchor="middle" font-size="8" fill="#1565c0">Push SSE → await asyncio.Future (60s)</text>
+  <text x="410" y="250" text-anchor="middle" font-size="8" fill="#1565c0">Resolve when user POSTs response</text>
+
+  <rect x="304" y="268" width="212" height="36" rx="8" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="410" y="286" text-anchor="middle" font-size="10" font-weight="600" fill="#0d47a1">POST /elicitation/{id}/respond</text>
+  <text x="410" y="298" text-anchor="middle" font-size="8" fill="#1976d2">resolve_elicitation(id, value)</text>
+
+  <rect x="304" y="318" width="212" height="50" rx="8" fill="#fff" stroke="#0d47a1" stroke-width="2" stroke-dasharray="6,3"/>
+  <text x="410" y="336" text-anchor="middle" font-size="10" font-weight="600" fill="#0d47a1">MCP ClientSession</text>
+  <text x="410" y="352" text-anchor="middle" font-size="8" fill="#1976d2">elicitation_callback registered</text>
+  <text x="410" y="362" text-anchor="middle" font-size="8" fill="#1976d2">SDK auto-declares elicitation capability</text>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- COLUMN 3: MCP SERVER                                     -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <rect x="570" y="74" width="240" height="400" rx="14" fill="url(#gMcp)" stroke="#ffa726" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="690" y="98" text-anchor="middle" font-size="14" font-weight="bold" fill="#e65100">MCP Server</text>
+  <text x="690" y="114" text-anchor="middle" font-size="9" fill="#ef6c00">FastMCP · Streamable HTTP · Tools</text>
+
+  <rect x="584" y="130" width="212" height="60" rx="8" fill="#fff" stroke="#ffb74d"/>
+  <text x="690" y="148" text-anchor="middle" font-size="10" font-weight="700" fill="#bf360c">_confirm_graph_name()</text>
+  <text x="690" y="164" text-anchor="middle" font-size="8" fill="#e65100">1. Query backend for available options</text>
+  <text x="690" y="178" text-anchor="middle" font-size="8" fill="#e65100">2. ctx.elicit(msg, options) → wait</text>
+  <text x="690" y="188" text-anchor="middle" font-size="8" fill="#bf360c">3. Return confirmed value</text>
+
+  <rect x="584" y="204" width="212" height="50" rx="8" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="690" y="222" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">Tool Gate (asyncio.Lock)</text>
+  <text x="690" y="238" text-anchor="middle" font-size="8" fill="#795548">if option not in session cache:</text>
+  <text x="690" y="248" text-anchor="middle" font-size="8" fill="#795548">  async with lock: elicit()</text>
+
+  <rect x="584" y="268" width="212" height="40" rx="8" fill="#e8f5e9" stroke="#66bb6a"/>
+  <text x="690" y="286" text-anchor="middle" font-size="10" font-weight="600" fill="#2e7d32">Per-Session Cache</text>
+  <text x="690" y="298" text-anchor="middle" font-size="8" fill="#388e3c">dict[session_id → set[confirmed]]</text>
+
+  <rect x="584" y="322" width="212" height="36" rx="8" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="690" y="340" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">ctx.elicit()</text>
+  <text x="690" y="352" text-anchor="middle" font-size="8" fill="#bf360c">FastMCP → elicitation/create JSON-RPC</text>
+
+  <rect x="584" y="372" width="212" height="36" rx="8" fill="#fff" stroke="#ffb74d"/>
+  <text x="690" y="390" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">@mcp.tool — Registered Tools</text>
+  <text x="690" y="402" text-anchor="middle" font-size="8" fill="#795548">Elicitation wired into tool execution</text>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- COLUMN 4: BACKEND SERVICES (generic)                     -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <rect x="850" y="74" width="240" height="400" rx="14" fill="url(#gSvc)" stroke="#7e57c2" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="970" y="98" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527a0">Backend Services</text>
+  <text x="970" y="114" text-anchor="middle" font-size="9" fill="#6a1b9a">Called by MCP tools</text>
+
+  <rect x="864" y="130" width="212" height="40" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="970" y="148" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Database</text>
+  <text x="970" y="162" text-anchor="middle" font-size="8" fill="#7e57c2">SQL · Graph · NoSQL · Vector</text>
+
+  <rect x="864" y="180" width="212" height="40" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="970" y="198" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Search / RAG</text>
+  <text x="970" y="212" text-anchor="middle" font-size="8" fill="#7e57c2">AI Search · Embeddings · Index</text>
+
+  <rect x="864" y="230" width="212" height="40" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="970" y="248" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Auth Provider</text>
+  <text x="970" y="262" text-anchor="middle" font-size="8" fill="#7e57c2">Entra ID · OAuth · API keys</text>
+
+  <rect x="864" y="280" width="212" height="40" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="970" y="298" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">LOB APIs</text>
+  <text x="970" y="312" text-anchor="middle" font-size="8" fill="#7e57c2">REST · gRPC · Internal services</text>
+
+  <rect x="864" y="330" width="212" height="40" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="970" y="348" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">External APIs</text>
+  <text x="970" y="362" text-anchor="middle" font-size="8" fill="#7e57c2">Weather · Maps · 3rd party</text>
+
+  <rect x="864" y="380" width="212" height="40" rx="6" fill="#ede7f6" stroke="#b39ddb"/>
+  <text x="970" y="398" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">... your custom services</text>
+  <text x="970" y="412" text-anchor="middle" font-size="8" fill="#7e57c2">Add @mcp.tool → auto-discovered</text>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- CLEAN ARROWS — inline polygon tips, horizontal only      -->
+  <!-- ════════════════════════════════════════════════════════ -->
+
+  <!-- ① MCP Server → Backend Services: query available options -->
+  <line x1="796" y1="150" x2="858" y2="150" stroke="#6a1b9a" stroke-width="2"/>
+  <polygon points="854,145 866,150 854,155" fill="#6a1b9a"/>
+  <circle cx="827" cy="138" r="10" fill="#6a1b9a"/>
+  <text x="827" y="142" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">1</text>
+
+  <!-- ② MCP Server → Agent Backend: elicitation/create -->
+  <line x1="584" y1="340" x2="520" y2="340" stroke="#e65100" stroke-width="2"/>
+  <polygon points="524,335 512,340 524,345" fill="#e65100"/>
+  <circle cx="552" cy="330" r="10" fill="#e65100"/>
+  <text x="552" y="334" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">2</text>
+
+  <!-- ③ Agent Backend → Browser: SSE elicitation event (dashed) -->
+  <line x1="304" y1="155" x2="240" y2="155" stroke="#2e7d32" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="244,150 232,155 244,160" fill="#2e7d32"/>
+  <circle cx="272" cy="145" r="10" fill="#2e7d32"/>
+  <text x="272" y="149" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">3</text>
+
+  <!-- ④ Browser shows modal (vertical, internal) -->
+  <line x1="140" y1="170" x2="140" y2="182" stroke="#1b5e20" stroke-width="2"/>
+  <polygon points="135,178 140,190 145,178" fill="#1b5e20"/>
+  <circle cx="160" cy="176" r="10" fill="#1b5e20"/>
+  <text x="160" y="180" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">4</text>
+
+  <!-- ⑤ Browser → Agent Backend: POST respond -->
+  <line x1="236" y1="276" x2="300" y2="286" stroke="#1565c0" stroke-width="2"/>
+  <polygon points="296,281 308,286 296,291" fill="#1565c0"/>
+  <circle cx="268" cy="274" r="10" fill="#1565c0"/>
+  <text x="268" y="278" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">5</text>
+
+  <!-- ⑥ Agent Backend → MCP Server: ElicitResult -->
+  <line x1="516" y1="226" x2="580" y2="226" stroke="#0d47a1" stroke-width="2"/>
+  <polygon points="576,221 588,226 576,231" fill="#0d47a1"/>
+  <circle cx="548" cy="216" r="10" fill="#0d47a1"/>
+  <text x="548" y="220" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">6</text>
+
+  <!-- ⑦ MCP Server caches + continues (vertical, internal) -->
+  <line x1="690" y1="254" x2="690" y2="266" stroke="#2e7d32" stroke-width="2"/>
+  <polygon points="685,262 690,274 695,262" fill="#2e7d32"/>
+  <circle cx="710" cy="260" r="10" fill="#2e7d32"/>
+  <text x="710" y="264" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">7</text>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- SEQUENCE LEGEND                                          -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <rect x="30" y="496" width="1060" height="230" rx="10" fill="#fff" stroke="#bdbdbd" filter="url(#sh)"/>
+  <text x="560" y="520" text-anchor="middle" font-size="14" font-weight="bold" fill="#37474f">Elicitation Sequence</text>
+
+  <circle cx="56" cy="546" r="11" fill="#6a1b9a"/>
+  <text x="56" y="550" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">1</text>
+  <text x="76" y="550" font-size="10" fill="#37474f"><tspan font-weight="600">MCP Server</tspan> queries backend service for available options (e.g. graph names from database)</text>
+
+  <circle cx="56" cy="572" r="11" fill="#e65100"/>
+  <text x="56" y="576" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">2</text>
+  <text x="76" y="576" font-size="10" fill="#37474f"><tspan font-weight="600">ctx.elicit()</tspan> sends elicitation/create JSON-RPC → MCP SDK routes to client's elicitation_callback</text>
+
+  <circle cx="56" cy="598" r="11" fill="#2e7d32"/>
+  <text x="56" y="602" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">3</text>
+  <text x="76" y="602" font-size="10" fill="#37474f"><tspan font-weight="600">Agent Backend</tspan> pushes SSE event (type: elicitation) to browser · creates asyncio.Future</text>
+
+  <circle cx="56" cy="624" r="11" fill="#1b5e20"/>
+  <text x="56" y="628" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">4</text>
+  <text x="76" y="628" font-size="10" fill="#37474f"><tspan font-weight="600">Browser</tspan> renders modal overlay with options dropdown · provided value highlighted</text>
+
+  <circle cx="56" cy="650" r="11" fill="#1565c0"/>
+  <text x="56" y="654" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">5</text>
+  <text x="76" y="654" font-size="10" fill="#37474f"><tspan font-weight="600">User clicks</tspan> → browser POSTs to /elicitation/{id}/respond · value or null (cancel)</text>
+
+  <circle cx="56" cy="676" r="11" fill="#0d47a1"/>
+  <text x="56" y="680" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">6</text>
+  <text x="76" y="680" font-size="10" fill="#37474f"><tspan font-weight="600">resolve_elicitation()</tspan> completes the Future → callback returns ElicitResult(action, content)</text>
+
+  <circle cx="56" cy="702" r="11" fill="#2e7d32"/>
+  <text x="56" y="706" text-anchor="middle" font-size="8" font-weight="bold" fill="#fff">7</text>
+  <text x="76" y="706" font-size="10" fill="#37474f"><tspan font-weight="600">MCP Server</tspan> caches confirmed value per session_id · tool execution continues with confirmed value</text>
+
+  <text x="76" y="724" font-size="9" fill="#9e9e9e">Timeout: 60s · Lock: asyncio.Lock serializes concurrent calls · Cache: per MCP session (not global)</text>
+
+</svg>

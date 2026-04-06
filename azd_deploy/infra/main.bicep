@@ -108,6 +108,20 @@ param postgresqlEnablePrivateEndpoint bool = true
 @description('Client IP address to allow through PostgreSQL firewall (for deployment scripts)')
 param clientIpAddress string = ''
 
+// Redis Parameters
+@description('Deploy Azure Cache for Redis for SSE pub/sub')
+param deployRedis bool = true
+
+@description('The prefix for the Azure Cache for Redis name')
+param redisNamePrefix string = 'redis'
+
+@description('The SKU for Azure Cache for Redis')
+@allowed(['Basic', 'Standard', 'Premium'])
+param redisSkuName string = 'Basic'
+
+@description('The SKU capacity for Azure Cache for Redis (0=250MB for Basic/Standard)')
+param redisSkuCapacity int = 0
+
 // MCP Server Container Build Parameters
 @description('Build and push MCP server container to ACR')
 param buildMcpServerContainer bool = true
@@ -219,6 +233,7 @@ param webappMemory string = '0.5Gi'
 
 // Generate unique names
 var postgresqlServerName = toLower('${postgresqlServerNamePrefix}${uniqueSuffix}')
+var redisName = toLower('${redisNamePrefix}${uniqueSuffix}')
 var containerAppsEnvName = '${containerAppsEnvNamePrefix}-${uniqueSuffix}'
 var containerAppName = '${containerAppNamePrefix}-${uniqueSuffix}'
 var fastApiContainerAppName = '${fastApiContainerAppNamePrefix}-${uniqueSuffix}'
@@ -309,6 +324,25 @@ module postgresqlPrivateEndpoint 'modules/private-endpoint.bicep' = if (deployPo
     vnetName: acrVnet!.outputs.vnetName
     tags: tags
   }
+}
+
+// Azure Cache for Redis (SSE pub/sub for multi-node sessions)
+module redisCache 'modules/redis-cache.bicep' = if (deployRedis) {
+  name: 'redis-cache-deployment'
+  params: {
+    redisName: redisName
+    location: location
+    skuName: redisSkuName
+    skuFamily: redisSkuName == 'Premium' ? 'P' : 'C'
+    skuCapacity: redisSkuCapacity
+    tags: tags
+  }
+}
+
+// Reference Redis resource for key retrieval (used in Container App secrets)
+resource redisAccount 'Microsoft.Cache/redis@2024-03-01' existing = if (deployRedis) {
+  name: redisName
+  dependsOn: [redisCache]
 }
 
 // Container Apps Environment (VNet integrated, allows external ingress for specific apps)
@@ -474,6 +508,11 @@ module fastApiContainerApp 'modules/container-app.bicep' = if ((deployFastApiCon
         name: 'MCP_ENDPOINT'
         value: 'https://${containerAppName}.internal.${containerAppsEnv!.outputs.defaultDomain}/mcp'
       }
+      // Redis URL for SSE pub/sub (multi-node session support)
+      {
+        name: 'REDIS_URL'
+        secretRef: 'redis-url'
+      }
       // Azure Search configuration
       {
         name: 'AZURE_SEARCH_SERVICE_ENDPOINT'
@@ -493,6 +532,10 @@ module fastApiContainerApp 'modules/container-app.bicep' = if ((deployFastApiCon
       {
         name: 'pg-password'
         value: postgresqlAdminPassword
+      }
+      {
+        name: 'redis-url'
+        value: deployRedis ? 'rediss://:${redisAccount!.listKeys().primaryKey}@${redisCache!.outputs.hostName}:${redisCache!.outputs.sslPort}/0' : ''
       }
     ]
     tags: tags
@@ -578,3 +621,5 @@ output fastApiContainerAppName string = ((deployFastApiContainerApp || deployCon
 output fastApiContainerAppFqdn string = ((deployFastApiContainerApp || deployContainerApp) && deployAcrVnet && buildFastApiContainer) ? fastApiContainerApp!.outputs.fqdn : ''
 output webappContainerAppName string = ((deployWebappContainerApp || deployContainerApp) && deployAcrVnet && buildWebappContainer && (deployFastApiContainerApp || deployContainerApp)) ? webappContainerApp!.outputs.name : ''
 output webappContainerAppFqdn string = ((deployWebappContainerApp || deployContainerApp) && deployAcrVnet && buildWebappContainer && (deployFastApiContainerApp || deployContainerApp)) ? webappContainerApp!.outputs.fqdn : ''
+output redisName string = deployRedis ? redisCache!.outputs.name : ''
+output redisHostName string = deployRedis ? redisCache!.outputs.hostName : ''

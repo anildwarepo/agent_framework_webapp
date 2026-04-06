@@ -1,0 +1,244 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1060 680" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <filter id="sh" x="-3%" y="-3%" width="106%" height="106%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="gBe" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e3f2fd"/><stop offset="100%" stop-color="#bbdefb"/>
+    </linearGradient>
+    <linearGradient id="gMcp" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff3e0"/><stop offset="100%" stop-color="#ffe0b2"/>
+    </linearGradient>
+    <linearGradient id="gSvc" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f3e5f5"/><stop offset="100%" stop-color="#e1bee7"/>
+    </linearGradient>
+    <linearGradient id="gRedis" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffebee"/><stop offset="100%" stop-color="#ffcdd2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1060" height="680" rx="12" fill="#fafafa"/>
+  <text x="530" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#263238">MCP Streamable HTTP — Architecture</text>
+  <text x="530" y="52" text-anchor="middle" font-size="11" fill="#78909c">Agent Backend (MCP Client) → MCP Server → Backend Services</text>
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  AGENT BACKEND                                              -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="30" y="74" width="360" height="490" rx="14" fill="url(#gBe)" stroke="#42a5f5" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="210" y="98" text-anchor="middle" font-size="15" font-weight="bold" fill="#1565c0">Agent Backend</text>
+  <text x="210" y="114" text-anchor="middle" font-size="10" fill="#1976d2">FastAPI · Serves UI + orchestrates agents</text>
+
+  <!-- FastAPI Endpoints -->
+  <rect x="48" y="128" width="324" height="62" rx="8" fill="#fff" stroke="#64b5f6"/>
+  <text x="210" y="148" text-anchor="middle" font-size="12" font-weight="600" fill="#0d47a1">API Endpoints</text>
+  <rect x="58" y="156" width="144" height="24" rx="5" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="130" y="173" text-anchor="middle" font-size="9" font-weight="600" fill="#1565c0">POST /conversation/{user_id}</text>
+  <rect x="210" y="156" width="75" height="24" rx="5" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="248" y="173" text-anchor="middle" font-size="9" font-weight="600" fill="#1565c0">GET /events</text>
+  <rect x="293" y="156" width="70" height="24" rx="5" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="328" y="173" text-anchor="middle" font-size="9" font-weight="600" fill="#1565c0">GET /data/*</text>
+
+  <!-- Orchestration + LLM -->
+  <rect x="48" y="200" width="324" height="58" rx="8" fill="#fff" stroke="#64b5f6"/>
+  <text x="210" y="220" text-anchor="middle" font-size="12" font-weight="600" fill="#0d47a1">Agent Orchestration + LLM</text>
+  <text x="210" y="236" text-anchor="middle" font-size="9" fill="#1976d2">Single-agent · Multi-agent handoff · Custom workflows</text>
+  <text x="210" y="250" text-anchor="middle" font-size="9" fill="#1976d2">LLM decides when to call MCP tools based on tools/list schema</text>
+
+  <!-- ── Embedded MCP Client (focus box) ── -->
+  <rect x="48" y="272" width="324" height="200" rx="10" fill="#fff" stroke="#0d47a1" stroke-width="2.5" stroke-dasharray="8,4"/>
+  <rect x="128" y="261" width="164" height="22" rx="4" fill="#1565c0"/>
+  <text x="210" y="276" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">Embedded MCP Client</text>
+  <text x="210" y="298" text-anchor="middle" font-size="10" fill="#1976d2">MCP SDK · Streamable HTTP transport</text>
+
+  <!-- Client methods -->
+  <rect x="62" y="312" width="148" height="32" rx="6" fill="#e1f5fe" stroke="#4fc3f7"/>
+  <text x="136" y="327" text-anchor="middle" font-size="10" font-weight="600" fill="#01579b">session.initialize()</text>
+  <text x="136" y="339" text-anchor="middle" font-size="7" fill="#0277bd">open JSON-RPC channel</text>
+
+  <rect x="218" y="312" width="148" height="32" rx="6" fill="#e1f5fe" stroke="#4fc3f7"/>
+  <text x="292" y="327" text-anchor="middle" font-size="10" font-weight="600" fill="#01579b">session.list_tools()</text>
+  <text x="292" y="339" text-anchor="middle" font-size="7" fill="#0277bd">discover available tools</text>
+
+  <rect x="62" y="352" width="148" height="32" rx="6" fill="#e1f5fe" stroke="#4fc3f7"/>
+  <text x="136" y="367" text-anchor="middle" font-size="10" font-weight="600" fill="#01579b">session.call_tool()</text>
+  <text x="136" y="379" text-anchor="middle" font-size="7" fill="#0277bd">invoke MCP tool by name</text>
+
+  <rect x="218" y="352" width="148" height="32" rx="6" fill="#e1f5fe" stroke="#4fc3f7"/>
+  <text x="292" y="367" text-anchor="middle" font-size="10" font-weight="600" fill="#01579b">_on_incoming()</text>
+  <text x="292" y="379" text-anchor="middle" font-size="7" fill="#0277bd">handle SSE notifications</text>
+
+  <!-- Transport detail -->
+  <rect x="62" y="394" width="304" height="66" rx="6" fill="#e8eaf6" stroke="#7986cb"/>
+  <text x="214" y="412" text-anchor="middle" font-size="10" font-weight="600" fill="#283593">Transport: Streamable HTTP</text>
+  <text x="214" y="428" text-anchor="middle" font-size="9" fill="#3949ab">POST /mcp → JSON-RPC request / response</text>
+  <text x="214" y="442" text-anchor="middle" font-size="9" fill="#3949ab">GET /mcp → SSE stream (progress, messages, logs)</text>
+  <text x="214" y="456" text-anchor="middle" font-size="9" fill="#3949ab">Header: Mcp-Session-Id for session affinity</text>
+
+  <!-- SSE Bus — backed by Redis -->
+  <rect x="48" y="484" width="324" height="52" rx="8" fill="#fff8e1" stroke="#ffca28"/>
+  <text x="210" y="502" text-anchor="middle" font-size="11" font-weight="600" fill="#f57f17">SSE Bus (sse_bus.py)</text>
+  <text x="210" y="516" text-anchor="middle" font-size="8" fill="#f9a825">publish() → Redis Pub/Sub → subscribe() → asyncio.Queue</text>
+  <text x="210" y="528" text-anchor="middle" font-size="8" fill="#f9a825">Routes notifications to correct client via GET /events</text>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  ARROWS: MCP Client ↔ MCP Server                           -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- POST /mcp → (request, solid) -->
+  <line x1="372" y1="340" x2="472" y2="340" stroke="#e65100" stroke-width="2"/>
+  <polygon points="468,335 480,340 468,345" fill="#e65100"/>
+  <rect x="395" y="318" width="78" height="18" rx="3" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="434" y="331" text-anchor="middle" font-size="8" font-weight="bold" fill="#e65100">POST /mcp</text>
+  <text x="425" y="352" text-anchor="middle" font-size="7" fill="#bf360c">JSON-RPC 2.0</text>
+
+  <!-- GET /mcp ← (SSE notifications, dashed) -->
+  <line x1="478" y1="380" x2="378" y2="380" stroke="#f57f17" stroke-width="2" stroke-dasharray="8,4"/>
+  <polygon points="382,375 370,380 382,385" fill="#f57f17"/>
+  <rect x="395" y="386" width="78" height="18" rx="3" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="434" y="399" text-anchor="middle" font-size="8" font-weight="bold" fill="#f57f17">GET /mcp</text>
+  <text x="425" y="413" text-anchor="middle" font-size="7" fill="#ff8f00">SSE stream</text>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  MCP SERVER                                                 -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="478" y="74" width="340" height="490" rx="14" fill="url(#gMcp)" stroke="#ffa726" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="648" y="98" text-anchor="middle" font-size="15" font-weight="bold" fill="#e65100">MCP Server</text>
+  <text x="648" y="114" text-anchor="middle" font-size="10" fill="#ef6c00">FastMCP / FastAPI · Hosts tools for the agent</text>
+
+  <!-- Protocol layer -->
+  <rect x="496" y="128" width="304" height="80" rx="8" fill="#fff" stroke="#ffb74d"/>
+  <text x="648" y="148" text-anchor="middle" font-size="12" font-weight="600" fill="#bf360c">MCP Protocol (JSON-RPC 2.0)</text>
+  <rect x="506" y="156" width="88" height="22" rx="5" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="550" y="172" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">initialize</text>
+  <rect x="602" y="156" width="88" height="22" rx="5" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="646" y="172" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">tools/list</text>
+  <rect x="698" y="156" width="88" height="22" rx="5" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="742" y="172" text-anchor="middle" font-size="9" font-weight="600" fill="#e65100">tools/call</text>
+  <text x="648" y="200" text-anchor="middle" font-size="9" fill="#bf360c">protocolVersion: 2025-03-26 · capabilities: tools</text>
+
+  <!-- Registered Tools — GENERIC -->
+  <rect x="496" y="222" width="304" height="270" rx="8" fill="#fff" stroke="#ffb74d"/>
+  <text x="648" y="242" text-anchor="middle" font-size="12" font-weight="600" fill="#bf360c">@mcp.tool — Registered Tools</text>
+  <text x="648" y="256" text-anchor="middle" font-size="9" fill="#e65100">Auto-registered via decorator · JSON Schema from type hints</text>
+
+  <!-- Individual tools — generic examples -->
+  <rect x="508" y="268" width="280" height="30" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="518" y="280" font-size="9" font-weight="bold" fill="#e65100">search_data</text>
+  <text x="518" y="292" font-size="8" fill="#795548">(query, filters) → search results from backend</text>
+
+  <rect x="508" y="304" width="280" height="30" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="518" y="316" font-size="9" font-weight="bold" fill="#e65100">query_database</text>
+  <text x="518" y="328" font-size="8" fill="#795548">(sql_query, params) → rows from database</text>
+
+  <rect x="508" y="340" width="280" height="30" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="518" y="352" font-size="9" font-weight="bold" fill="#e65100">call_external_api</text>
+  <text x="518" y="364" font-size="8" fill="#795548">(endpoint, payload) → response from LOB API</text>
+
+  <rect x="508" y="376" width="280" height="30" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="518" y="388" font-size="9" font-weight="bold" fill="#e65100">retrieve_knowledge</text>
+  <text x="518" y="400" font-size="8" fill="#795548">(query) → documents from knowledge base / RAG</text>
+
+  <rect x="508" y="412" width="280" height="30" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="518" y="424" font-size="9" font-weight="bold" fill="#e65100">execute_action</text>
+  <text x="518" y="436" font-size="8" fill="#795548">(action, args) → perform write / mutation / workflow</text>
+
+  <rect x="508" y="448" width="280" height="30" rx="5" fill="#ede7f6" stroke="#b39ddb"/>
+  <text x="518" y="460" font-size="9" font-weight="bold" fill="#4527a0">... your custom tools</text>
+  <text x="518" y="472" font-size="8" fill="#7e57c2">Add @mcp.tool decorator → auto-discovered by agent</text>
+
+  <!-- ctx.info() callout -->
+  <rect x="496" y="500" width="304" height="50" rx="8" fill="#e8f5e9" stroke="#66bb6a"/>
+  <text x="648" y="518" text-anchor="middle" font-size="10" font-weight="600" fill="#2e7d32">ctx.info() / ctx.warning()</text>
+  <text x="648" y="534" text-anchor="middle" font-size="9" fill="#388e3c">Tools push real-time progress via MCP Context</text>
+  <text x="648" y="546" text-anchor="middle" font-size="8" fill="#558b2f">→ notifications/logging → SSE → _on_incoming() → browser</text>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  BACKEND SERVICES (generic)                                  -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="860" y="120" width="180" height="340" rx="12" fill="url(#gSvc)" stroke="#7e57c2" stroke-width="1.5" filter="url(#sh)"/>
+  <text x="950" y="146" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527a0">Backend Services</text>
+  <text x="950" y="162" text-anchor="middle" font-size="9" fill="#6a1b9a">Called by MCP tools</text>
+
+  <!-- Database -->
+  <rect x="874" y="178" width="152" height="48" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="950" y="198" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Database</text>
+  <text x="950" y="214" text-anchor="middle" font-size="8" fill="#7e57c2">SQL · Graph · NoSQL · Vector</text>
+
+  <!-- Search / RAG -->
+  <rect x="874" y="234" width="152" height="48" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="950" y="254" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Search / RAG</text>
+  <text x="950" y="270" text-anchor="middle" font-size="8" fill="#7e57c2">AI Search · Embeddings · Index</text>
+
+  <!-- LOB APIs -->
+  <rect x="874" y="290" width="152" height="48" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="950" y="310" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">LOB APIs</text>
+  <text x="950" y="326" text-anchor="middle" font-size="8" fill="#7e57c2">REST · gRPC · Internal services</text>
+
+  <!-- Auth -->
+  <rect x="874" y="346" width="152" height="48" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="950" y="366" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Auth Provider</text>
+  <text x="950" y="382" text-anchor="middle" font-size="8" fill="#7e57c2">Entra ID · OAuth · API keys</text>
+
+  <!-- External APIs -->
+  <rect x="874" y="402" width="152" height="48" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="950" y="422" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">External APIs</text>
+  <text x="950" y="438" text-anchor="middle" font-size="8" fill="#7e57c2">Weather · Maps · 3rd party</text>
+
+  <!-- MCP Server → Backend Services (clean horizontal) -->
+  <line x1="800" y1="310" x2="868" y2="310" stroke="#6a1b9a" stroke-width="2"/>
+  <polygon points="864,305 876,310 864,315" fill="#6a1b9a"/>
+  <text x="838" y="303" text-anchor="middle" font-size="8" font-weight="bold" fill="#6a1b9a">tool calls</text>
+
+  <!-- Backend Services → MCP Server (clean horizontal, dashed) -->
+  <line x1="874" y1="340" x2="800" y2="340" stroke="#9575cd" stroke-width="2" stroke-dasharray="5,3"/>
+  <polygon points="806,335 794,340 806,345" fill="#9575cd"/>
+  <text x="838" y="355" text-anchor="middle" font-size="8" fill="#9575cd">results</text>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  REDIS CACHE — Pub/Sub for multi-node SSE                   -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <rect x="132" y="588" width="556" height="80" rx="12" fill="url(#gRedis)" stroke="#c62828" stroke-width="1.5" filter="url(#sh)"/>
+
+  <!-- Redis icon -->
+  <rect x="154" y="604" width="46" height="46" rx="10" fill="#d32f2f"/>
+  <text x="177" y="624" text-anchor="middle" font-size="9" font-weight="bold" fill="#fff">REDIS</text>
+  <text x="177" y="638" text-anchor="middle" font-size="7" fill="#ffcdd2">Pub/Sub</text>
+
+  <!-- Redis title & details -->
+  <text x="440" y="612" text-anchor="middle" font-size="14" font-weight="bold" fill="#b71c1c">Redis — SSE Pub/Sub Bus</text>
+  <text x="440" y="630" text-anchor="middle" font-size="10" fill="#c62828">Channel: sse:{session_id} · redis.asyncio · publish / subscribe</text>
+  <text x="440" y="648" text-anchor="middle" font-size="9" fill="#d32f2f">Enables multi-node SSE: any node publishes, all subscribers receive</text>
+
+  <!-- Deployment badges -->
+  <rect x="590" y="600" width="84" height="20" rx="4" fill="#fff" stroke="#c62828"/>
+  <text x="632" y="614" text-anchor="middle" font-size="8" font-weight="600" fill="#b71c1c">Azure Cache</text>
+  <rect x="590" y="624" width="84" height="20" rx="4" fill="#fff" stroke="#c62828"/>
+  <text x="632" y="638" text-anchor="middle" font-size="8" font-weight="600" fill="#b71c1c">Docker: 6379</text>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--  ARROWS: SSE Bus ↔ Redis                                    -->
+  <!-- ═══════════════════════════════════════════════════════════ -->
+
+  <!-- SSE Bus → Redis: publish (down arrow, left side) -->
+  <line x1="155" y1="536" x2="155" y2="586" stroke="#c62828" stroke-width="2"/>
+  <polygon points="149,582 155,594 161,582" fill="#c62828"/>
+  <rect x="164" y="550" width="62" height="16" rx="3" fill="#ffebee" stroke="#ef9a9a"/>
+  <text x="195" y="562" text-anchor="middle" font-size="7" font-weight="bold" fill="#c62828">publish()</text>
+
+  <!-- Redis → SSE Bus: subscribe (up arrow, right side) -->
+  <line x1="270" y1="588" x2="270" y2="538" stroke="#c62828" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="264,542 270,530 276,542" fill="#c62828"/>
+  <rect x="279" y="550" width="72" height="16" rx="3" fill="#ffebee" stroke="#ef9a9a"/>
+  <text x="315" y="562" text-anchor="middle" font-size="7" font-weight="bold" fill="#c62828">subscribe()</text>
+
+  <!-- Multi-node annotation -->
+  <text x="362" y="558" font-size="8" fill="#c62828" font-style="italic">Any node can publish;</text>
+  <text x="362" y="570" font-size="8" fill="#c62828" font-style="italic">all listeners receive via Redis channel</text>
+
+</svg>

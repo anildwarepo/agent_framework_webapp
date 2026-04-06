@@ -1,0 +1,33 @@
+[
+  {
+    "id": "844424930131969",
+    "label": "[\"Product\"]",
+    "properties": "{\"id\":\"prod_core\",\"name\":\"Core\",\"label\":\"Product\"}"
+  },
+  {
+    "id": "844424930131970",
+    "label": "[\"Product\"]",
+    "properties": "{\"id\":\"prod_analytics\",\"name\":\"Analytics\",\"label\":\"Product\"}"
+  },
+  {
+    "id": "1407374883553281",
+    "label": "[\"Customer\"]",
+    "properties": "{\"id\":\"cust_001\",\"name\":\"Customer 001\",\"label\":\"Customer\",\"notes\":\"Key design partner\",\"owner\":\"Morgan Chen\",\"health\":\"Yellow\",\"segment\":\"Enterprise\",\"timezone\":\"America/New_York\",\"current_arr\":171632,\"current_mrr\":14302,\"growth_potential\":\"High\",\"satisfaction_score\":55.5}"
+  },
+  {
+    "id": "3377699720527923",
+    "label": "[\"ADOPTED_PRODUCT\"]",
+    "properties": "{\"payload\":{}}",
+    "kind": "\"edge\"",
+    "src": "1407374883553281",
+    "dst": "844424930131969"
+  },
+  {
+    "id": "3377699720527981",
+    "label": "[\"ADOPTED_PRODUCT\"]",
+    "properties": "{\"payload\":{}}",
+    "kind": "\"edge\"",
+    "src": "1407374883553281",
+    "dst": "844424930131970"
+  }
+]

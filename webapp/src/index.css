@@ -132,7 +132,7 @@ body { overflow: hidden; }
   width: 6px;
   height: 6px;
   border-radius: 9999px;
-  background: #94a3b8;
+  background: #a78bfa;
   opacity: .6;
   animation: td-bounce 1.2s infinite ease-in-out;
 }
@@ -157,5 +157,11 @@ body { overflow: hidden; }
 .safe-html pre, .safe-html code { white-space: pre-wrap; word-break: break-word; }
 .safe-html table { display: block; max-width: 100%; overflow-x: auto; }
 .safe-html img { max-width: 100%; height: auto; border-radius: .5rem; }
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.35); }
 
 

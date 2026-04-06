@@ -16,6 +16,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from sse_bus import SESSIONS
+from sse_bus import resolve_elicitation
 from starlette.responses import StreamingResponse
 import asyncio
 from pydantic import BaseModel
@@ -50,6 +51,7 @@ DSN = dict(
     dbname=os.getenv("PGDATABASE", "postgres"),
     user=os.getenv("PGUSER", "postgres"),
     password=os.getenv("PGPASSWORD", "postgres"),
+    sslmode=os.getenv("PGSSLMODE", "require"),
 )
 MCP_ENDPOINT = os.getenv("MCP_ENDPOINT", "http://localhost:3000/mcp") # Dapr endpoint
 
@@ -87,14 +89,24 @@ except Exception as e:
 print("Using DSN:", DSN["host"], DSN["port"], DSN["dbname"], DSN["user"])
 
 # ---- FastAPI app ----
+# Graph-scoped PGAgeHelper pool (lazy, keyed by graph_name)
+_pg_helpers: dict[str, PGAgeHelper] = {}
+
+async def _get_pg_helper(graph_name: str) -> PGAgeHelper:
+    """Return (or create) a PGAgeHelper for the given graph."""
+    if graph_name not in _pg_helpers:
+        _pg_helpers[graph_name] = await PGAgeHelper.create(DSN, graph_name)
+    return _pg_helpers[graph_name]
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     try:
-        #global pg_helper
-        #pg_helper = await PGAgeHelper.create(DSN, GRAPH)
         yield
     finally:
-        pass
+        for h in _pg_helpers.values():
+            await h.close()
+        _pg_helpers.clear()
+        await SESSIONS.close_all()
 
 
 app = FastAPI(title="AGE Node Creator", lifespan=lifespan)
@@ -157,6 +169,18 @@ async def sse_events(request: Request):
         },
     )
 
+# ---- Elicitation endpoint ----
+class ElicitationResponse(BaseModel):
+    value: str | None = None
+
+@app.post("/elicitation/{elicitation_id}/respond")
+async def respond_to_elicitation(elicitation_id: str, body: ElicitationResponse):
+    """Called by the browser when the user confirms/cancels an elicitation prompt."""
+    ok = resolve_elicitation(elicitation_id, body.value)
+    if not ok:
+        raise HTTPException(status_code=404, detail="Elicitation not found or already resolved")
+    return {"status": "ok", "elicitation_id": elicitation_id, "value": body.value}
+
 # ---- Routes ----
 @app.get("/health")
 async def health():
@@ -203,6 +227,50 @@ def _normalize_graph_name(graph_name: str) -> str:
     return graph_name
 
 
+# ---- Graph viewer routes ----
+
+@app.get("/graph/{graph_name}/discover")
+async def discover_graph_labels(graph_name: str):
+    """Return distinct node labels with counts and sample payload (schema overview)."""
+    normalized = _normalize_graph_name(graph_name)
+    try:
+        helper = await _get_pg_helper(normalized)
+        rows = await helper.discover_labels()
+        return rows
+    except Exception as e:
+        logger.exception(f"discover_graph_labels failed for {normalized}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/graph/{graph_name}/nodes")
+async def get_graph_nodes(graph_name: str, limit: int = 100, label: str = ""):
+    """Return nodes (optionally filtered by label) + edges for the graph viewer."""
+    normalized = _normalize_graph_name(graph_name)
+    try:
+        helper = await _get_pg_helper(normalized)
+        if label:
+            rows = await helper.get_nodes_by_label(label, limit)
+        else:
+            rows = await helper.get_graph_overview(limit)
+        return rows
+    except Exception as e:
+        logger.exception(f"get_graph_nodes failed for {normalized}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/graph/{graph_name}/nodes/{node_id}/neighborhood")
+async def get_node_neighborhood(graph_name: str, node_id: int):
+    """Return a node and all its direct neighbors + edges (both directions)."""
+    normalized = _normalize_graph_name(graph_name)
+    try:
+        helper = await _get_pg_helper(normalized)
+        rows = await helper.get_node_neighborhood(node_id)
+        return rows
+    except Exception as e:
+        logger.exception(f"get_node_neighborhood failed for node {node_id} in {normalized}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 
 
 class SessionManager:
@@ -245,7 +313,7 @@ async def start_conversation(user_id: str, convo: ConversationIn, request: Reque
     if orchestration_mode == "magentic":
         workflow = MagenticWorkflow()
     elif orchestration_mode == "graph":
-        workflow = GraphWorkflow(normalized_graph_name, model_name=convo.model_name or None)
+        workflow = GraphWorkflow(normalized_graph_name, model_name=convo.model_name or None, session_id=session_id)
     elif orchestration_mode == "singleagent":
         workflow = SingleAgent()
     else:

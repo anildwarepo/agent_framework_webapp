@@ -1,0 +1,324 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 920" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <filter id="shadow" x="-3%" y="-3%" width="106%" height="106%">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="clientGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e8f5e9"/><stop offset="100%" stop-color="#c8e6c9"/>
+    </linearGradient>
+    <linearGradient id="apiGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#e3f2fd"/><stop offset="100%" stop-color="#bbdefb"/>
+    </linearGradient>
+    <linearGradient id="mcpGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff3e0"/><stop offset="100%" stop-color="#ffe0b2"/>
+    </linearGradient>
+    <linearGradient id="backendGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fce4ec"/><stop offset="100%" stop-color="#f8bbd0"/>
+    </linearGradient>
+    <linearGradient id="daprGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f3e5f5"/><stop offset="100%" stop-color="#e1bee7"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1400" height="920" fill="#fafafa" rx="12"/>
+  <text x="700" y="34" text-anchor="middle" font-size="22" font-weight="bold" fill="#263238">Agent Framework — End-to-End Architecture</text>
+  <text x="700" y="56" text-anchor="middle" font-size="12" fill="#78909c">React Web App → FastAPI Agent Backend (MCP Client) → MCP Server (Dapr) → Backend Services</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 1: CLIENT SIDE                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="30" y="76" width="260" height="540" rx="14" fill="url(#clientGrad)" stroke="#66bb6a" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="160" y="100" text-anchor="middle" font-size="15" font-weight="bold" fill="#2e7d32">Client Side</text>
+  <text x="160" y="116" text-anchor="middle" font-size="10" fill="#558b2f">React + Vite + TypeScript</text>
+
+  <rect x="48" y="132" width="224" height="468" rx="10" fill="#fff" stroke="#81c784"/>
+  <text x="160" y="154" text-anchor="middle" font-size="13" font-weight="600" fill="#33691e">Web Application</text>
+
+  <rect x="60" y="168" width="200" height="46" rx="8" fill="#a5d6a7" stroke="#66bb6a"/>
+  <text x="160" y="188" text-anchor="middle" font-size="12" font-weight="600" fill="#1b5e20">UI Components</text>
+  <text x="160" y="204" text-anchor="middle" font-size="9" fill="#2e7d32">Chat · Graph Viewer · Panels</text>
+
+  <rect x="60" y="224" width="200" height="46" rx="8" fill="#c8e6c9" stroke="#66bb6a"/>
+  <text x="160" y="244" text-anchor="middle" font-size="12" font-weight="600" fill="#1b5e20">SSE EventSource</text>
+  <text x="160" y="260" text-anchor="middle" font-size="9" fill="#2e7d32">GET /events — real-time stream</text>
+
+  <rect x="60" y="280" width="200" height="46" rx="8" fill="#c8e6c9" stroke="#66bb6a"/>
+  <text x="160" y="300" text-anchor="middle" font-size="12" font-weight="600" fill="#1b5e20">HTTP Client (fetch)</text>
+  <text x="160" y="316" text-anchor="middle" font-size="9" fill="#2e7d32">POST /conversation/{user_id}</text>
+
+  <rect x="60" y="336" width="200" height="42" rx="8" fill="#e8f5e9" stroke="#66bb6a"/>
+  <text x="160" y="356" text-anchor="middle" font-size="12" font-weight="600" fill="#1b5e20">Client Session State</text>
+  <text x="160" y="370" text-anchor="middle" font-size="9" fill="#2e7d32">user_id · graph_name · model</text>
+
+  <rect x="60" y="388" width="200" height="42" rx="8" fill="#dcedc8" stroke="#8bc34a"/>
+  <text x="160" y="408" text-anchor="middle" font-size="12" font-weight="600" fill="#33691e">Auth Provider</text>
+  <text x="160" y="422" text-anchor="middle" font-size="9" fill="#558b2f">Fetch User Auth Token</text>
+
+  <rect x="60" y="440" width="200" height="42" rx="8" fill="#f1f8e9" stroke="#aed581"/>
+  <text x="160" y="460" text-anchor="middle" font-size="12" font-weight="600" fill="#33691e">NDJSON Stream Parser</text>
+  <text x="160" y="474" text-anchor="middle" font-size="9" fill="#558b2f">Streaming agent responses</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 2: AGENT BACKEND / API SERVER                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="350" y="76" width="340" height="820" rx="14" fill="url(#apiGrad)" stroke="#42a5f5" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="520" y="100" text-anchor="middle" font-size="15" font-weight="bold" fill="#1565c0">Agent Backend / API Server</text>
+  <text x="520" y="116" text-anchor="middle" font-size="10" fill="#1976d2">af_fastapi.py — FastAPI · Port 8080</text>
+
+  <!-- FastAPI Endpoints -->
+  <rect x="368" y="132" width="304" height="120" rx="10" fill="#fff" stroke="#64b5f6"/>
+  <text x="520" y="152" text-anchor="middle" font-size="13" font-weight="600" fill="#0d47a1">FastAPI Endpoints</text>
+  <rect x="380" y="162" width="136" height="28" rx="6" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="448" y="181" text-anchor="middle" font-size="10" font-weight="600" fill="#1565c0">POST /conversation</text>
+  <rect x="524" y="162" width="136" height="28" rx="6" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="592" y="181" text-anchor="middle" font-size="10" font-weight="600" fill="#1565c0">GET /events (SSE)</text>
+  <rect x="380" y="196" width="136" height="28" rx="6" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="448" y="215" text-anchor="middle" font-size="10" font-weight="600" fill="#1565c0">GET /graph/*</text>
+  <rect x="524" y="196" width="136" height="28" rx="6" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="592" y="215" text-anchor="middle" font-size="10" font-weight="600" fill="#1565c0">GET /health</text>
+
+  <!-- Per User Session -->
+  <rect x="368" y="266" width="304" height="195" rx="10" fill="#fff" stroke="#64b5f6"/>
+  <text x="520" y="286" text-anchor="middle" font-size="13" font-weight="600" fill="#0d47a1">Per User Session</text>
+  <rect x="380" y="298" width="136" height="32" rx="6" fill="#bbdefb" stroke="#64b5f6"/>
+  <text x="448" y="319" text-anchor="middle" font-size="10" font-weight="600" fill="#0d47a1">Chat History</text>
+  <rect x="524" y="298" width="136" height="32" rx="6" fill="#f8bbd0" stroke="#e91e63"/>
+  <text x="592" y="319" text-anchor="middle" font-size="10" font-weight="600" fill="#880e4f">User Session State</text>
+  <rect x="380" y="338" width="136" height="32" rx="6" fill="#d1c4e9" stroke="#7e57c2"/>
+  <text x="448" y="359" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Prompts / Instructions</text>
+  <rect x="524" y="338" width="136" height="32" rx="6" fill="#ffe0b2" stroke="#ff9800"/>
+  <text x="592" y="359" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">handle_user_query</text>
+  <rect x="380" y="380" width="280" height="68" rx="6" fill="#e8eaf6" stroke="#7986cb"/>
+  <text x="520" y="398" text-anchor="middle" font-size="10" font-weight="600" fill="#283593">Orchestration Modes</text>
+  <text x="400" y="416" font-size="9" fill="#303f9f">• GraphWorkflow (Cypher + AGE)</text>
+  <text x="400" y="430" font-size="9" fill="#303f9f">• HandoffWorkflow (multi-agent handoff)</text>
+  <text x="400" y="444" font-size="9" fill="#303f9f">• MagenticWorkflow · SingleAgent</text>
+
+  <!-- Embedded MCP Client -->
+  <rect x="368" y="476" width="304" height="140" rx="10" fill="#fff" stroke="#0d47a1" stroke-width="2.5" stroke-dasharray="8,4"/>
+  <rect x="438" y="465" width="164" height="22" rx="4" fill="#1565c0"/>
+  <text x="520" y="480" text-anchor="middle" font-size="11" font-weight="bold" fill="#fff">Embedded MCP Client</text>
+  <text x="520" y="500" text-anchor="middle" font-size="10" fill="#1976d2">mcp_client.py — Streamable HTTP Transport</text>
+  <rect x="380" y="510" width="136" height="32" rx="6" fill="#e1f5fe" stroke="#4fc3f7"/>
+  <text x="448" y="531" text-anchor="middle" font-size="10" font-weight="600" fill="#01579b">initialize()</text>
+  <rect x="524" y="510" width="136" height="32" rx="6" fill="#e1f5fe" stroke="#4fc3f7"/>
+  <text x="592" y="531" text-anchor="middle" font-size="10" font-weight="600" fill="#01579b">list_tools()</text>
+  <rect x="380" y="550" width="136" height="32" rx="6" fill="#e1f5fe" stroke="#4fc3f7"/>
+  <text x="448" y="571" text-anchor="middle" font-size="10" font-weight="600" fill="#01579b">call_tool(name, args)</text>
+  <rect x="524" y="550" width="136" height="32" rx="6" fill="#e1f5fe" stroke="#4fc3f7"/>
+  <text x="592" y="571" text-anchor="middle" font-size="10" font-weight="600" fill="#01579b">SSE Notifications</text>
+
+  <!-- Transport detail -->
+  <rect x="368" y="630" width="304" height="60" rx="6" fill="#e8eaf6" stroke="#7986cb"/>
+  <text x="520" y="650" text-anchor="middle" font-size="10" font-weight="600" fill="#283593">Transport: Streamable HTTP</text>
+  <text x="520" y="664" text-anchor="middle" font-size="9" fill="#3949ab">POST /mcp → JSON-RPC request / response</text>
+  <text x="520" y="678" text-anchor="middle" font-size="9" fill="#3949ab">GET /mcp → SSE stream · Header: Mcp-Session-Id</text>
+
+  <!-- Azure OpenAI Integration -->
+  <rect x="368" y="704" width="304" height="84" rx="10" fill="#fff" stroke="#42a5f5"/>
+  <text x="520" y="724" text-anchor="middle" font-size="13" font-weight="600" fill="#0d47a1">Azure OpenAI Integration</text>
+  <rect x="380" y="734" width="136" height="26" rx="6" fill="#e8eaf6" stroke="#7986cb"/>
+  <text x="448" y="752" text-anchor="middle" font-size="10" font-weight="600" fill="#283593">AsyncAzureOpenAI</text>
+  <rect x="524" y="734" width="136" height="26" rx="6" fill="#e8eaf6" stroke="#7986cb"/>
+  <text x="592" y="752" text-anchor="middle" font-size="10" font-weight="600" fill="#283593">Entra ID / API Key</text>
+  <text x="520" y="778" text-anchor="middle" font-size="9" fill="#616161">gpt-4o · gpt-4.1 · OSS models · Agent Framework SDK</text>
+
+  <!-- SSE Bus -->
+  <rect x="368" y="802" width="304" height="50" rx="10" fill="#fff8e1" stroke="#ffca28"/>
+  <text x="520" y="822" text-anchor="middle" font-size="12" font-weight="600" fill="#f57f17">SSE Bus (sse_bus.py)</text>
+  <text x="520" y="838" text-anchor="middle" font-size="9" fill="#f9a825">In-memory async queues · Per-session event routing</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 3: MCP SERVER                                               -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="750" y="76" width="320" height="540" rx="14" fill="url(#mcpGrad)" stroke="#ffa726" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="910" y="100" text-anchor="middle" font-size="15" font-weight="bold" fill="#e65100">MCP Server</text>
+  <text x="910" y="116" text-anchor="middle" font-size="10" fill="#ef6c00">mcp_fastapi_server.py — FastAPI · Port 3000</text>
+
+  <!-- Dapr sidecar -->
+  <rect x="768" y="130" width="284" height="26" rx="6" fill="url(#daprGrad)" stroke="#ab47bc"/>
+  <text x="910" y="148" text-anchor="middle" font-size="11" font-weight="600" fill="#6a1b9a">Dapr Sidecar — App ID: cosmos_dapr_actor</text>
+
+  <!-- MCP Protocol Endpoints -->
+  <rect x="768" y="168" width="284" height="100" rx="10" fill="#fff" stroke="#ffb74d"/>
+  <text x="910" y="188" text-anchor="middle" font-size="13" font-weight="600" fill="#bf360c">MCP Protocol Endpoints</text>
+  <rect x="780" y="198" width="128" height="26" rx="6" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="844" y="216" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">POST /mcp</text>
+  <rect x="916" y="198" width="128" height="26" rx="6" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="980" y="216" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">GET /mcp (SSE)</text>
+  <rect x="780" y="230" width="128" height="26" rx="6" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="844" y="248" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">DELETE /mcp</text>
+  <rect x="916" y="230" width="128" height="26" rx="6" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="980" y="248" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">GET /healthz</text>
+
+  <!-- JSON-RPC Methods -->
+  <rect x="768" y="280" width="284" height="100" rx="10" fill="#fff" stroke="#ffb74d"/>
+  <text x="910" y="300" text-anchor="middle" font-size="13" font-weight="600" fill="#bf360c">JSON-RPC Method Router</text>
+  <rect x="780" y="310" width="128" height="26" rx="6" fill="#ffe0b2" stroke="#ffb74d"/>
+  <text x="844" y="328" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">initialize</text>
+  <rect x="916" y="310" width="128" height="26" rx="6" fill="#ffe0b2" stroke="#ffb74d"/>
+  <text x="980" y="328" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">tools/list</text>
+  <rect x="780" y="342" width="128" height="26" rx="6" fill="#ffe0b2" stroke="#ffb74d"/>
+  <text x="844" y="360" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">tools/call</text>
+  <rect x="916" y="342" width="128" height="26" rx="6" fill="#ffe0b2" stroke="#ffb74d"/>
+  <text x="980" y="360" text-anchor="middle" font-size="10" font-weight="600" fill="#e65100">ping</text>
+
+  <!-- Registered Tools -->
+  <rect x="768" y="392" width="284" height="156" rx="10" fill="#fff" stroke="#ffb74d"/>
+  <text x="910" y="412" text-anchor="middle" font-size="13" font-weight="600" fill="#bf360c">Registered Tools (@tool)</text>
+  <text x="910" y="428" text-anchor="middle" font-size="9" fill="#e65100">tools.py — auto-registered via decorator</text>
+  <rect x="780" y="440" width="260" height="24" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="910" y="457" text-anchor="middle" font-size="10" fill="#f57f17">get_current_weather(city, country, units)</text>
+  <rect x="780" y="470" width="260" height="24" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="910" y="487" text-anchor="middle" font-size="10" fill="#f57f17">search_knowledge_base(query)</text>
+  <rect x="780" y="500" width="260" height="24" rx="5" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="910" y="517" text-anchor="middle" font-size="10" fill="#f57f17">... custom LOB tools (extensible)</text>
+  <rect x="780" y="530" width="260" height="10" rx="3" fill="#ffe0b2" stroke="none"/>
+
+  <!-- ctx.info callout -->
+  <rect x="768" y="558" width="284" height="46" rx="8" fill="#e8f5e9" stroke="#66bb6a"/>
+  <text x="910" y="576" text-anchor="middle" font-size="10" font-weight="600" fill="#2e7d32">ctx.info() / ctx.warning()</text>
+  <text x="910" y="592" text-anchor="middle" font-size="9" fill="#388e3c">Tools push real-time progress via MCP Context</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 4: AZURE AI FOUNDRY                                         -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="1130" y="76" width="250" height="260" rx="14" fill="#ede7f6" stroke="#7e57c2" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1255" y="100" text-anchor="middle" font-size="14" font-weight="bold" fill="#4527a0">Azure AI Foundry</text>
+  <text x="1255" y="116" text-anchor="middle" font-size="10" fill="#5e35b1">Model Hosting</text>
+  <rect x="1148" y="130" width="214" height="36" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="1255" y="148" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">GPT-4o / GPT-4.1</text>
+  <text x="1255" y="160" text-anchor="middle" font-size="8" fill="#7e57c2">Chat Completion</text>
+  <rect x="1148" y="174" width="214" height="36" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="1255" y="192" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">OSS Models (120B)</text>
+  <text x="1255" y="204" text-anchor="middle" font-size="8" fill="#7e57c2">DeepSeek / Llama</text>
+  <rect x="1148" y="218" width="214" height="36" rx="6" fill="#fff" stroke="#9575cd"/>
+  <text x="1255" y="236" text-anchor="middle" font-size="10" font-weight="600" fill="#4527a0">Responses API</text>
+  <text x="1255" y="248" text-anchor="middle" font-size="8" fill="#7e57c2">Agent Framework SDK</text>
+  <rect x="1148" y="262" width="214" height="22" rx="4" fill="#d1c4e9" stroke="#9575cd"/>
+  <text x="1255" y="277" text-anchor="middle" font-size="9" fill="#4527a0">Entra ID RBAC</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SECTION 5: BACKEND SERVICES                                         -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="1130" y="370" width="250" height="440" rx="14" fill="url(#backendGrad)" stroke="#e91e63" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="1255" y="396" text-anchor="middle" font-size="14" font-weight="bold" fill="#880e4f">Backend Services</text>
+  <text x="1255" y="412" text-anchor="middle" font-size="9" fill="#ad1457">Called by MCP tools</text>
+
+  <rect x="1148" y="428" width="214" height="50" rx="8" fill="#fff" stroke="#e91e63"/>
+  <text x="1255" y="448" text-anchor="middle" font-size="11" font-weight="600" fill="#880e4f">Database</text>
+  <text x="1255" y="464" text-anchor="middle" font-size="9" fill="#ad1457">SQL · Graph · NoSQL · Vector</text>
+
+  <rect x="1148" y="488" width="214" height="50" rx="8" fill="#fff" stroke="#e91e63"/>
+  <text x="1255" y="508" text-anchor="middle" font-size="11" font-weight="600" fill="#880e4f">Search / RAG</text>
+  <text x="1255" y="524" text-anchor="middle" font-size="9" fill="#ad1457">AI Search · Embeddings · Index</text>
+
+  <rect x="1148" y="548" width="214" height="50" rx="8" fill="#fff" stroke="#e91e63"/>
+  <text x="1255" y="568" text-anchor="middle" font-size="11" font-weight="600" fill="#880e4f">LOB APIs</text>
+  <text x="1255" y="584" text-anchor="middle" font-size="9" fill="#ad1457">REST · gRPC · Internal services</text>
+
+  <rect x="1148" y="608" width="214" height="50" rx="8" fill="#fff" stroke="#e91e63"/>
+  <text x="1255" y="628" text-anchor="middle" font-size="11" font-weight="600" fill="#880e4f">Auth Provider</text>
+  <text x="1255" y="644" text-anchor="middle" font-size="9" fill="#ad1457">Entra ID · OAuth · API keys</text>
+
+  <rect x="1148" y="668" width="214" height="50" rx="8" fill="#fff" stroke="#e91e63"/>
+  <text x="1255" y="688" text-anchor="middle" font-size="11" font-weight="600" fill="#880e4f">External APIs</text>
+  <text x="1255" y="704" text-anchor="middle" font-size="9" fill="#ad1457">Weather · Maps · 3rd party</text>
+
+  <rect x="1148" y="728" width="214" height="50" rx="8" fill="#ede7f6" stroke="#b39ddb"/>
+  <text x="1255" y="748" text-anchor="middle" font-size="11" font-weight="600" fill="#4527a0">... your custom services</text>
+  <text x="1255" y="764" text-anchor="middle" font-size="9" fill="#7e57c2">Add @mcp.tool → auto-discovered by agent</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- CLEAN ARROWS — inline polygon tips, horizontal / vertical only      -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+
+  <!-- ── Client → API Server: POST /conversation (solid, horizontal) ── -->
+  <line x1="290" y1="303" x2="348" y2="303" stroke="#1565c0" stroke-width="2"/>
+  <polygon points="344,298 356,303 344,308" fill="#1565c0"/>
+  <rect x="298" y="283" width="50" height="16" rx="3" fill="#e3f2fd" stroke="#90caf9"/>
+  <text x="323" y="294" text-anchor="middle" font-size="8" font-weight="bold" fill="#1565c0">POST</text>
+
+  <!-- ── API Server → Client: SSE stream (dashed, horizontal) ── -->
+  <line x1="350" y1="247" x2="292" y2="247" stroke="#2e7d32" stroke-width="2" stroke-dasharray="8,4"/>
+  <polygon points="296,242 284,247 296,252" fill="#2e7d32"/>
+  <rect x="298" y="231" width="50" height="16" rx="3" fill="#e8f5e9" stroke="#a5d6a7"/>
+  <text x="323" y="242" text-anchor="middle" font-size="8" font-weight="bold" fill="#2e7d32">SSE</text>
+
+  <!-- ── MCP Client → MCP Server: POST /mcp (solid, horizontal) ── -->
+  <line x1="672" y1="540" x2="748" y2="540" stroke="#e65100" stroke-width="2"/>
+  <polygon points="744,535 756,540 744,545" fill="#e65100"/>
+  <rect x="685" y="520" width="70" height="16" rx="3" fill="#fff3e0" stroke="#ffcc80"/>
+  <text x="720" y="531" text-anchor="middle" font-size="8" font-weight="bold" fill="#e65100">POST /mcp</text>
+  <text x="720" y="554" text-anchor="middle" font-size="7" fill="#bf360c">JSON-RPC 2.0</text>
+
+  <!-- ── MCP Server → MCP Client: SSE notifications (dashed, horizontal) ── -->
+  <line x1="750" y1="570" x2="674" y2="570" stroke="#f57f17" stroke-width="2" stroke-dasharray="8,4"/>
+  <polygon points="678,565 666,570 678,575" fill="#f57f17"/>
+  <rect x="685" y="576" width="70" height="16" rx="3" fill="#fff8e1" stroke="#ffe082"/>
+  <text x="720" y="587" text-anchor="middle" font-size="8" font-weight="bold" fill="#f57f17">GET /mcp</text>
+  <text x="720" y="600" text-anchor="middle" font-size="7" fill="#ff8f00">SSE stream</text>
+
+  <!-- ── MCP Server → Backend Services: tool calls (solid, horizontal) ── -->
+  <line x1="1070" y1="470" x2="1140" y2="470" stroke="#880e4f" stroke-width="2"/>
+  <polygon points="1136,465 1148,470 1136,475" fill="#880e4f"/>
+  <text x="1105" y="462" text-anchor="middle" font-size="8" font-weight="bold" fill="#880e4f">tool calls</text>
+
+  <!-- ── Backend Services → MCP Server: results (dashed, horizontal) ── -->
+  <line x1="1148" y1="500" x2="1072" y2="500" stroke="#e91e63" stroke-width="2" stroke-dasharray="5,3"/>
+  <polygon points="1076,495 1064,500 1076,505" fill="#e91e63"/>
+  <text x="1105" y="515" text-anchor="middle" font-size="8" fill="#e91e63">results</text>
+
+  <!-- ── API Server → Azure AI Foundry: Chat Completion (solid, horizontal) ── -->
+  <line x1="690" y1="740" x2="690" y2="660" stroke="#7e57c2" stroke-width="1.5"/>
+  <line x1="690" y1="660" x2="1128" y2="660" stroke="#7e57c2" stroke-width="1.5"/>
+  <line x1="1128" y1="660" x2="1128" y2="220" stroke="#7e57c2" stroke-width="1.5"/>
+  <polygon points="1123,224 1128,212 1133,224" fill="#7e57c2"/>
+  <rect x="1078" y="430" width="52" height="30" rx="3" fill="#ede7f6" stroke="#b39ddb"/>
+  <text x="1104" y="443" text-anchor="middle" font-size="7" font-weight="bold" fill="#7e57c2">Chat</text>
+  <text x="1104" y="454" text-anchor="middle" font-size="7" font-weight="bold" fill="#7e57c2">Completion</text>
+
+  <!-- ── API Server → Backend Services: direct calls (dashed, right-angle) ── -->
+  <line x1="672" y1="400" x2="710" y2="400" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <line x1="710" y1="400" x2="710" y2="455" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <line x1="710" y1="455" x2="1140" y2="455" stroke="#880e4f" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <polygon points="1136,450 1148,455 1136,460" fill="#880e4f"/>
+  <rect x="870" y="440" width="80" height="16" rx="3" fill="#fce4ec" stroke="#f8bbd0"/>
+  <text x="910" y="451" text-anchor="middle" font-size="8" font-weight="bold" fill="#880e4f">direct calls</text>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- LEGEND                                                              -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <rect x="30" y="640" width="260" height="250" rx="10" fill="#fff" stroke="#bdbdbd" filter="url(#shadow)"/>
+  <text x="160" y="664" text-anchor="middle" font-size="12" font-weight="bold" fill="#37474f">Legend</text>
+
+  <line x1="50" y1="684" x2="92" y2="684" stroke="#546e7a" stroke-width="2"/>
+  <polygon points="88,679 100,684 88,689" fill="#546e7a"/>
+  <text x="110" y="688" font-size="9" fill="#546e7a">Request flow (solid)</text>
+
+  <line x1="50" y1="706" x2="92" y2="706" stroke="#546e7a" stroke-width="2" stroke-dasharray="6,3"/>
+  <polygon points="88,701 100,706 88,711" fill="#546e7a"/>
+  <text x="110" y="710" font-size="9" fill="#546e7a">Async / Stream (dashed)</text>
+
+  <rect x="50" y="724" width="18" height="14" rx="3" fill="url(#clientGrad)" stroke="#66bb6a"/>
+  <text x="78" y="736" font-size="9" fill="#546e7a">Client (React)</text>
+
+  <rect x="50" y="746" width="18" height="14" rx="3" fill="url(#apiGrad)" stroke="#42a5f5"/>
+  <text x="78" y="758" font-size="9" fill="#546e7a">Agent Backend (MCP Client)</text>
+
+  <rect x="50" y="768" width="18" height="14" rx="3" fill="url(#mcpGrad)" stroke="#ffa726"/>
+  <text x="78" y="780" font-size="9" fill="#546e7a">MCP Server</text>
+
+  <rect x="50" y="790" width="18" height="14" rx="3" fill="url(#backendGrad)" stroke="#e91e63"/>
+  <text x="78" y="802" font-size="9" fill="#546e7a">Backend Services</text>
+
+  <rect x="50" y="812" width="18" height="14" rx="3" fill="#ede7f6" stroke="#7e57c2"/>
+  <text x="78" y="824" font-size="9" fill="#546e7a">Azure AI Foundry</text>
+
+  <rect x="50" y="834" width="18" height="14" rx="3" fill="url(#daprGrad)" stroke="#ab47bc"/>
+  <text x="78" y="846" font-size="9" fill="#546e7a">Dapr Sidecar</text>
+
+  <text x="160" y="872" text-anchor="middle" font-size="8" fill="#9e9e9e">Protocol: MCP 2025-03-26 · Transport: Streamable HTTP</text>
+
+</svg>

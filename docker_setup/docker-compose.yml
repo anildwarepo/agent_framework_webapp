@@ -1,4 +1,20 @@
 services:
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - agent-net
+
   pg-age:
     image: apache/age:latest
     container_name: pg-age
@@ -95,7 +111,10 @@ services:
       AZURE_OPENAI_CHAT_DEPLOYMENT_NAME: ${AZURE_OPENAI_CHAT_DEPLOYMENT_NAME}
       AZURE_OPENAI_API_VERSION: ${AZURE_OPENAI_API_VERSION:-2024-02-15-preview}
       AZURE_OPENAI_API_KEY: ${AZURE_OPENAI_API_KEY}
+      REDIS_URL: redis://redis:6379/0
     depends_on:
+      redis:
+        condition: service_healthy
       pg-age:
         condition: service_healthy
       pg-init:
@@ -131,3 +150,5 @@ networks:
 volumes:
   pg_age_data:
     name: pg_age_data_v18
+  redis_data:
+    name: redis_data

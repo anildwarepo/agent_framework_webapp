@@ -12,7 +12,10 @@ if sys.platform.startswith("win"):
     except (ImportError, OSError):
         pass  # no system libpq — keep using binary backend
 from typing import Annotated
-from fastmcp import FastMCP
+from fastmcp import FastMCP, Context
+from fastmcp.server.context import AcceptedElicitation, DeclinedElicitation, CancelledElicitation
+from starlette.middleware import Middleware
+from starlette.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pg_age_helper import PGAgeHelper
 
@@ -51,12 +54,17 @@ def _strip_agtype(val) -> str:
 
 GRAPH_NAME = os.getenv("GRAPH_NAME", "")
 _ONTOLOGY_MEMORY: dict[str, str] = {}
+# Track which graph names have been confirmed via elicitation per user session.
+# Key: session_id, Value: set of confirmed graph names.
+_CONFIRMED_GRAPHS: dict[str, set[str]] = {}
+_ELICITATION_LOCK = asyncio.Lock()
 
 
 @mcp.tool
 async def save_ontology(
     ontology: Annotated[str, "Generated ontology content to store in memory"],
     graph_name: Annotated[str | None, "Graph name for ontology cache key"] = None,
+    ctx: Context = None,
 ) -> dict:
     """
     Save the generated ontology in process memory.
@@ -66,9 +74,11 @@ async def save_ontology(
         Status indicating ontology was saved.
     """
     graph_key = (graph_name or GRAPH_NAME or "default").strip()
+    if ctx: await ctx.info(f"[save_ontology] Saving ontology for graph '{graph_key}' ({len(ontology)} chars)")
     _ONTOLOGY_MEMORY[graph_key] = ontology
 
     print("Ontology saved in memory for graph:", graph_key, "length:", len(ontology))
+    if ctx: await ctx.info(f"[save_ontology] Ontology saved successfully for graph '{graph_key}'")
     return {
         "status": "saved",
         "has_ontology": True,
@@ -80,6 +90,7 @@ async def save_ontology(
 @mcp.tool
 async def fetch_ontology(
     graph_name: Annotated[str | None, "Graph name for ontology cache lookup"] = None,
+    ctx: Context = None,
 ) -> dict:
     """
     Fetch the ontology previously saved in process memory.
@@ -88,6 +99,7 @@ async def fetch_ontology(
     """
     graph_key = (graph_name or GRAPH_NAME or "default").strip()
     ontology = _ONTOLOGY_MEMORY.get(graph_key)
+    if ctx: await ctx.info(f"[fetch_ontology] Fetching ontology for graph '{graph_key}': {'found' if ontology else 'not found'}")
     print("Fetching ontology from memory for graph:", graph_key, "has ontology:", ontology is not None)
     return {
         "has_ontology": ontology is not None,
@@ -101,6 +113,7 @@ async def resolve_entity_ids(
     graph_name: Annotated[str, "Graph name to query for edges (e.g., 'meetings_graph_v2')"],
     node_label: Annotated[str, "The node label to filter results to (case-sensitive). Use empty string '' to search ALL labels."] = "",
     id_property: Annotated[str, "Dot-separated path to the ID property. Default: payload.id"] = "payload.id",
+    ctx: Context = None,
 ) -> dict:
     """
     Find entities matching a search term, then discover their edges and related node types.
@@ -140,6 +153,7 @@ async def resolve_entity_ids(
     """
     print(f"[resolve_entity_ids] search_term={search_term}, node_label={node_label or '(all)'}")
     print(f"[resolve_entity_ids] SQL: {sql}")
+    if ctx: await ctx.info(f"[resolve_entity_ids] Searching for '{search_term}' (label: {node_label or 'all'})")
 
     rows = await pg_helper.query_using_sql_cypher(sql, None)
 
@@ -168,6 +182,7 @@ async def resolve_entity_ids(
                 ORDER BY rank DESC;
             """
             print(f"[resolve_entity_ids] Retry with shorter term: {shorter}")
+            if ctx: await ctx.info(f"[resolve_entity_ids] Retrying with shorter term: '{shorter}'")
             rows = await pg_helper.query_using_sql_cypher(sql_retry, None)
             if rows:
                 break
@@ -234,6 +249,7 @@ async def resolve_entity_ids(
   RETURN type(r) AS rel, labels(b) AS tgt, count(*) AS cnt
 $$) AS (rel ag_catalog.agtype, tgt ag_catalog.agtype, cnt ag_catalog.agtype);"""
         print(f"[resolve_entity_ids] Discovering outbound edges...")
+        if ctx: await ctx.info(f"[resolve_entity_ids] Discovering outbound edges for {anchor_label}...")
         out_rows = await pg_helper.query_using_sql_cypher(out_sql, graph_name)
         outbound_edges = [{"rel": _strip_agtype(r["rel"]), "target_label": _strip_agtype(r["tgt"]), "count": r["cnt"]} for r in out_rows]
     except Exception as e:
@@ -248,6 +264,7 @@ $$) AS (rel ag_catalog.agtype, tgt ag_catalog.agtype, cnt ag_catalog.agtype);"""
   RETURN labels(a) AS src, type(r) AS rel, count(*) AS cnt
 $$) AS (src ag_catalog.agtype, rel ag_catalog.agtype, cnt ag_catalog.agtype);"""
         print(f"[resolve_entity_ids] Discovering inbound edges...")
+        if ctx: await ctx.info(f"[resolve_entity_ids] Discovering inbound edges for {anchor_label}...")
         in_rows = await pg_helper.query_using_sql_cypher(in_sql, graph_name)
         inbound_edges = [{"source_label": _strip_agtype(r["src"]), "rel": _strip_agtype(r["rel"]), "count": r["cnt"]} for r in in_rows]
     except Exception as e:
@@ -262,6 +279,7 @@ $$) AS (src ag_catalog.agtype, rel ag_catalog.agtype, cnt ag_catalog.agtype);"""
         "search_term": search_term,
     }
     print(f"[resolve_entity_ids] anchor_label={anchor_label}, anchor_ids={len(anchor_ids)}, outbound={len(outbound_edges)}, inbound={len(inbound_edges)}")
+    if ctx: await ctx.info(f"[resolve_entity_ids] Done. anchor={anchor_label}, ids={len(anchor_ids)}, outbound_edges={len(outbound_edges)}, inbound_edges={len(inbound_edges)}")
     return result
 
 
@@ -332,23 +350,39 @@ $$) AS (id ag_catalog.agtype, name ag_catalog.agtype, properties ag_catalog.agty
 @mcp.tool
 async def discover_nodes(
     graph_name: Annotated[str, "Graph name to query (e.g., 'meetings_graph_v2')"],
+    ctx: Context = None,
 ) -> list[dict]:
     """
     Discover all distinct node labels and their property structure.
     Returns a compact summary: label name + key property paths (not full payloads).
+    Uses MCP elicitation to confirm the graph name with the user before running.
     Args:
         graph_name: The graph to query.
     Returns:
         A list of dicts with 'label' and 'property_paths' for each distinct node type.
     """
+    # --- Elicitation: confirm graph name with the user ---
+    if ctx:
+        try:
+            confirmed = await _confirm_graph_name(graph_name, ctx)
+            if confirmed is None:
+                return [{"status": "cancelled", "message": "Discovery cancelled by user."}]
+            if confirmed != graph_name:
+                await ctx.info(f"Graph name changed from '{graph_name}' to '{confirmed}'")
+                graph_name = confirmed
+        except Exception as e:
+            logger.info(f"Elicitation not available ({e}), proceeding with '{graph_name}'")
+
     sql = f"""SELECT * FROM ag_catalog.cypher('{graph_name}', $$
   MATCH (n) WHERE n.payload IS NOT NULL
   RETURN labels(n) AS label, head(collect(n.payload)) AS sample_payload
 $$) AS (label ag_catalog.agtype, sample_payload ag_catalog.agtype);"""
 
     print(f"[discover_nodes] graph_name={graph_name}")
+    if ctx: await ctx.info(f"[discover_nodes] Discovering node labels in graph '{graph_name}'...")
     rows = await pg_helper.query_using_sql_cypher(sql, graph_name)
     print(f"[discover_nodes] Found {len(rows)} distinct node labels")
+    if ctx: await ctx.info(f"[discover_nodes] Found {len(rows)} distinct node labels")
 
     # Extract compact summaries — just label + key property paths
     import json
@@ -396,6 +430,7 @@ async def search_graph(
     graph_name: Annotated[str, "Graph name (e.g., 'meetings_graph_v2')"],
     label_filter: Annotated[str, "Optional: filter results to a specific node label (e.g., 'Councilmember', 'City_Council_Meeting'). Empty string for all labels."] = "",
     max_results: Annotated[int, "Maximum number of results to return (default 10)"] = 10,
+    ctx: Context = None,
 ) -> dict:
     """
     Search graph nodes using full-text search. Returns matching nodes with their labels, names, IDs, and properties.
@@ -412,6 +447,7 @@ async def search_graph(
         - search_term: the original search term
     """
     print(f"[search_graph] search_term={search_term}, label_filter={label_filter or '(all)'}, max_results={max_results}")
+    if ctx: await ctx.info(f"[search_graph] Searching for '{search_term}' (label: {label_filter or 'all'}, max: {max_results})")
 
     label_clause = f"WHERE node_label = '{label_filter.replace(chr(39), chr(39)+chr(39))}'" if label_filter else ""
 
@@ -429,6 +465,7 @@ async def search_graph(
 
     rows = await pg_helper.query_using_sql_cypher(sql, None)
     print(f"[search_graph] Found {len(rows)} results")
+    if ctx: await ctx.info(f"[search_graph] Found {len(rows)} results")
 
     # If no results, try progressively shorter search terms
     if not rows and len(search_term.split()) > 1:
@@ -489,6 +526,7 @@ async def search_graph(
 async def query_using_sql_cypher(
     sql_query: Annotated[str, "SQL Query"],
     graph_name: Annotated[str, "Graph name to use for ag_catalog.cypher(...)"]
+    , ctx: Context = None,
 ) -> list[dict]:
     """
     Execute the sql statement against a PostgreSQL database with the AGE extension.
@@ -499,9 +537,35 @@ async def query_using_sql_cypher(
     Returns:
         The query result as a list of dictionaries.
     """
+    if ctx: await ctx.info(f"[query_using_sql_cypher] Executing query against graph '{graph_name}'...")
+    # --- Elicitation: confirm graph name (once per session per graph name, serialized) ---
+    _sid = ctx.session_id if ctx else None
+    _confirmed_for_session = _CONFIRMED_GRAPHS.get(_sid, set()) if _sid else set()
+    if ctx and graph_name and graph_name not in _confirmed_for_session:
+        async with _ELICITATION_LOCK:
+            # Double-check after acquiring lock
+            _confirmed_for_session = _CONFIRMED_GRAPHS.get(_sid, set())
+            if graph_name not in _confirmed_for_session:
+                try:
+                    await ctx.info(f"[elicitation] Requesting graph confirmation for '{graph_name}'...")
+                    confirmed = await _confirm_graph_name(graph_name, ctx)
+                    if confirmed is None:
+                        return [{"error": "Query cancelled by user."}]
+                    _CONFIRMED_GRAPHS.setdefault(_sid, set()).add(confirmed)
+                    if confirmed != graph_name:
+                        await ctx.info(f"[elicitation] Graph name changed from '{graph_name}' to '{confirmed}'")
+                        graph_name = confirmed
+                    else:
+                        await ctx.info(f"[elicitation] Graph '{graph_name}' confirmed.")
+                except Exception as e:
+                    await ctx.info(f"[elicitation] Not available: {type(e).__name__}: {e}")
+                    _CONFIRMED_GRAPHS.setdefault(_sid, set()).add(graph_name)
+    if ctx: await ctx.info(f"[query_using_sql_cypher] SQL: {sql_query[:200]}{'...' if len(sql_query) > 200 else ''}")
     rows = await pg_helper.query_using_sql_cypher(sql_query, graph_name)
     print("Query executed, result:\n", rows)
+    if ctx: await ctx.info(f"[query_using_sql_cypher] Query returned {len(rows)} rows")
     return rows
+
 
 
 @mcp.tool
@@ -510,6 +574,7 @@ async def build_query_context(
     target_concept: Annotated[str, "What the user is asking about — one word (e.g., 'meetings', 'votes', 'agenda items')"],
     graph_name: Annotated[str, "Graph name (e.g., 'meetings_graph_v2')"],
     year: Annotated[str, "Year filter if mentioned in the question (e.g., '2022'). Empty string if no year."] = "",
+    ctx: Context = None,
 ) -> dict:
     """
     One-shot pipeline: discovers schema, finds entity, discovers edges, and builds a ready-to-use SQL query.
@@ -523,6 +588,19 @@ async def build_query_context(
     """
     import json as _json
     print(f"[build_query_context] search_term={search_term}, target_concept={target_concept}, graph_name={graph_name}, year={year}")
+    if ctx: await ctx.info(f"[build_query_context] Building context for '{search_term}' → '{target_concept}' in graph '{graph_name}'{f' (year: {year})' if year else ''}")
+
+    # --- Elicitation: confirm graph name with the user ---
+    if ctx:
+        try:
+            confirmed = await _confirm_graph_name(graph_name, ctx)
+            if confirmed is None:
+                return {"error": "Query cancelled by user.", "suggested_query": None}
+            if confirmed != graph_name:
+                await ctx.info(f"Graph name changed from '{graph_name}' to '{confirmed}'")
+                graph_name = confirmed
+        except Exception as e:
+            logger.info(f"Elicitation not available ({e}), proceeding with '{graph_name}'")
 
     # --- Step 1: Discover node labels ---
     discover_sql = f"""SELECT * FROM ag_catalog.cypher('{graph_name}', $$
@@ -552,6 +630,7 @@ $$) AS (label ag_catalog.agtype, sample_payload ag_catalog.agtype);"""
                 date_field = "date"
 
     print(f"[build_query_context] Found labels: {all_labels}")
+    if ctx: await ctx.info(f"[build_query_context] Schema discovery: found {len(all_labels)} labels: {', '.join(all_labels)}")
 
     # --- Step 2: Find entity — search all labels first, then narrow ---
     anchor_label = None
@@ -625,6 +704,8 @@ $$) AS (label ag_catalog.agtype, sample_payload ag_catalog.agtype);"""
         }
 
     print(f"[build_query_context] anchor_label={anchor_label}, anchor_ids={anchor_ids}")
+    if ctx: await ctx.info(f"[build_query_context] Entity found: {anchor_label} with {len(anchor_ids)} IDs")
+    if ctx: await ctx.info(f"[build_query_context] Discovering edges for {anchor_label}...")
 
     # --- Step 3: Discover edges ---
     safe_ids = ", ".join(f"'{eid}'" for eid in anchor_ids[:5])
@@ -684,7 +765,136 @@ $$) AS (src ag_catalog.agtype, rel ag_catalog.agtype, cnt ag_catalog.agtype);"""
         "year": year,
     }
     print(f"[build_query_context] Done. anchor={anchor_label}, ids={len(anchor_ids)}, outbound={len(outbound)}, inbound={len(inbound)}")
+    if ctx: await ctx.info(f"[build_query_context] Done. {len(outbound)} outbound edges, {len(inbound)} inbound edges found")
     return result
+
+
+async def _confirm_graph_name(
+    graph_name: str,
+    ctx: Context,
+) -> str | None:
+    """
+    Use MCP elicitation to confirm the graph name with the user.
+    Lists available graphs from ag_catalog.ag_graph and asks the user
+    to pick one or confirm the provided name.
+    Returns the confirmed graph name, or None if the user declined/cancelled.
+    """
+    # Fetch available graphs from the database
+    available_graphs: list[str] = []
+    try:
+        rows = await pg_helper.query_using_sql_cypher(
+            "SELECT name FROM ag_catalog.ag_graph WHERE name != 'ag_graph' ORDER BY name;",
+            None,
+        )
+        available_graphs = [r["name"] for r in rows if r.get("name")]
+    except Exception as e:
+        logger.warning(f"Could not list graphs: {e}")
+
+    if not available_graphs:
+        # No graphs found — just confirm the provided name
+        result = await ctx.elicit(
+            f"No graphs discovered in the database. Proceed with graph name '{graph_name}'?",
+        )
+        if isinstance(result, AcceptedElicitation):
+            return graph_name
+        return None
+
+    # Always ask user to confirm — show available graphs with the provided name highlighted
+    result = await ctx.elicit(
+        f"Please confirm the graph to use (provided: '{graph_name}')."
+        f" Available graphs: {', '.join(available_graphs)}",
+        response_type=available_graphs,  # list[str] → enum dropdown
+    )
+
+    if isinstance(result, AcceptedElicitation):
+        confirmed = result.data
+        # response_type=list[str] returns the selected string
+        if isinstance(confirmed, str):
+            return confirmed
+        # If dict with "value" key (FastMCP wrapping)
+        if isinstance(confirmed, dict) and "value" in confirmed:
+            return confirmed["value"]
+        return graph_name
+    elif isinstance(result, DeclinedElicitation):
+        await ctx.info("User declined graph selection.")
+        return None
+    else:  # CancelledElicitation
+        await ctx.info("User cancelled graph selection.")
+        return None
+
+
+@mcp.tool
+async def analyze_graph_statistics(
+    graph_name: Annotated[str, "Graph name to analyze (e.g., 'meetings_graph_v2')"],
+    ctx: Context = None,
+) -> dict:
+    """
+    Analyze graph statistics: count nodes per label, edges per type, and total connectivity.
+    Streams progress updates as each metric is computed.
+    Uses MCP elicitation to confirm the graph name with the user before running.
+    Args:
+        graph_name: The graph to analyze.
+    Returns:
+        A dict with node_counts, edge_counts, total_nodes, total_edges.
+    """
+    # --- Elicitation: confirm graph name with the user ---
+    if ctx:
+        try:
+            confirmed = await _confirm_graph_name(graph_name, ctx)
+            if confirmed is None:
+                return {"status": "cancelled", "message": "Graph analysis cancelled by user."}
+            if confirmed != graph_name:
+                await ctx.info(f"Graph name changed from '{graph_name}' to '{confirmed}'")
+                graph_name = confirmed
+        except Exception as e:
+            # Elicitation not supported by client — proceed with provided name
+            logger.info(f"Elicitation not available ({e}), proceeding with '{graph_name}'")
+
+    if ctx: await ctx.info(f"Starting analysis of graph '{graph_name}'...")
+    stats = {"graph_name": graph_name, "node_counts": {}, "edge_counts": {}, "total_nodes": 0, "total_edges": 0}
+
+    # Step 1 — count nodes per label
+    if ctx: await ctx.info("Step 1/3: Counting nodes per label...")
+    node_sql = f"""SELECT * FROM ag_catalog.cypher('{graph_name}', $$
+  MATCH (n) RETURN labels(n) AS label, count(*) AS cnt
+$$) AS (label ag_catalog.agtype, cnt ag_catalog.agtype);"""
+    try:
+        node_rows = await pg_helper.query_using_sql_cypher(node_sql, graph_name)
+        for r in node_rows:
+            lbl = _strip_agtype(r["label"])
+            cnt = int(str(r["cnt"]).strip('"'))
+            stats["node_counts"][lbl] = cnt
+            stats["total_nodes"] += cnt
+            if ctx: await ctx.info(f"  → {lbl}: {cnt:,} nodes")
+    except Exception as e:
+        if ctx: await ctx.warning(f"Node count failed: {e}")
+        print(f"[analyze_graph_statistics] Node count error: {e}")
+
+    # Step 2 — count edges per relationship type
+    if ctx: await ctx.info("Step 2/3: Counting edges per relationship type...")
+    edge_sql = f"""SELECT * FROM ag_catalog.cypher('{graph_name}', $$
+  MATCH ()-[r]->() RETURN type(r) AS rel, count(*) AS cnt
+$$) AS (rel ag_catalog.agtype, cnt ag_catalog.agtype);"""
+    try:
+        edge_rows = await pg_helper.query_using_sql_cypher(edge_sql, graph_name)
+        for r in edge_rows:
+            rel = _strip_agtype(r["rel"])
+            cnt = int(str(r["cnt"]).strip('"'))
+            stats["edge_counts"][rel] = cnt
+            stats["total_edges"] += cnt
+            if ctx: await ctx.info(f"  → {rel}: {cnt:,} edges")
+    except Exception as e:
+        if ctx: await ctx.warning(f"Edge count failed: {e}")
+        print(f"[analyze_graph_statistics] Edge count error: {e}")
+
+    # Step 3 — summary
+    if ctx: await ctx.info(
+        f"Step 3/3: Summary — {stats['total_nodes']:,} nodes, {stats['total_edges']:,} edges, "
+        f"{len(stats['node_counts'])} labels, {len(stats['edge_counts'])} relationship types"
+    )
+    if ctx: await ctx.info("Analysis complete ✓")
+    print(f"[analyze_graph_statistics] Done: {stats['total_nodes']} nodes, {stats['total_edges']} edges")
+    return stats
 
 
 if __name__ == "__main__":
@@ -713,4 +923,15 @@ if __name__ == "__main__":
     #result = asyncio.run(query_using_sql_cypher(test_query))
     #print("Test query result:\n", result)
 
-    mcp.run(transport="streamable-http", host="0.0.0.0", port=3002)
+    mcp.run(
+        transport="streamable-http",
+        host="0.0.0.0",
+        port=3002,
+        middleware=[
+            Middleware(CORSMiddleware,
+                       allow_origins=["*"],
+                       allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+                       allow_headers=["*"],
+                       expose_headers=["Mcp-Session-Id"]),
+        ],
+    )
