@@ -59,6 +59,57 @@ _ONTOLOGY_MEMORY: dict[str, str] = {}
 _CONFIRMED_GRAPHS: dict[str, set[str]] = {}
 _ELICITATION_LOCK = asyncio.Lock()
 
+# --- Name verification helpers (shared across search tools) ---
+# Common honorifics, titles, and connectors to skip when extracting name keywords.
+# Kept domain-agnostic — only contains general English titles/particles.
+_NAME_SKIP_TITLES = frozenset({
+    # Honorifics
+    "dr", "mr", "mrs", "ms", "prof", "sir", "dame", "rev",
+    # Positional titles (generic — not domain-specific labels)
+    "mayor", "vice", "deputy", "chair", "chairman", "chairwoman",
+    "president", "secretary", "treasurer", "director", "chief",
+    "senator", "representative", "governor", "judge", "justice",
+    "commissioner", "superintendent", "officer", "manager",
+    "member", "council", "board",
+    # Connectors / articles
+    "the", "of", "and", "for", "at", "in",
+})
+
+def _extract_search_words(search_term: str) -> list[str]:
+    """Extract significant words from a search term, skipping titles/particles and short words."""
+    return [w.lower().strip(".,;:") for w in search_term.split()
+            if w.lower().strip(".,;:") not in _NAME_SKIP_TITLES and len(w.strip(".,;:")) >= 2]
+
+def _name_matches_search(name: str, search_words: list[str]) -> bool:
+    """Check if a name contains ALL significant search words."""
+    if not search_words or not name:
+        return True  # no filtering if no search words or no name
+    name_lower = name.lower()
+    return all(w in name_lower for w in search_words)
+
+def _strip_titles_for_search(search_term: str) -> str:
+    """Strip known titles/honorifics from a search term to maximize FTS recall.
+
+    FTS (websearch_to_tsquery) requires ALL words to match.  Titles like
+    'Mayor' or 'Dr.' that don't appear in the stored entity name reduce
+    recall and cause non-deterministic results.  Name verification later
+    filters any false positives introduced by the broader search.
+
+    Domain-agnostic: only strips generic English titles/particles from
+    _NAME_SKIP_TITLES.  Preserves the original term if stripping would
+    leave fewer than 2 meaningful words (to avoid over-broad searches
+    in domains where a "title" word is actually part of the entity name).
+    """
+    words = search_term.split()
+    stripped = [w for w in words if w.lower().strip(".,;:") not in _NAME_SKIP_TITLES]
+    # Keep original if stripping would leave fewer than 2 words —
+    # prevents over-broad FTS when most of the term consists of title words
+    if len(stripped) < 2 and len(words) >= 2:
+        return search_term
+    if not stripped:
+        return search_term
+    return " ".join(stripped)
+
 
 @mcp.tool
 async def save_ontology(
@@ -145,21 +196,28 @@ async def resolve_entity_ids(
         json_path += f"->'{part}'"
     json_path += f"->>'{parts[-1]}'"
 
+    # Strip titles/honorifics before FTS to ensure consistent recall
+    # regardless of whether the agent includes titles like "Mayor" or "Dr."
+    fts_term = _strip_titles_for_search(search_term)
+    if fts_term != search_term:
+        print(f"[resolve_entity_ids] Stripped titles for FTS: '{search_term}' → '{fts_term}'")
+        if ctx: await ctx.info(f"[resolve_entity_ids] Stripped titles for FTS: '{search_term}' → '{fts_term}'")
+
     sql = f"""
         SELECT {json_path} AS entity_id, node_label
-        FROM public.search_graph_nodes('{search_term.replace("'", "''")}')
+        FROM public.search_graph_nodes('{fts_term.replace("'", "''")}')
         {"WHERE node_label = '" + node_label.replace("'", "''") + "'" if node_label else ""}
         ORDER BY rank DESC;
     """
-    print(f"[resolve_entity_ids] search_term={search_term}, node_label={node_label or '(all)'}")
+    print(f"[resolve_entity_ids] search_term={search_term}, fts_term={fts_term}, node_label={node_label or '(all)'}")
     print(f"[resolve_entity_ids] SQL: {sql}")
-    if ctx: await ctx.info(f"[resolve_entity_ids] Searching for '{search_term}' (label: {node_label or 'all'})")
+    if ctx: await ctx.info(f"[resolve_entity_ids] Searching for '{fts_term}' (label: {node_label or 'all'})")
 
     rows = await pg_helper.query_using_sql_cypher(sql, None)
 
     # Fallback: retry with shorter terms if nothing found
     if not rows:
-        words = search_term.split()
+        words = fts_term.split()
         retry_terms = []
         for trim_count in range(1, min(3, len(words))):
             shorter = " ".join(words[: len(words) - trim_count])
@@ -235,10 +293,51 @@ async def resolve_entity_ids(
             "search_term": search_term,
             "hint": f"No IDs found for label '{anchor_label}'. Available labels: {list(ids_by_label.keys())}",
         }
+
+    # --- Name verification: filter FTS false positives ---
+    # FTS weight-C matches nodes whose description/attributes MENTION the search
+    # term, not just nodes NAMED that term. Verify actual names to avoid
+    # inflated entity counts that produce wrong aggregation results.
+    cypher_id_path = ".".join(id_property.split("."))
+    _name_verified = False
+    _safe_verify = ", ".join(f"'{eid.replace(chr(39), chr(39)+chr(39))}'" for eid in anchor_ids)
+    verify_sql = f"""SELECT * FROM ag_catalog.cypher('{graph_name}', $$
+  MATCH (n:{anchor_label})
+  WHERE n.{cypher_id_path} IN [{_safe_verify}]
+  RETURN n.{cypher_id_path} AS id, n.payload.name AS name
+$$) AS (id ag_catalog.agtype, name ag_catalog.agtype);"""
+    try:
+        verify_rows = await pg_helper.query_using_sql_cypher(verify_sql, graph_name)
+        search_words = _extract_search_words(search_term)
+        if search_words and verify_rows:
+            verified_ids = []
+            for row in verify_rows:
+                name_val = _strip_agtype(row.get("name", ""))
+                if _name_matches_search(name_val, search_words):
+                    verified_ids.append(_strip_agtype(row.get("id")))
+            if verified_ids:
+                _name_verified = True
+                if len(verified_ids) != len(anchor_ids):
+                    print(f"[resolve_entity_ids] Name verification: {len(anchor_ids)} FTS hits → {len(verified_ids)} verified")
+                    if ctx: await ctx.info(f"[resolve_entity_ids] Name verification: {len(anchor_ids)} FTS hits → {len(verified_ids)} name-verified")
+                else:
+                    print(f"[resolve_entity_ids] Name verification: all {len(anchor_ids)} FTS hits confirmed")
+                    if ctx: await ctx.info(f"[resolve_entity_ids] Name verification: all {len(anchor_ids)} IDs confirmed")
+                anchor_ids = verified_ids
+                ids_by_label[anchor_label] = verified_ids
+            else:
+                # If nothing matched strictly, keep the best FTS result (rank-ordered)
+                print(f"[resolve_entity_ids] Name verification: strict match failed, keeping top FTS result")
+                if ctx: await ctx.info(f"[resolve_entity_ids] Name verification: no strict match, keeping top FTS result")
+                anchor_ids = anchor_ids[:1]
+                ids_by_label[anchor_label] = anchor_ids
+    except Exception as e:
+        print(f"[resolve_entity_ids] Name verification query failed (non-fatal): {e}")
+    # --- End name verification ---
+
     # Use up to 5 IDs for edge discovery to keep it fast
     sample_ids = anchor_ids[:5]
     safe_ids = ", ".join(f"'{eid.replace(chr(39), chr(39)+chr(39))}'" for eid in sample_ids)
-    cypher_id_path = ".".join(id_property.split("."))
 
     # Discover outbound edges
     outbound_edges = []
@@ -274,9 +373,11 @@ $$) AS (src ag_catalog.agtype, rel ag_catalog.agtype, cnt ag_catalog.agtype);"""
         "ids_by_label": ids_by_label,
         "anchor_label": anchor_label,
         "anchor_ids": anchor_ids,
+        "name_verified": _name_verified,
         "outbound_edges": outbound_edges,
         "inbound_edges": inbound_edges,
         "search_term": search_term,
+        "IMPORTANT": "These anchor_ids are name-verified and AUTHORITATIVE. Use ONLY these IDs in your query. Do NOT run additional entity searches via query_using_sql_cypher.",
     }
     print(f"[resolve_entity_ids] anchor_label={anchor_label}, anchor_ids={len(anchor_ids)}, outbound={len(outbound_edges)}, inbound={len(inbound_edges)}")
     if ctx: await ctx.info(f"[resolve_entity_ids] Done. anchor={anchor_label}, ids={len(anchor_ids)}, outbound_edges={len(outbound_edges)}, inbound_edges={len(inbound_edges)}")
@@ -449,6 +550,12 @@ async def search_graph(
     print(f"[search_graph] search_term={search_term}, label_filter={label_filter or '(all)'}, max_results={max_results}")
     if ctx: await ctx.info(f"[search_graph] Searching for '{search_term}' (label: {label_filter or 'all'}, max: {max_results})")
 
+    # Strip titles/honorifics before FTS for consistent recall
+    fts_term = _strip_titles_for_search(search_term)
+    if fts_term != search_term:
+        print(f"[search_graph] Stripped titles for FTS: '{search_term}' → '{fts_term}'")
+        if ctx: await ctx.info(f"[search_graph] Stripped titles for FTS: '{search_term}' → '{fts_term}'")
+
     label_clause = f"WHERE node_label = '{label_filter.replace(chr(39), chr(39)+chr(39))}'" if label_filter else ""
 
     sql = f"""
@@ -457,7 +564,7 @@ async def search_graph(
                props->'payload'->>'name' AS name,
                props->'payload' AS payload,
                rank
-        FROM public.search_graph_nodes('{search_term.replace(chr(39), chr(39)+chr(39))}')
+        FROM public.search_graph_nodes('{fts_term.replace(chr(39), chr(39)+chr(39))}')
         {label_clause}
         ORDER BY rank DESC
         LIMIT {max_results};
@@ -468,8 +575,8 @@ async def search_graph(
     if ctx: await ctx.info(f"[search_graph] Found {len(rows)} results")
 
     # If no results, try progressively shorter search terms
-    if not rows and len(search_term.split()) > 1:
-        words = search_term.split()
+    if not rows and len(fts_term.split()) > 1:
+        words = fts_term.split()
         for trim in range(1, min(4, len(words))):
             shorter = " ".join(words[:len(words) - trim])
             if len(shorter) < 3:
@@ -514,11 +621,23 @@ async def search_graph(
                 pass
         compact_results.append(entry)
 
+    # --- Name verification: mark which results are true name matches ---
+    search_words = _extract_search_words(search_term)
+    if search_words and len(compact_results) > 1:
+        for entry in compact_results:
+            entry["name_match"] = _name_matches_search(entry.get("name", ""), search_words)
+        name_verified_results = [r for r in compact_results if r.get("name_match")]
+        if name_verified_results:
+            print(f"[search_graph] Name verification: {len(compact_results)} FTS hits → {len(name_verified_results)} name-verified")
+            if ctx: await ctx.info(f"[search_graph] Name verification: {len(compact_results)} FTS hits → {len(name_verified_results)} name matches")
+            compact_results = name_verified_results
+            label_counts = Counter(r.get("node_label", "") for r in compact_results)
+
     return {
         "results": compact_results,
         "label_summary": dict(label_counts),
         "search_term": search_term,
-        "total_found": len(rows),
+        "total_found": len(compact_results),
     }
 
 
@@ -642,9 +761,13 @@ $$) AS (label ag_catalog.agtype, sample_payload ag_catalog.agtype);"""
     _person_labels = {"Councilmember", "Commissioner", "Staff_Member", "Presenter", "Applicant_Owner"}
 
     # First try: search all labels at once
+    fts_term = _strip_titles_for_search(search_term)
+    if fts_term != search_term:
+        print(f"[build_query_context] Stripped titles for FTS: '{search_term}' → '{fts_term}'")
+        if ctx: await ctx.info(f"[build_query_context] Stripped titles for FTS: '{search_term}' → '{fts_term}'")
     search_sql_all = f"""
         SELECT props->'payload'->>'id' AS entity_id, node_label
-        FROM public.search_graph_nodes('{search_term.replace("'", "''")}')
+        FROM public.search_graph_nodes('{fts_term.replace("'", "''")}')
         ORDER BY rank DESC;
     """
     rows_all = await pg_helper.query_using_sql_cypher(search_sql_all, None)
@@ -669,9 +792,37 @@ $$) AS (label ag_catalog.agtype, sample_payload ag_catalog.agtype);"""
             if r.get("node_label") == anchor_label and r.get("entity_id")
         ))[:10]
 
+    # --- Name verification for build_query_context ---
+    if anchor_ids and anchor_label and len(anchor_ids) > 1:
+        _bqc_search_words = _extract_search_words(search_term)
+        if _bqc_search_words:
+            # FTS results include entity_id but not name — need to query graph
+            _bqc_safe = ", ".join(f"'{eid.replace(chr(39), chr(39)+chr(39))}'" for eid in anchor_ids)
+            _bqc_verify_sql = f"""SELECT * FROM ag_catalog.cypher('{graph_name}', $$
+  MATCH (n:{anchor_label})
+  WHERE n.payload.id IN [{_bqc_safe}]
+  RETURN n.payload.id AS id, n.payload.name AS name
+$$) AS (id ag_catalog.agtype, name ag_catalog.agtype);"""
+            try:
+                _bqc_rows = await pg_helper.query_using_sql_cypher(_bqc_verify_sql, graph_name)
+                _bqc_verified = [
+                    _strip_agtype(r.get("id"))
+                    for r in _bqc_rows
+                    if _name_matches_search(_strip_agtype(r.get("name", "")), _bqc_search_words)
+                ]
+                if _bqc_verified:
+                    print(f"[build_query_context] Name verification: {len(anchor_ids)} FTS → {len(_bqc_verified)} verified")
+                    if ctx: await ctx.info(f"[build_query_context] Name verification: {len(anchor_ids)} FTS → {len(_bqc_verified)} name-verified")
+                    anchor_ids = _bqc_verified
+                else:
+                    print(f"[build_query_context] Name verification: no strict match, keeping top FTS result")
+                    anchor_ids = anchor_ids[:1]
+            except Exception as e:
+                print(f"[build_query_context] Name verification failed (non-fatal): {e}")
+
     # If search with full term failed, retry with progressively shorter terms
     if not anchor_ids:
-        words = search_term.split()
+        words = fts_term.split()
         for trim in range(1, min(4, len(words))):
             shorter = " ".join(words[:len(words) - trim])
             if len(shorter) < 3:

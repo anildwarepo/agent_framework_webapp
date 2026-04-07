@@ -47,26 +47,26 @@ export default function HeaderBar({
 }: HeaderBarProps) {
   return (
     <header className="shrink-0 z-20 border-b border-white/[0.06] bg-gray-900/80 backdrop-blur-xl w-full">
-      <div className="px-4 py-2.5 flex flex-wrap items-center gap-2.5 w-full">
-        <div className="text-xs text-gray-500 whitespace-nowrap shrink-0">
+      <div className="px-4 py-2.5 flex items-center gap-2.5 w-full">
+        <div className="text-xs text-gray-500 whitespace-nowrap shrink-0 max-w-[18rem] overflow-hidden text-ellipsis">
           User ID: <span className="font-mono text-gray-400">{userId}</span>
         </div>
         <Button
           type="button"
           variant="outline"
-          className="h-8 rounded-lg border-white/[0.08] bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-gray-100 transition-colors"
+          className="h-8 rounded-lg border-white/[0.08] bg-white/[0.04] text-gray-300 hover:bg-white/[0.08] hover:text-gray-100 transition-colors shrink-0"
           onClick={onOpenGraphViewer}
           aria-label="Visualize graph"
         >
           <GitGraph className="h-3.5 w-3.5" aria-hidden="true" />
           <span className="text-xs">Visualize Graph</span>
         </Button>
-        <div className="flex flex-wrap items-center gap-2 ml-auto">
+        <div className="flex items-center gap-2 ml-auto min-w-0">
           <span className="text-[11px] text-gray-500 hidden sm:inline font-medium uppercase tracking-wider">FAQs</span>
           <select
             value={selectedFaq}
             onChange={(e) => onFaqSelect(e.target.value)}
-            className="select-dark min-w-[10rem] max-w-[18rem] flex-shrink rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/30"
+            className="select-dark min-w-[6rem] max-w-[14rem] flex-shrink rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/30"
             aria-label="FAQs"
             disabled={isTyping || faqs.length === 0}
           >
@@ -81,7 +81,7 @@ export default function HeaderBar({
           <select
             value={selectedModel}
             onChange={(e) => onModelChange(e.target.value)}
-            className="select-dark min-w-[8rem] max-w-[11rem] flex-shrink rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/30"
+            className="select-dark min-w-[5rem] max-w-[11rem] flex-shrink rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/30"
             aria-label="Model"
             disabled={isTyping}
           >
@@ -95,7 +95,7 @@ export default function HeaderBar({
           <select
             value={selectedGraph}
             onChange={(e) => onGraphChange(e.target.value)}
-            className="select-dark min-w-[8rem] max-w-[11rem] flex-shrink rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/30"
+            className="select-dark min-w-[5rem] max-w-[11rem] flex-shrink rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/30"
             aria-label="Graph"
             disabled={isTyping}
           >
@@ -109,7 +109,7 @@ export default function HeaderBar({
           <select
             value={mode}
             onChange={(e) => onModeChange(e.target.value)}
-            className="select-dark min-w-[8rem] max-w-[11rem] flex-shrink rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/30"
+            className="select-dark min-w-[5rem] max-w-[11rem] flex-shrink rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-indigo-500/30"
             aria-label="Orchestration"
           >
             {modeOptions.map((opt) => (

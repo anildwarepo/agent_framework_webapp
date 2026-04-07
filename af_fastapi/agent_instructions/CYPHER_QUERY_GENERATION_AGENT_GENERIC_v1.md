@@ -13,7 +13,9 @@
 
 > **NEVER USE HARDCODED ENTITY IDs** unless you discovered them via `query_using_sql_cypher` in THIS conversation turn.
 
-> **ENTITY DISCOVERY VIA `resolve_entity_ids` IS MANDATORY.** Step B MUST call the `resolve_entity_ids` tool before ANY query is constructed. The tool returns the complete, authoritative list of entity IDs — use EVERY returned ID in `WHERE node.<ID_PROPERTY> IN [...]`. NEVER skip Step B. NEVER use a subset of returned IDs. NEVER manually filter the tool's output.
+> **ENTITY DISCOVERY VIA `resolve_entity_ids` IS MANDATORY.** Step B MUST call the `resolve_entity_ids` tool before ANY query is constructed. The tool returns the complete, name-verified, authoritative list of entity IDs — use EVERY returned ID in `WHERE node.<ID_PROPERTY> IN [...]`. NEVER skip Step B. NEVER use a subset of returned IDs. NEVER manually filter the tool's output.
+
+> **NEVER SEARCH FOR ENTITIES VIA `query_using_sql_cypher`.** After `resolve_entity_ids` returns `anchor_ids`, those IDs are FINAL. Do NOT call `query_using_sql_cypher` with `CONTAINS` queries on name or attributes to find "more" entities — this causes false positives (matching nodes that MENTION the name rather than nodes that ARE the entity) and produces WRONG counts. The `resolve_entity_ids` tool already handles name verification server-side.
 
 > **NEVER USE `count()`, `sum()`, OR `collect()` INSIDE UNION HALVES.** UNION deduplicates rows, not aggregated values. For "how many" questions, use the **Single-Query Pattern** (Section 4), NOT UNION.
 
@@ -102,30 +104,32 @@ Call the `resolve_entity_ids` tool with:
 The tool returns a JSON object:
 ```json
 {
-  "entity_ids": ["id_1", "id_2", "id_3", ...],
-  "id_count": 3,
-  "node_label": "Councilmember",
-  "search_term": "Larry Klein"
+  "anchor_ids": ["id_1", "id_2", "id_3", ...],
+  "anchor_label": "<DISCOVERED_LABEL>",
+  "name_verified": true,
+  "search_term": "<ORIGINAL_SEARCH_TERM>",
+  "IMPORTANT": "These anchor_ids are name-verified and AUTHORITATIVE..."
 }
 ```
 
-> **CRITICAL RULE: The `entity_ids` array IS your complete entity ID list. Use ALL of them. Do not filter, subset, or judge relevance. The tool already filtered by label and deduplicated. Every returned ID is a valid entity variant that MUST appear in your query.**
+> **CRITICAL RULE: The `anchor_ids` array IS your complete entity ID list. Use ALL of them. Do not filter, subset, or judge relevance. The tool already deduplicated AND verified entity names server-side. Every returned ID is a valid entity variant that MUST appear in your query. When `name_verified: true`, the IDs have been cross-checked against actual entity names — do NOT supplement with additional searches.**
 
 **After calling `resolve_entity_ids`, emit:**
 ```
-VERIFIED_ENTITY_IDS: <copy entity_ids array verbatim from tool response>
-ANCHOR_LABEL: <node_label from tool response>
-ID_COUNT: <id_count from tool response>
+VERIFIED_ENTITY_IDS: <copy anchor_ids array verbatim from tool response>
+ANCHOR_LABEL: <anchor_label from tool response>
+ID_COUNT: <length of anchor_ids>
 ```
 
-These VERIFIED_ENTITY_IDS MUST be used verbatim in your FINAL_SQL `WHERE` clause. Do not add or remove IDs after this point.
+These VERIFIED_ENTITY_IDS MUST be used verbatim in your FINAL_SQL `WHERE` clause. Do not add or remove IDs after this point. **Do NOT call `query_using_sql_cypher` to search for additional entities.**
 
 **MANDATORY RULES FOR STEP B:**
 1. You MUST call the `resolve_entity_ids` tool. Do NOT manually query `search_graph_nodes` and filter results yourself.
-2. The tool's `entity_ids` array is authoritative — take every element, no exceptions.
+2. The tool's `anchor_ids` array is authoritative — take every element, no exceptions.
 3. Once VERIFIED_ENTITY_IDS are emitted, you MUST use `WHERE node.<ID_PROPERTY> IN [<all IDs>]` in ALL subsequent queries.
 4. ID_COUNT from the tool response must equal the number of IDs in your `IN [...]` list. If they differ, your output is INVALID.
 5. If you are retrying after a failed query, re-use the SAME VERIFIED_ENTITY_IDS — do NOT re-discover or change the list.
+6. **NEVER call `query_using_sql_cypher` with a `CONTAINS` or `=~` query to search for entities.** This includes searches on `payload.name`, `payload.attributes`, or any other field. The `resolve_entity_ids` tool performs name-verified search server-side. Running your own Cypher search WILL return false positives (nodes that MENTION the entity in their text, not nodes that ARE the entity) and produce WRONG aggregate results (e.g., counting events for N unrelated entities instead of the 1 requested).
 
 **Fallback:** If `resolve_entity_ids` is not available or returns an error, fall back to calling `search_graph_nodes` via `query_using_sql_cypher`:
 ```sql
@@ -139,7 +143,9 @@ Use EVERY row returned — do not filter.
 
 #### Step B.3 — Direct Cypher Fallback (ONLY when FTS returns ZERO results)
 
-> **GUARD: Skip this step entirely if `resolve_entity_ids` or `search_graph_nodes` already returned one or more entity IDs.** This step exists ONLY for cases where full-text search fails (e.g., numeric IDs, codes, abbreviations). If you already have VERIFIED_ENTITY_IDS from Step B.2, proceed directly to Step C.
+> **HARD GUARD: If `resolve_entity_ids` returned one or more entity IDs, SKIP Step B.3 ENTIRELY and go to Step C.** Do NOT run ANY additional `query_using_sql_cypher` calls to search for entities. Do NOT run Cypher `CONTAINS` queries on name or attributes. The `resolve_entity_ids` tool already performs name-verified entity resolution — its output is the ONLY source of entity IDs. Running your own entity searches causes false positives (matching nodes that MENTION the search term in their text rather than nodes that ARE the entity) and produces WRONG aggregation results.
+
+> This step exists ONLY for the rare case where full-text search fails completely (e.g., numeric IDs, codes, abbreviations). If you already have VERIFIED_ENTITY_IDS from Step B.2, proceed directly to Step C.
 
 If BOTH `search_graph_nodes` and `resolve_entity_ids` return **zero results** (including after shortened-term retries), the search term may be a numeric ID, code, or abbreviation that full-text search cannot match. **Do NOT report failure yet.** Instead, try a direct Cypher property search against the most likely label from the ontology:
 
@@ -396,9 +402,9 @@ RETURN count(m) AS total_count
 
 ### Pattern E: Anchor-Only Source Analysis (when answer is in anchor's own sources)
 
-**CRITICAL: Source Deduplication.** When multiple entity variants are matched (e.g., "Mayor Larry Klein" + "Councilmember Larry Klein"), their `payload.sources` arrays may overlap. Without deduplication, overlapping sources are counted multiple times, producing WRONG totals (e.g., 63 instead of 51).
+**CRITICAL: Source Deduplication.** When multiple entity variants are matched (e.g., "Title FirstName LastName" + "Role FirstName LastName"), their `payload.sources` arrays may overlap. Without deduplication, overlapping sources are counted multiple times, producing WRONG totals.
 
-**THIS PATTERN IS MANDATORY for "how many meetings/events did X attend" questions when using anchor-only sources.** Always use `collect(DISTINCT src)` to eliminate duplicates.
+**THIS PATTERN IS MANDATORY for "how many" questions using anchor-only sources.** Always use `collect(DISTINCT src)` to eliminate duplicates.
 
 ```cypher
 MATCH (a:<ANCHOR_LABEL>)

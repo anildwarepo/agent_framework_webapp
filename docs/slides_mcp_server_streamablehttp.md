@@ -32,10 +32,12 @@
 
 ### Why streaming matters for agentic workloads
 
-1. **Long-running graph queries** — Cypher over PostgreSQL/AGE can take 5-30s; push progress % as rows are scanned
-2. **Multi-step tool chains** — Agent calls tool A then tool B; surface intermediate results immediately
-3. **Human-in-the-loop** — Push "I'm about to delete 200 records — confirm?" before tool completes
-4. **Live status dashboards** — Show which tool is active, what stage, estimated completion
+1. **Long-running tool calls** — Database queries, API calls, or file processing that take seconds to minutes; push progress % as work proceeds
+2. **Multi-step tool chains** — Agent calls tool A then tool B; surface intermediate results immediately so the user isn't staring at a spinner
+3. **Human-in-the-loop** — Push "I'm about to perform a destructive action — confirm?" before the tool completes
+4. **Live status dashboards** — Show which tool is active, what stage it's in, and estimated time to completion
+
+![Streaming Use Cases — High-Level Architecture](slide3_streaming_architecture.svg)
 
 ### Example: `analyze_graph_statistics` — a streaming-native tool
 

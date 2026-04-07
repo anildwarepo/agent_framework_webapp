@@ -142,23 +142,12 @@ async def sse_events(request: Request):
             if await request.is_disconnected():
                 break
             try:
-                # wait up to heartbeat interval for next message
-                #msg = await asyncio.wait_for(session.q.get(), timeout=heartbeat_every)
-                try:
-                    msg = session.q.get_nowait()
-                    print(f"[@app.get(/events)] MCP CLIENT SSE YIELD session={session_id} msg={msg}...", flush=True)
-                except asyncio.QueueEmpty:
-                    yield "event: noevent\ndata: {}\n\n"
-                    await asyncio.sleep(heartbeat_every)
-                    continue
-                #msg = sse_event(payload, event="assistant")
-                print(f"[@app.get(/events)] SSE YIELD {msg}")
+                msg = await asyncio.wait_for(session.q.get(), timeout=heartbeat_every)
+                print(f"[@app.get(/events)] SSE YIELD session={session_id} msg={msg}...", flush=True)
                 yield msg
-                #await asyncio.sleep(5)
-                #session.q.task_done()
             except asyncio.TimeoutError:
-                # heartbeat (SSE comment doesn't disturb clients)
-                yield "server version 1.0: ping\n\n"
+                # heartbeat — SSE comment keeps the connection alive without triggering client events
+                yield ": heartbeat\n\n"
 
     return StreamingResponse(
         event_stream(),

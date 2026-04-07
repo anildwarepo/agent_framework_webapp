@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 420" font-family="Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#555"/>
+    </marker>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#2563eb"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#16a34a"/>
+    </marker>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="420" rx="12" fill="url(#bg)" stroke="#cbd5e1" stroke-width="1.5"/>
+
+  <!-- Title -->
+  <text x="450" y="36" text-anchor="middle" font-size="18" font-weight="700" fill="#1e293b">Streaming Architecture — Agent Backend → MCP Server → Backend Services</text>
+
+  <!-- ─── Browser / Client ─── -->
+  <rect x="30" y="140" width="160" height="140" rx="10" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="110" y="170" text-anchor="middle" font-size="14" font-weight="600" fill="#334155">Browser / Client</text>
+  <text x="110" y="195" text-anchor="middle" font-size="11" fill="#64748b">Chat UI</text>
+  <text x="110" y="215" text-anchor="middle" font-size="11" fill="#64748b">SSE listener</text>
+  <text x="110" y="235" text-anchor="middle" font-size="11" fill="#64748b">Progress indicators</text>
+  <rect x="55" y="248" width="110" height="22" rx="4" fill="#e0f2fe" stroke="#7dd3fc" stroke-width="1"/>
+  <text x="110" y="263" text-anchor="middle" font-size="10" fill="#0369a1">GET /events (SSE)</text>
+
+  <!-- ─── Agent Backend ─── -->
+  <rect x="270" y="80" width="180" height="260" rx="10" fill="#eff6ff" stroke="#3b82f6" stroke-width="2"/>
+  <text x="360" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#1e40af">Agent Backend</text>
+  <rect x="290" y="122" width="140" height="28" rx="5" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+  <text x="360" y="141" text-anchor="middle" font-size="11" fill="#1e40af">LLM / Orchestrator</text>
+  <rect x="290" y="160" width="140" height="28" rx="5" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+  <text x="360" y="179" text-anchor="middle" font-size="11" fill="#1e40af">MCP Client</text>
+  <rect x="290" y="198" width="140" height="28" rx="5" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+  <text x="360" y="217" text-anchor="middle" font-size="11" fill="#1e40af">SSE Bus (Redis)</text>
+  <rect x="290" y="236" width="140" height="28" rx="5" fill="#dbeafe" stroke="#93c5fd" stroke-width="1"/>
+  <text x="360" y="255" text-anchor="middle" font-size="11" fill="#1e40af">Session Manager</text>
+  <!-- Streaming callout -->
+  <rect x="282" y="278" width="156" height="48" rx="6" fill="#fef9c3" stroke="#facc15" stroke-width="1.5"/>
+  <text x="360" y="296" text-anchor="middle" font-size="10" font-weight="600" fill="#854d0e">Real-time streaming</text>
+  <text x="360" y="312" text-anchor="middle" font-size="10" fill="#854d0e">progress → SSE → browser</text>
+
+  <!-- ─── MCP Server ─── -->
+  <rect x="530" y="80" width="160" height="260" rx="10" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+  <text x="610" y="108" text-anchor="middle" font-size="14" font-weight="700" fill="#166534">MCP Server</text>
+  <rect x="548" y="122" width="124" height="28" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+  <text x="610" y="141" text-anchor="middle" font-size="11" fill="#166534">POST /mcp router</text>
+  <rect x="548" y="160" width="124" height="28" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+  <text x="610" y="179" text-anchor="middle" font-size="11" fill="#166534">@tool registry</text>
+  <rect x="548" y="198" width="124" height="28" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+  <text x="610" y="217" text-anchor="middle" font-size="11" fill="#166534">Elicitations</text>
+  <rect x="548" y="236" width="124" height="28" rx="5" fill="#dcfce7" stroke="#86efac" stroke-width="1"/>
+  <text x="610" y="255" text-anchor="middle" font-size="11" fill="#166534">Notifications</text>
+  <!-- SSE callout -->
+  <rect x="542" y="278" width="136" height="48" rx="6" fill="#fef9c3" stroke="#facc15" stroke-width="1.5"/>
+  <text x="610" y="296" text-anchor="middle" font-size="10" font-weight="600" fill="#854d0e">ctx.info() / progress</text>
+  <text x="610" y="312" text-anchor="middle" font-size="10" fill="#854d0e">→ SSE notifications</text>
+
+  <!-- ─── Backend Services ─── -->
+  <rect x="760" y="90" width="110" height="46" rx="8" fill="#faf5ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="815" y="118" text-anchor="middle" font-size="11" font-weight="600" fill="#6b21a8">Databases</text>
+
+  <rect x="760" y="152" width="110" height="46" rx="8" fill="#faf5ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="815" y="180" text-anchor="middle" font-size="11" font-weight="600" fill="#6b21a8">APIs / Search</text>
+
+  <rect x="760" y="214" width="110" height="46" rx="8" fill="#faf5ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="815" y="242" text-anchor="middle" font-size="11" font-weight="600" fill="#6b21a8">File Storage</text>
+
+  <rect x="760" y="276" width="110" height="46" rx="8" fill="#faf5ff" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="815" y="304" text-anchor="middle" font-size="11" font-weight="600" fill="#6b21a8">Auth / Identity</text>
+
+  <!-- ─── Arrows: Browser ↔ Agent Backend ─── -->
+  <line x1="190" y1="190" x2="268" y2="190" stroke="#555" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <text x="229" y="183" text-anchor="middle" font-size="9" fill="#64748b">HTTP / SSE</text>
+
+  <!-- ─── Arrows: Agent Backend ↔ MCP Server ─── -->
+  <line x1="450" y1="175" x2="528" y2="175" stroke="#2563eb" stroke-width="2" marker-end="url(#arrow-blue)"/>
+  <text x="489" y="168" text-anchor="middle" font-size="9" font-weight="600" fill="#2563eb">tools/call</text>
+
+  <line x1="528" y1="210" x2="450" y2="210" stroke="#16a34a" stroke-width="2" stroke-dasharray="6 3" marker-end="url(#arrow-green)"/>
+  <text x="489" y="228" text-anchor="middle" font-size="9" font-weight="600" fill="#16a34a">SSE notifications</text>
+
+  <!-- ─── Arrows: MCP Server → Backend Services ─── -->
+  <line x1="690" y1="140" x2="758" y2="115" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="690" y1="175" x2="758" y2="175" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="690" y1="210" x2="758" y2="237" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="690" y1="255" x2="758" y2="295" stroke="#a855f7" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- ─── Legend ─── -->
+  <rect x="30" y="370" width="840" height="40" rx="6" fill="#fff" stroke="#e2e8f0" stroke-width="1"/>
+  <line x1="60" y1="390" x2="100" y2="390" stroke="#2563eb" stroke-width="2"/>
+  <text x="108" y="394" font-size="11" fill="#334155">Request (tools/call)</text>
+  <line x1="250" y1="390" x2="290" y2="390" stroke="#16a34a" stroke-width="2" stroke-dasharray="6 3"/>
+  <text x="298" y="394" font-size="11" fill="#334155">SSE streaming notifications</text>
+  <line x1="500" y1="390" x2="540" y2="390" stroke="#a855f7" stroke-width="1.5"/>
+  <text x="548" y="394" font-size="11" fill="#334155">Backend service calls</text>
+  <rect x="700" y="381" width="16" height="16" rx="3" fill="#fef9c3" stroke="#facc15" stroke-width="1"/>
+  <text x="724" y="394" font-size="11" fill="#334155">Streaming callout</text>
+</svg>
